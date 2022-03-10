@@ -2,5 +2,9 @@
   <PropertyGroup>
     <RootNamespace>MartinCostello.DependabotHelper</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>DependabotHelper</UserSecretsId>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+  </ItemGroup>
 </Project>

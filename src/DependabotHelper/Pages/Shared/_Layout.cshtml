@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Dependabot Helper</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="shortcut icon" type="image/x-icon" href="~/favicon.png" asp-append-version="true" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Dependabot Helper</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#site-navbar" aria-controls="site-navbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="site-navbar">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="~/" title="Manage Updates">Manage</a>
+                    </li>
+                </ul>
+                @if (User.Identity!.IsAuthenticated)
+                {
+                    <form action="~/sign-out" method="post" class="navbar-right">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li>
+                                @{
+                                    string displayName = User.GetUserName();
+                                    string profileUrl = User.GetProfileUrl();
+                                    string? avatarUrl = User.GetAvatarUrl();
+                                }
+                                <a class="nav-link" href="@profileUrl" title="GitHub Profile" target="_blank">
+                                    <span id="user-name">@displayName</span>
+                                    @if (!string.IsNullOrWhiteSpace(avatarUrl))
+                                    {
+                                        <img src="@avatarUrl" class="user-profile" alt="@displayName" title="@displayName" aria-hidden="true" />
+                                    }
+                                </a>
+                            </li>
+                            <li>
+                                <button type="submit" class="btn btn-link navbar-btn nav-link" title="Sign out" id="sign-out">
+                                    Sign out
+                                    <i class="fa fa-sign-out" aria-hidden="true"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </form>
+                }
+            </div>
+        </div>
+    </nav>
+    <main class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello</p>
+        </footer>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.slim.min.js" integrity="sha512-6ORWJX/LrnSjBzwefdNUyLCMTIsGoNP6NftMy2UAm1JBm6PRZCO1d7OHBStWpVFZLO+RerTvqX/Z9mBFfCJZ4A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+</body>
+</html>

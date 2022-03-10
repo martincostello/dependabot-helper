@@ -1,0 +1,28 @@
+@page "/"
+@model IndexModel
+
+@{
+    ViewData["Title"] = "Manage";
+}
+
+@if (!User.Identity!.IsAuthenticated)
+{
+    <h1>Dependabot Helper</h1>
+    <hr />
+    <p class="lead">
+        Sign in with your GitHub account to manage your Dependabot updates.
+    </p>
+    <form action="~/sign-in" method="post">
+        <button class="btn btn-lg btn-primary m-1" id="sign-in" type="submit">Sign in</button>
+    </form>
+}
+else
+{
+    <h1>
+        Manage
+    </h1>
+
+    <div class="alert alert-warning lead" id="banner" role="alert">
+        TODO
+    </div>
+}
