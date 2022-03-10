@@ -18,7 +18,7 @@ updates:
     - "martincostello"
   open-pull-requests-limit: 99
 - package-ecosystem: npm
-  directory: "/src/CHANGE_ME"
+  directory: "/src/DependabotHelper"
   schedule:
     interval: daily
     time: "05:30"

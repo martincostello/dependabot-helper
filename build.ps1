@@ -129,26 +129,17 @@ function DotNetPublish {
     }
 }
 
-$packageProjects = @(
-    (Join-Path $solutionPath "src" "CHANGE_ME" "CHANGE_ME.csproj")
-)
-
 $publishProjects = @(
-    (Join-Path $solutionPath "src" "CHANGE_ME" "CHANGE_ME.csproj")
+    (Join-Path $solutionPath "src" "DependabotHelper" "DependabotHelper.csproj")
 )
 
 $testProjects = @(
-    (Join-Path $solutionPath "tests" "CHANGE_ME.Tests" "CHANGE_ME.Tests.csproj")
+    (Join-Path $solutionPath "tests" "DependabotHelper.Tests" "DependabotHelper.Tests.csproj")
 )
 
 Write-Host "Publishing solution..." -ForegroundColor Green
 ForEach ($project in $publishProjects) {
     DotNetPublish $project $Configuration
-}
-
-Write-Host "Packaging libraries..." -ForegroundColor Green
-ForEach ($project in $packageProjects) {
-    DotNetPack $project $Configuration
 }
 
 if ($SkipTests -eq $false) {
