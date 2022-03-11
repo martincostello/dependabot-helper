@@ -22,54 +22,63 @@ else
         Manage
     </h1>
 
-    @foreach (var owner in Model.Owners)
+    @if (Model.Owners.Count < 1)
     {
-        <h2>@owner.Name</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Repository</th>
-                    <th>Pending</th>
-                    <th>Failed</th>
-                    <th>Successful</th>
-                    <th>Approved</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var repository in owner.Repositories)
-            {
-                <tr>
-                    <td>
-                        <a href="@repository.HtmlUrl" target="_blank">@repository.Name</a>
-                    </td>
-                    <td>
-                        @repository.Pending.Count
-                        <span class="fa-solid fa-spinner text-warning"></span>
-                    </td>
-                    <td>
-                        @repository.Error.Count
-                        <span class="fa-solid fa-xmark text-danger"></span>
-                    </td>
-                    <td>
-                        @repository.Success.Count
-                        <span class="fa-solid fa-check text-success"></span>
-                    </td>
-                    <td>
-                        @repository.Approved.Count
-                        <span class="fa-solid fa-thumbs-up text-primary"></span>
-                    </td>
-                    <td>
-                        <form action="~/" method="post">
-                            <input type="hidden" name="Owner" value="@owner.Name" />
-                            <input type="hidden" name="Repository" value="@repository.Name" />
-                            <button class="btn btn-success btn-merge" type="submit">Merge</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
+        <div class="alert alert-success" role="alert">
+            There are no open Dependabot pull requests that can be actioned.
+        </div>
+    }
+    else
+    {
+        @foreach (var owner in Model.Owners)
+        {
+            <h2>@owner.Name</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Repository</th>
+                        <th>Pending</th>
+                        <th>Failed</th>
+                        <th>Successful</th>
+                        <th>Approved</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var repository in owner.Repositories)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@repository.HtmlUrl" target="_blank">@repository.Name</a>
+                            </td>
+                            <td>
+                                @repository.Pending.Count
+                                <span class="fa-solid fa-spinner text-warning"></span>
+                            </td>
+                            <td>
+                                @repository.Error.Count
+                                <span class="fa-solid fa-xmark text-danger"></span>
+                            </td>
+                            <td>
+                                @repository.Success.Count
+                                <span class="fa-solid fa-check text-success"></span>
+                            </td>
+                            <td>
+                                @repository.Approved.Count
+                                <span class="fa-solid fa-thumbs-up text-primary"></span>
+                            </td>
+                            <td>
+                                <form action="~/" method="post">
+                                    <input type="hidden" name="Owner" value="@owner.Name" />
+                                    <input type="hidden" name="Repository" value="@repository.Name" />
+                                    <button class="btn btn-success btn-merge" type="submit">Merge</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     }
 
     @if (Model.RateLimitRemaining.HasValue)

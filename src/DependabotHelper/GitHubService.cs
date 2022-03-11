@@ -68,8 +68,8 @@ public sealed class GitHubService
             {
                 var repoModel = new RepositoryViewModel()
                 {
-                    Id = repository.Id,
                     HtmlUrl = repository.HtmlUrl + "/pulls",
+                    Id = repository.Id,
                     Name = repository.Name,
                 };
 
@@ -78,10 +78,16 @@ public sealed class GitHubService
                     repository.Name,
                     fetchStatuses: true);
 
-                ownerModel.Repositories.Add(repoModel);
+                if (repoModel.All.Count > 0)
+                {
+                    ownerModel.Repositories.Add(repoModel);
+                }
             }
 
-            result.Add(ownerModel);
+            if (ownerModel.Repositories.Count > 0)
+            {
+                result.Add(ownerModel);
+            }
         }
 
         return result;
