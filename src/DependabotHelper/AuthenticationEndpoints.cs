@@ -122,17 +122,13 @@ public static class AuthenticationEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapAuthenticationRoutes(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet(DeniedPath, () => Results.Redirect(RootPath + "?denied=true"))
-               .ExcludeFromDescription();
+        builder.MapGet(DeniedPath, () => Results.Redirect(RootPath + "?denied=true"));
 
-        builder.MapGet(SignOutPath, () => Results.Redirect(RootPath))
-               .ExcludeFromDescription();
+        builder.MapGet(SignOutPath, () => Results.Redirect(RootPath));
 
-        builder.MapPost(SignInPath, () => Results.Challenge(new() { RedirectUri = RootPath }, new[] { GitHubAuthenticationDefaults.AuthenticationScheme }))
-               .ExcludeFromDescription();
+        builder.MapPost(SignInPath, () => Results.Challenge(new() { RedirectUri = RootPath }, new[] { GitHubAuthenticationDefaults.AuthenticationScheme }));
 
         builder.MapPost(SignOutPath, () => Results.SignOut(new() { RedirectUri = RootPath }, new[] { CookieAuthenticationDefaults.AuthenticationScheme }))
-               .ExcludeFromDescription()
                .RequireAuthorization();
 
         return builder;

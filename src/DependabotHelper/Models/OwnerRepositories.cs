@@ -3,9 +3,9 @@
 
 namespace MartinCostello.DependabotHelper.Models;
 
-public sealed class OwnerViewModel
+public sealed class OwnerRepositories
 {
     public string Name { get; set; } = default!;
 
-    public IList<RepositoryViewModel> Repositories { get; set; } = new List<RepositoryViewModel>();
+    public IList<Repository> Repositories { get; set; } = new List<Repository>();
 }

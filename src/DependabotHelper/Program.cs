@@ -4,6 +4,7 @@
 #pragma warning disable SA1516
 
 using MartinCostello.DependabotHelper;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,12 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddOptions();
 builder.Services.Configure<DependabotOptions>(builder.Configuration.GetSection("Dependabot"));
+
+builder.Services.Configure<JsonOptions>((options) =>
+{
+    options.SerializerOptions.WriteIndented = true;
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
 
 if (string.Equals(builder.Configuration["CODESPACES"], "true", StringComparison.OrdinalIgnoreCase))
 {
@@ -43,6 +50,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthenticationRoutes();
+app.MapGitHubRoutes();
 
 app.MapRazorPages();
 

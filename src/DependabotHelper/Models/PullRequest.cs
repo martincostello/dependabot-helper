@@ -3,7 +3,7 @@
 
 namespace MartinCostello.DependabotHelper.Models;
 
-public sealed class PullRequestViewModel
+public sealed class PullRequest
 {
     public string HtmlUrl { get; set; } = default!;
 

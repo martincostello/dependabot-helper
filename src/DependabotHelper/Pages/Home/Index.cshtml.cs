@@ -20,7 +20,7 @@ public class IndexModel : PageModel
         _service = service;
     }
 
-    public IList<OwnerViewModel> Owners { get; set; } = Array.Empty<OwnerViewModel>();
+    public IList<OwnerRepositories> Owners { get; set; } = Array.Empty<OwnerRepositories>();
 
     public int? RateLimitRemaining { get; set; }
 
@@ -36,11 +36,11 @@ public class IndexModel : PageModel
             {
                 Owners = await _service.GetRepositoriesAsync();
 
-                if (_service.GetRateLimit() is { } rateLimit)
+                if (await _service.GetRateLimitsAsync() is { } rateLimit)
                 {
                     RateLimitTotal = rateLimit.Limit;
                     RateLimitRemaining = rateLimit.Remaining;
-                    RateLimitResets = rateLimit.Reset?.Humanize();
+                    RateLimitResets = rateLimit.ResetsAt.Humanize();
                 }
             }
             catch (Octokit.AuthorizationException)

@@ -28,11 +28,20 @@ public sealed class GitHubService
         _options = options.Value;
     }
 
-    public (int? Remaining, int? Limit, DateTimeOffset? Reset) GetRateLimit()
+    public async Task<RateLimits?> GetRateLimitsAsync()
     {
         var appInfo = _client.GetLastApiInfo();
 
-        if (appInfo.RateLimit is { } rateLimit)
+        if (appInfo is null)
+        {
+            // Force an API request to get the rate limits
+            _ = await _client.User.Current();
+            appInfo = _client.GetLastApiInfo();
+        }
+
+        var result = new RateLimits();
+
+        if (appInfo?.RateLimit is { } rateLimit)
         {
             _logger.LogInformation(
                 "GitHub API rate limit {Remaining}/{Limit}. Rate limit resets at {Reset:u}.",
@@ -40,15 +49,17 @@ public sealed class GitHubService
                 rateLimit.Limit,
                 rateLimit.Reset);
 
-            return (rateLimit.Remaining, rateLimit.Limit, rateLimit.Reset);
+            result.Limit = rateLimit.Limit;
+            result.Remaining = rateLimit.Remaining;
+            result.ResetsAt = rateLimit.Reset;
         }
 
-        return default;
+        return result;
     }
 
-    public async Task<IList<OwnerViewModel>> GetRepositoriesAsync()
+    public async Task<IList<OwnerRepositories>> GetRepositoriesAsync()
     {
-        var result = new List<OwnerViewModel>();
+        var result = new List<OwnerRepositories>();
 
         foreach (var (owner, names) in _options.Repositories)
         {
@@ -59,14 +70,14 @@ public sealed class GitHubService
                 continue;
             }
 
-            var ownerModel = new OwnerViewModel()
+            var ownerModel = new OwnerRepositories()
             {
                 Name = repositories[0].Owner.Login,
             };
 
             foreach (var repository in repositories)
             {
-                var repoModel = new RepositoryViewModel()
+                var repoModel = new Models.Repository()
                 {
                     HtmlUrl = repository.HtmlUrl + "/pulls",
                     Id = repository.Id,
@@ -147,12 +158,12 @@ public sealed class GitHubService
             .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) });
     }
 
-    private async Task<IList<PullRequestViewModel>> GetPullRequestsAsync(
+    private async Task<IList<Models.PullRequest>> GetPullRequestsAsync(
         string owner,
         string name,
         bool fetchStatuses)
     {
-        var result = new List<PullRequestViewModel>();
+        var result = new List<Models.PullRequest>();
 
         foreach (string user in _options.Users)
         {
@@ -381,11 +392,11 @@ public sealed class GitHubService
         return status ?? ChecksStatus.Pending;
     }
 
-    private async Task<IReadOnlyList<Repository>> GetRepositoriesAsync(
+    private async Task<IReadOnlyList<Octokit.Repository>> GetRepositoriesAsync(
         string owner,
         ICollection<string> repositories)
     {
-        var repos = new List<Repository>();
+        var repos = new List<Octokit.Repository>();
 
         _logger.LogInformation("Fetching {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
@@ -399,7 +410,7 @@ public sealed class GitHubService
         return repos.OrderBy((p) => p.Name).ToList();
     }
 
-    private async Task<Repository> GetRepositoryAsync(string owner, string name)
+    private async Task<Octokit.Repository> GetRepositoryAsync(string owner, string name)
     {
         return await _cache.GetOrCreateAsync($"repo:{owner}/{name}", async (entry) =>
         {
