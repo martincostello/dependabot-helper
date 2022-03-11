@@ -5,6 +5,7 @@ using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Octokit;
+using Polly;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -107,22 +108,34 @@ public sealed class GitHubService
             _options.Users,
             fetchStatuses: false);
 
-        foreach (var pr in mergeCandidates)
+        if (mergeCandidates.Count > 0)
         {
-            try
+            var policy = CreateMergePolicy();
+
+            foreach (var pr in mergeCandidates)
             {
-                await _client.PullRequest.Merge(owner, name, pr.Number, mergeRequest);
-            }
-            catch (ApiException ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Could not merge pull request {Owner}/{Repository}#{Number}",
-                    pr.RepositoryOwner,
-                    pr.RepositoryName,
-                    pr.Number);
+                try
+                {
+                    await policy.ExecuteAsync(() => _client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
+                }
+                catch (ApiException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Could not merge pull request {Owner}/{Repository}#{Number}",
+                        pr.RepositoryOwner,
+                        pr.RepositoryName,
+                        pr.Number);
+                }
             }
         }
+    }
+
+    private static AsyncPolicy CreateMergePolicy()
+    {
+        return Policy
+            .Handle<PullRequestNotMergeableException>()
+            .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) });
     }
 
     private async Task<IList<PullRequestViewModel>> GetPullRequestsAsync(
