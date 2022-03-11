@@ -5,6 +5,7 @@
 
 using Humanizer;
 using MartinCostello.DependabotHelper.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -31,13 +32,21 @@ public class IndexModel : PageModel
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            Owners = await _service.GetRepositoriesAsync();
-
-            if (_service.GetRateLimit() is { } rateLimit)
+            try
             {
-                RateLimitTotal = rateLimit.Limit;
-                RateLimitRemaining = rateLimit.Remaining;
-                RateLimitResets = rateLimit.Reset?.Humanize();
+                Owners = await _service.GetRepositoriesAsync();
+
+                if (_service.GetRateLimit() is { } rateLimit)
+                {
+                    RateLimitTotal = rateLimit.Limit;
+                    RateLimitRemaining = rateLimit.Remaining;
+                    RateLimitResets = rateLimit.Reset?.Humanize();
+                }
+            }
+            catch (Octokit.AuthorizationException)
+            {
+                // Sign the user out if the credentials are invalid/expired
+                await HttpContext.SignOutAsync();
             }
         }
     }
