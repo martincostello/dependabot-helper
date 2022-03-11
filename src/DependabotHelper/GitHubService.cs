@@ -57,6 +57,25 @@ public sealed class GitHubService
         return result;
     }
 
+    public async Task<Models.Repository> GetPullRequestsAsync(string owner, string name)
+    {
+        var repository = await GetRepositoryAsync(owner, name);
+
+        var result = new Models.Repository()
+        {
+            HtmlUrl = repository.HtmlUrl + "/pulls",
+            Id = repository.Id,
+            Name = repository.Name,
+        };
+
+        result.All = await GetPullRequestsAsync(
+            owner,
+            repository.Name,
+            fetchStatuses: true);
+
+        return result;
+    }
+
     public async Task<IList<OwnerRepositories>> GetRepositoriesAsync()
     {
         var result = new List<OwnerRepositories>();
@@ -77,17 +96,7 @@ public sealed class GitHubService
 
             foreach (var repository in repositories)
             {
-                var repoModel = new Models.Repository()
-                {
-                    HtmlUrl = repository.HtmlUrl + "/pulls",
-                    Id = repository.Id,
-                    Name = repository.Name,
-                };
-
-                repoModel.All = await GetPullRequestsAsync(
-                    owner,
-                    repository.Name,
-                    fetchStatuses: true);
+                var repoModel = await GetPullRequestsAsync(owner, repository.Name);
 
                 if (repoModel.All.Count > 0)
                 {

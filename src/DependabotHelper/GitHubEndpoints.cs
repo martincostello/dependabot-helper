@@ -3,6 +3,9 @@
 
 namespace MartinCostello.DependabotHelper;
 
+/// <summary>
+/// A class containing the HTTP endpoints and extension methods for GitHub.
+/// </summary>
 public static class GitHubEndpoints
 {
     /// <summary>
@@ -14,12 +17,14 @@ public static class GitHubEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/github/rate-limits", async (GitHubService service) => await service.GetRateLimitsAsync())
-               .RequireAuthorization();
+        builder.MapGet("/github/rate-limits", async (GitHubService service) =>
+        {
+            return await service.GetRateLimitsAsync();
+        }).RequireAuthorization();
 
         builder.MapGet("/github/repos/{owner}/{name}/pulls", async (string owner, string name, GitHubService service) =>
         {
-            return await service.GetRepositoriesAsync();
+            return await service.GetPullRequestsAsync(owner, name);
         }).RequireAuthorization();
 
         builder.MapPost("/github/repos/{owner}/{name}/pulls/merge", async (string owner, string name, GitHubService service) =>
