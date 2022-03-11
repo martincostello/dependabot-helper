@@ -22,6 +22,9 @@ export class RepositoryElement {
     private readonly mergeButton: Element;
     private readonly refreshButton: Element;
 
+    private onMergeHandler: (owner: string, name: string) => Promise<void>;
+    private onRefreshHandler: (owner: string, name: string) => Promise<void>;
+
     constructor(owner: string, name: string, element: Element) {
 
         this.owner = owner;
@@ -39,30 +42,81 @@ export class RepositoryElement {
         this.mergeButton = this.container.querySelector(Selectors.mergePullRequests);
         this.refreshButton = this.container.querySelector(Selectors.refreshPullRequests);
 
+        this.mergeButton.addEventListener('click', async () => {
+            if (this.onMergeHandler) {
+                try {
+                    this.disable(this.mergeButton);
+                    this.showLoader(this.mergeButton);
+                    await this.onMergeHandler(this.owner, this.name);
+                } catch (err) {
+                    throw err;
+                } finally {
+                    this.hideLoader(this.mergeButton);
+                }
+            }
+        });
+
+        this.refreshButton.addEventListener('click', async () => {
+            if (this.onRefreshHandler) {
+                try {
+                    this.disable(this.refreshButton);
+                    this.showLoader(this.refreshButton);
+                    await this.onRefreshHandler(this.owner, this.name);
+                } catch (err) {
+                    throw err;
+                } finally {
+                    this.hideLoader(this.refreshButton);
+                    this.enable(this.refreshButton);
+                }
+            }
+        });
+
         this.repoName.textContent = name;
         this.container.classList.remove(Classes.itemTemplate);
         this.container.classList.remove(Classes.hidden);
+    }
+
+    onMerge(handler: (owner: string, name: string) => Promise<void>) {
+        this.onMergeHandler = handler;
+    }
+
+    onRefresh(handler: (owner: string, name: string) => Promise<void>) {
+        this.onRefreshHandler = handler;
     }
 
     update(repository: Repository): void {
 
         this.repoName.setAttribute('href', repository.htmlUrl);
 
-        this.loader.classList.add(Classes.hidden);
-
         this.approvedCount.textContent = repository.approved.length.toLocaleString();
         this.errorCount.textContent = repository.error.length.toLocaleString();
         this.pendingCount.textContent = repository.pending.length.toLocaleString();
         this.successCount.textContent = repository.success.length.toLocaleString();
 
-        const disabled = 'disabled';
-
         if (repository.all.length > 0) {
-            this.mergeButton.removeAttribute(disabled);
+            this.enable(this.mergeButton);
         } else {
-            this.mergeButton.setAttribute(disabled, '');
+            this.disable(this.mergeButton);
         }
 
-        this.refreshButton.removeAttribute(disabled);
+        this.enable(this.refreshButton);
+
+        this.loader.classList.add(Classes.hidden);
+    }
+
+    private disable(element: Element): void {
+        element.setAttribute('disabled', '');
+    }
+
+    private enable(element: Element): void {
+        element.removeAttribute('disabled');
+    }
+
+    private hideLoader(element: Element): void {
+        element.querySelector(Selectors.loader).classList.add(Classes.hidden);
+    }
+
+    private showLoader(element: Element): void {
+        element.querySelector(Selectors.loader).classList.remove(Classes.hidden);
     }
 }

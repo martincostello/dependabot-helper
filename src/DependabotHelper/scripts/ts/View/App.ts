@@ -53,14 +53,25 @@ export class App {
 
             // Sequentially load the Pull Requests for each repository listed
             for (const element of elements) {
+                this.updateRepository(element);
 
-                const repository = await this.client.getPullRequests(element.owner, element.name);
+                element.onMerge(async (owner, name) => {
+                    await this.client.mergePullRequests(owner, name);
+                    await this.updateRateLimits();
+                    await this.updateRepository(element);
+                });
 
-                element.update(repository);
-
-                await this.updateRateLimits();
+                element.onRefresh(async (_owner, _name) => {
+                    await this.updateRepository(element);
+                });
             }
         }
+    }
+
+    private async updateRepository(element: RepositoryElement): Promise<void> {
+        const repository = await this.client.getPullRequests(element.owner, element.name);
+        element.update(repository);
+        await this.updateRateLimits();
     }
 
     private async updateRateLimits(): Promise<void> {
