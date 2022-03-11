@@ -3,6 +3,7 @@
 
 using System.Security.Claims;
 using AspNet.Security.OAuth.GitHub;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -126,10 +127,29 @@ public static class AuthenticationEndpoints
 
         builder.MapGet(SignOutPath, () => Results.Redirect(RootPath));
 
-        builder.MapPost(SignInPath, () => Results.Challenge(new() { RedirectUri = RootPath }, new[] { GitHubAuthenticationDefaults.AuthenticationScheme }));
+        builder.MapPost(SignInPath, async (HttpContext context, IAntiforgery antiforgery) =>
+        {
+            if (!await antiforgery.IsRequestValidAsync(context))
+            {
+                return Results.Redirect(RootPath);
+            }
 
-        builder.MapPost(SignOutPath, () => Results.SignOut(new() { RedirectUri = RootPath }, new[] { CookieAuthenticationDefaults.AuthenticationScheme }))
-               .RequireAuthorization();
+            return Results.Challenge(
+                new() { RedirectUri = RootPath },
+                new[] { GitHubAuthenticationDefaults.AuthenticationScheme });
+        });
+
+        builder.MapPost(SignOutPath, async (HttpContext context, IAntiforgery antiforgery) =>
+        {
+            if (!await antiforgery.IsRequestValidAsync(context))
+            {
+                return Results.Redirect(RootPath);
+            }
+
+            return Results.SignOut(
+                new() { RedirectUri = RootPath },
+                new[] { CookieAuthenticationDefaults.AuthenticationScheme });
+        });
 
         return builder;
     }

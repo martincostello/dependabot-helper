@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -31,9 +32,21 @@ public static class GitHubEndpoints
             return await service.GetPullRequestsAsync(owner, name);
         }).RequireAuthorization();
 
-        builder.MapPost("/github/repos/{owner}/{name}/pulls/merge", async (string owner, string name, GitHubService service) =>
+        builder.MapPost("/github/repos/{owner}/{name}/pulls/merge", async (
+            string owner,
+            string name,
+            GitHubService service,
+            IAntiforgery antiforgery,
+            HttpContext httpContext) =>
         {
+            if (!await antiforgery.IsRequestValidAsync(httpContext))
+            {
+                return Results.Problem("Invalid CSRF token specified.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
             await service.MergePullRequestsAsync(owner, name);
+
+            return Results.NoContent();
         }).RequireAuthorization();
 
         return builder;

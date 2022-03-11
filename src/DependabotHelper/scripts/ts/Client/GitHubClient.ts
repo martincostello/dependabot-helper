@@ -42,11 +42,15 @@ export class GitHubClient {
 
     async mergePullRequests(owner: string, name: string): Promise<void> {
 
+        const antiforgeryHeader = document.querySelector('meta[name="x-antiforgery-header"]').getAttribute('content');
+        const antiforgeryToken = document.querySelector('meta[name="x-antiforgery-token"]').getAttribute('content');
+
         const payload = {};
 
         const headers = new Headers();
         headers.set('Accept', 'application/json');
         headers.set('Content-Type', 'application/json');
+        headers.set(antiforgeryHeader, antiforgeryToken);
 
         const init = {
             method: 'POST',

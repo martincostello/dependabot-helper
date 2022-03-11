@@ -1,3 +1,4 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,6 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="shortcut icon" type="image/x-icon" href="~/favicon.png" asp-append-version="true" />
+    @{
+        var tokens = Antiforgery.GetTokens(Context);
+    }
+    <meta name="x-antiforgery-header" content="@tokens.HeaderName" />
+    <meta name="x-antiforgery-token" content="@tokens.RequestToken" />
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
