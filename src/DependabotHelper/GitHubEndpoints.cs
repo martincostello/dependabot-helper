@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using System.Security.Claims;
+
 namespace MartinCostello.DependabotHelper;
 
 /// <summary>
@@ -17,6 +19,8 @@ public static class GitHubEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder)
     {
+        builder.MapGet("/github/is-authenticated", (ClaimsPrincipal user) => new { user.Identity?.IsAuthenticated });
+
         builder.MapGet("/github/rate-limits", async (GitHubService service) =>
         {
             return await service.GetRateLimitsAsync();

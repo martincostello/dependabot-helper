@@ -40,7 +40,6 @@ module.exports = {
             'error',
             'any',
             'Number',
-            'number',
             'String',
             'string',
             'Boolean',
