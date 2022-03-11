@@ -28,12 +28,18 @@ public sealed class GitHubService
         _options = options.Value;
     }
 
-    public (int? Remaining, int? Limit, DateTimeOffset? Reset) GetRateLimits()
+    public (int? Remaining, int? Limit, DateTimeOffset? Reset) GetRateLimit()
     {
         var appInfo = _client.GetLastApiInfo();
 
         if (appInfo.RateLimit is { } rateLimit)
         {
+            _logger.LogInformation(
+                "GitHub API rate limit {Remaining}/{Limit}. Rate limit resets at {Reset:u}.",
+                rateLimit.Remaining,
+                rateLimit.Limit,
+                rateLimit.Reset);
+
             return (rateLimit.Remaining, rateLimit.Limit, rateLimit.Reset);
         }
 
@@ -42,8 +48,6 @@ public sealed class GitHubService
 
     public async Task<IList<OwnerViewModel>> GetRepositoriesAsync()
     {
-        var labels = _options.Labels;
-
         var result = new List<OwnerViewModel>();
 
         foreach (var (owner, names) in _options.Repositories)
@@ -70,9 +74,8 @@ public sealed class GitHubService
                 };
 
                 repoModel.All = await GetPullRequestsAsync(
-                    (owner, repository.Name),
-                    labels,
-                    _options.Users,
+                    owner,
+                    repository.Name,
                     fetchStatuses: true);
 
                 ownerModel.Repositories.Add(repoModel);
@@ -103,9 +106,8 @@ public sealed class GitHubService
         }
 
         var mergeCandidates = await GetPullRequestsAsync(
-            (owner, name),
-            _options.Labels,
-            _options.Users,
+            owner,
+            name,
             fetchStatuses: false);
 
         if (mergeCandidates.Count > 0)
@@ -116,13 +118,14 @@ public sealed class GitHubService
             {
                 try
                 {
-                    await policy.ExecuteAsync(() => _client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
+                    await policy.ExecuteAsync(
+                        () => _client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
                 }
                 catch (ApiException ex)
                 {
                     _logger.LogError(
                         ex,
-                        "Could not merge pull request {Owner}/{Repository}#{Number}",
+                        "Could not merge pull request {Owner}/{Repository}#{Number}.",
                         pr.RepositoryOwner,
                         pr.RepositoryName,
                         pr.Number);
@@ -139,37 +142,74 @@ public sealed class GitHubService
     }
 
     private async Task<IList<PullRequestViewModel>> GetPullRequestsAsync(
-        (string Owner, string Name) repo,
-        IEnumerable<string> labels,
-        IEnumerable<string> users,
+        string owner,
+        string name,
         bool fetchStatuses)
     {
         var result = new List<PullRequestViewModel>();
 
-        foreach (string user in users)
+        foreach (string user in _options.Users)
         {
-            var issuesRequest = new RepositoryIssueRequest()
+            var request = new RepositoryIssueRequest()
             {
                 Creator = user,
-                Filter = IssueFilter.All,
+                Filter = IssueFilter.Created,
                 State = ItemStateFilter.Open,
             };
 
-            foreach (string label in labels)
+            foreach (string label in _options.Labels)
             {
-                issuesRequest.Labels.Add(label);
+                request.Labels.Add(label);
             }
 
-            var issues = await _client.Issue.GetAllForRepository(repo.Owner, repo.Name, issuesRequest);
+            _logger.LogInformation(
+                "Finding open issues created by {User} in repository {Owner}/{Name}.",
+                user,
+                owner,
+                name);
 
-            var openPullRequests = issues.Where((p) => p.PullRequest is not null);
+            var issues = await _client.Issue.GetAllForRepository(owner, name, request);
+
+            var openPullRequests = issues
+                .Where((p) => p.PullRequest is not null)
+                .ToList();
+
+            _logger.LogInformation(
+                "Found {Count} open pull requests created by {User} in repository {Owner}/{Name}.",
+                openPullRequests.Count,
+                user,
+                owner,
+                name);
 
             foreach (var issue in openPullRequests)
             {
-                var pr = await _client.PullRequest.Get(repo.Owner, repo.Name, issue.Number);
+                _logger.LogInformation(
+                    "Fetching pull request {Number} from repository {Owner}/{Name}.",
+                    issue.Number,
+                    owner,
+                    name);
 
-                if (pr.Draft || pr.Mergeable == false)
+                var pr = await _client.PullRequest.Get(owner, name, issue.Number);
+
+                if (pr.Draft)
                 {
+                    _logger.LogInformation(
+                        "Ignoring pull request {Number} in repository {Owner}/{Name} because it is in draft.",
+                        issue.Number,
+                        owner,
+                        name);
+
+                    continue;
+                }
+
+                if (!fetchStatuses && pr.Mergeable == false)
+                {
+                    _logger.LogInformation(
+                        "Ignoring pull request {Number} in repository {Owner}/{Name} because it cannot be merged.",
+                        issue.Number,
+                        owner,
+                        name);
+
                     continue;
                 }
 
@@ -178,46 +218,22 @@ public sealed class GitHubService
 
                 if (fetchStatuses)
                 {
-                    var approved = await _client.PullRequest.Review.GetAll(repo.Owner, repo.Name, issue.Number);
-                    isApproved = approved.Any() && approved.All((p) => p.State != PullRequestReviewState.ChangesRequested);
-                    var commitStatus = await _client.Repository.Status.GetCombined(repo.Owner, repo.Name, pr.Head.Sha);
+                    _logger.LogInformation(
+                        "Fetching approvals and statuses for pull request {Number} in repository {Owner}/{Name}.",
+                        issue.Number,
+                        owner,
+                        name);
 
-                    if (commitStatus.TotalCount > 0)
-                    {
-                        status = commitStatus.State.Value switch
-                        {
-                            CommitState.Error or CommitState.Failure => ChecksStatus.Error,
-                            CommitState.Success => ChecksStatus.Success,
-                            _ => ChecksStatus.Pending,
-                        };
-                    }
-                    else
-                    {
-                        var checks = await _client.Check.Suite.GetAllForReference(repo.Owner, repo.Name, pr.Head.Sha);
+                    isApproved = await IsApprovedAsync(owner, name, issue.Number);
+                    status = await GetChecksStatusAsync(owner, name, pr.Head.Sha);
 
-                        if (checks.TotalCount > 0)
-                        {
-                            static bool Success(CheckSuite suite)
-                                => suite.Conclusion is null ||
-                                   suite.Conclusion == CheckConclusion.Success ||
-                                   suite.Conclusion == CheckConclusion.Neutral;
-
-                            static bool Error(CheckSuite suite)
-                                => suite.Conclusion == CheckConclusion.ActionRequired ||
-                                   suite.Conclusion == CheckConclusion.Cancelled ||
-                                   suite.Conclusion == CheckConclusion.Failure ||
-                                   suite.Conclusion == CheckConclusion.TimedOut;
-
-                            if (checks.CheckSuites.All(Success))
-                            {
-                                status = ChecksStatus.Success;
-                            }
-                            else if (checks.CheckSuites.Any(Error))
-                            {
-                                status = ChecksStatus.Error;
-                            }
-                        }
-                    }
+                    _logger.LogInformation(
+                        "Fetched approvals and statuses for pull request {Number} in repository {Owner}/{Name}. Approved: {Approved}; Status: {Status}.",
+                        issue.Number,
+                        owner,
+                        name,
+                        isApproved,
+                        status);
                 }
 
                 result.Add(new()
@@ -225,8 +241,8 @@ public sealed class GitHubService
                     HtmlUrl = issue.HtmlUrl,
                     Number = issue.Number,
                     IsApproved = isApproved,
-                    RepositoryName = repo.Name,
-                    RepositoryOwner = repo.Owner,
+                    RepositoryName = name,
+                    RepositoryOwner = owner,
                     Status = status,
                 });
             }
@@ -235,16 +251,144 @@ public sealed class GitHubService
         return result;
     }
 
+    private async Task<bool> IsApprovedAsync(string owner, string name, int number)
+    {
+        _logger.LogDebug(
+            "Fetching approvals for pull request {Number} in repository {Owner}/{Name}.",
+            number,
+            owner,
+            name);
+
+        var approved = await _client.PullRequest.Review.GetAll(owner, name, number);
+
+        _logger.LogDebug(
+            "Found {Count} approvals for pull request {Number} in repository {Owner}/{Name}.",
+            approved.Count,
+            number,
+            owner,
+            name);
+
+        return approved.Any() && approved.All((p) => p.State != PullRequestReviewState.ChangesRequested);
+    }
+
+    private async Task<ChecksStatus> GetChecksStatusAsync(string owner, string name, string commitSha)
+    {
+        ChecksStatus? status = null;
+
+        _logger.LogDebug(
+            "Fetching combined status for commit {Reference} in repository {Owner}/{Name}.",
+            commitSha,
+            owner,
+            name);
+
+        var combinedCommitStatus = await _client.Repository.Status.GetCombined(owner, name, commitSha);
+
+        _logger.LogDebug(
+            "Found {Count} statuses for commit {Reference} in repository {Owner}/{Name}.",
+            combinedCommitStatus.TotalCount,
+            commitSha,
+            owner,
+            name);
+
+        if (combinedCommitStatus.TotalCount > 0)
+        {
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                foreach (var commitStatus in combinedCommitStatus.Statuses)
+                {
+                    _logger.LogTrace(
+                        "Commit status: Context: {Context}; State: {State}",
+                        commitStatus.Context,
+                        commitStatus.State);
+                }
+            }
+
+            status = combinedCommitStatus.State.Value switch
+            {
+                CommitState.Error or CommitState.Failure => ChecksStatus.Error,
+                CommitState.Success => ChecksStatus.Success,
+                _ => ChecksStatus.Pending,
+            };
+        }
+
+        _logger.LogDebug(
+            "Fetching check suites for commit {Reference} in repository {Owner}/{Name}.",
+            commitSha,
+            owner,
+            name);
+
+        var checkSuitesResponse = await _client.Check.Suite.GetAllForReference(owner, name, commitSha);
+
+        _logger.LogDebug(
+            "Found {Count} check suites for commit {Reference} in repository {Owner}/{Name}.",
+            checkSuitesResponse.TotalCount,
+            commitSha,
+            owner,
+            name);
+
+        // No need to query the check suites if we already know the status is failed
+        if (checkSuitesResponse.TotalCount > 0 && status != ChecksStatus.Error)
+        {
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                foreach (var checkSuite in checkSuitesResponse.CheckSuites)
+                {
+                    _logger.LogTrace(
+                        "Check suite {Name}: Status: {Status}; Conclusion: {Conclusion}",
+                        checkSuite.App.Name,
+                        checkSuite.Status,
+                        checkSuite.Conclusion);
+                }
+            }
+
+            static bool IsError(CheckSuite suite)
+                => suite.Conclusion == CheckConclusion.ActionRequired ||
+                   suite.Conclusion == CheckConclusion.Cancelled ||
+                   suite.Conclusion == CheckConclusion.Failure ||
+                   suite.Conclusion == CheckConclusion.TimedOut;
+
+            // If a check has not run at all consider it successful as it
+            // might not be required to run at all (e.g. an old installation)
+            // as it would otherwise block the Pull Request from being successful.
+            static bool IsSuccess(CheckSuite suite)
+                => suite.Conclusion is null ||
+                   suite.Conclusion == CheckConclusion.Success ||
+                   suite.Conclusion == CheckConclusion.Neutral;
+
+            if (checkSuitesResponse.CheckSuites.All(IsSuccess))
+            {
+                // Success can only be reported if there are no existing
+                // commit statuses or there are no pending commit statuses.
+                status = status switch
+                {
+                    ChecksStatus.Error => ChecksStatus.Error,
+                    ChecksStatus.Pending => ChecksStatus.Pending,
+                    _ => ChecksStatus.Success,
+                };
+            }
+            else if (checkSuitesResponse.CheckSuites.Any(IsError))
+            {
+                status = ChecksStatus.Error;
+            }
+        }
+
+        return status ?? ChecksStatus.Pending;
+    }
+
     private async Task<IReadOnlyList<Repository>> GetRepositoriesAsync(
         string owner,
-        IEnumerable<string> repositories)
+        ICollection<string> repositories)
     {
         var repos = new List<Repository>();
+
+        _logger.LogInformation("Fetching {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
         foreach (string repository in repositories)
         {
             repos.Add(await GetRepositoryAsync(owner, repository));
         }
+
+        _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
         return repos.OrderBy((p) => p.Name).ToList();
     }

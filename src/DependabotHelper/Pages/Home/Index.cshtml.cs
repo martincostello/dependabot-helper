@@ -33,7 +33,7 @@ public class IndexModel : PageModel
         {
             Owners = await _service.GetRepositoriesAsync();
 
-            if (_service.GetRateLimits() is { } rateLimit)
+            if (_service.GetRateLimit() is { } rateLimit)
             {
                 RateLimitTotal = rateLimit.Limit;
                 RateLimitRemaining = rateLimit.Remaining;
