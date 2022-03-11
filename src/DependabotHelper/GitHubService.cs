@@ -29,6 +29,33 @@ public sealed class GitHubService
         _options = options.Value;
     }
 
+    public async Task<IReadOnlyList<string>> GetOwnersAsync()
+    {
+        var self = await _client.User.Current();
+
+        _logger.LogInformation(
+            "Fetching organizations for user {Login}.",
+            self.Login);
+
+        var organizations = await _client.Organization.GetAllForCurrent();
+
+        _logger.LogInformation(
+            "Found {Count} organizations user {Login} has access to.",
+            organizations.Count,
+            self.Login);
+
+        var owners = new List<string>(organizations.Count + 1);
+
+        owners.AddRange(organizations.Select((p) => p.Login));
+
+        owners.Sort();
+
+        // Always list the user themself first
+        owners.Insert(0, self.Login);
+
+        return owners;
+    }
+
     public async Task<RateLimits?> GetRateLimitsAsync()
     {
         var appInfo = _client.GetLastApiInfo();
@@ -78,39 +105,36 @@ public sealed class GitHubService
         return result;
     }
 
-    public async Task<IList<OwnerRepositories>> GetRepositoriesAsync()
+    public async Task<IList<string>> GetRepositoriesAsync(string owner)
     {
-        var result = new List<OwnerRepositories>();
+        _logger.LogInformation("Fetching repositories for owner {Owner}.", owner);
 
-        foreach (var (owner, names) in _options.Repositories)
+        var result = await _cache.GetOrCreateAsync($"repos:{owner}", async (entry) =>
         {
-            var repositories = await GetRepositoriesAsync(owner, names);
+            var user = await _client.User.Get(owner);
 
-            if (repositories.Count < 1)
+            IReadOnlyList<Octokit.Repository> repos;
+
+            if (user.Type == AccountType.Organization)
             {
-                continue;
+                repos = await _client.Repository.GetAllForOrg(owner);
+            }
+            else
+            {
+                repos = await _client.Repository.GetAllForUser(owner);
             }
 
-            var ownerModel = new OwnerRepositories()
-            {
-                Name = repositories[0].Owner.Login,
-            };
+            var names = repos
+                .Select((p) => p.Name)
+                .OrderBy((p) => p)
+                .ToList();
 
-            foreach (var repository in repositories)
-            {
-                var repoModel = await GetPullRequestsAsync(owner, repository.Name);
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
 
-                if (repoModel.All.Count > 0)
-                {
-                    ownerModel.Repositories.Add(repoModel);
-                }
-            }
+            return names;
+        });
 
-            if (ownerModel.Repositories.Count > 0)
-            {
-                result.Add(ownerModel);
-            }
-        }
+        _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", result.Count, owner);
 
         return result;
     }
@@ -403,30 +427,15 @@ public sealed class GitHubService
         return status ?? ChecksStatus.Pending;
     }
 
-    private async Task<IReadOnlyList<Octokit.Repository>> GetRepositoriesAsync(
-        string owner,
-        ICollection<string> repositories)
-    {
-        var repos = new List<Octokit.Repository>();
-
-        _logger.LogInformation("Fetching {Count} repositories for owner {Owner}.", repositories.Count, owner);
-
-        foreach (string repository in repositories)
-        {
-            repos.Add(await GetRepositoryAsync(owner, repository));
-        }
-
-        _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
-
-        return repos.OrderBy((p) => p.Name).ToList();
-    }
-
     private async Task<Octokit.Repository> GetRepositoryAsync(string owner, string name)
     {
         return await _cache.GetOrCreateAsync($"repo:{owner}/{name}", async (entry) =>
         {
+            var repos = await _client.Repository.Get(owner, name);
+
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-            return await _client.Repository.Get(owner, name);
+
+            return repos;
         });
     }
 }

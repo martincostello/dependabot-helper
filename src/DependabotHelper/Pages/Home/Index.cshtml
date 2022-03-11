@@ -18,6 +18,14 @@
 }
 else
 {
+    <div id="not-configured" class="alert alert-warning d-none" role="alert">
+      <p>
+          <strong>You have not configured any repositories</strong>
+      </p>
+      <p>
+          Configure which repositories you wish to manage Dependabot updates for <a href="~/configure">here</a>.
+      </p>
+    </div>
     <div id="owner-list">
         <div class="d-none owner-template">
             <h2 class="owner-name"></h2>
@@ -56,11 +64,11 @@ else
                         </td>
                         <td>
                             <div class="float-right">
-                                <button class="btn btn-secondary mr-2 repo-refresh" disabled data-owner="" data-name="">
+                                <button class="btn btn-secondary mr-2 repo-refresh" disabled>
                                     <span class="fa fa-refresh"></span>
                                     <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                                 </button>
-                                <button class="btn btn-success btn-merge repo-merge" disabled data-owner="" data-name="">
+                                <button class="btn btn-success btn-merge repo-merge" disabled>
                                     <span>Merge</span>
                                     <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                                 </button>

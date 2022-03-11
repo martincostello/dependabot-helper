@@ -14,6 +14,7 @@
     }
     <meta name="x-antiforgery-header" content="@tokens.HeaderName" />
     <meta name="x-antiforgery-token" content="@tokens.RequestToken" />
+    <meta name="x-user-id" content="@User.GetUserId()" />
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -26,6 +27,9 @@
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="~/" title="Manage Updates">Manage</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="~/configure" title="Manage Updates">Configure</a>
                     </li>
                 </ul>
                 @if (User.Identity!.IsAuthenticated)

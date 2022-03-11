@@ -105,6 +105,16 @@ public static class AuthenticationEndpoints
         => user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
     /// <summary>
+    /// Gets the user's login.
+    /// </summary>
+    /// <param name="user">The current user.</param>
+    /// <returns>
+    /// The login for the current user.
+    /// </returns>
+    public static string GetUserLogin(this ClaimsPrincipal user)
+        => user.FindFirst(ClaimTypes.Name)!.Value;
+
+    /// <summary>
     /// Gets the user's user name.
     /// </summary>
     /// <param name="user">The current user.</param>

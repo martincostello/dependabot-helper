@@ -5,7 +5,6 @@
 
 using Humanizer;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace MartinCostello.DependabotHelper.Pages;
@@ -44,23 +43,5 @@ public class IndexModel : PageModel
                 await HttpContext.SignOutAsync();
             }
         }
-    }
-
-    public async Task<IActionResult> OnPost()
-    {
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            string owner = Request.Form["Owner"];
-            string name = Request.Form["Repository"];
-
-            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(name))
-            {
-                return BadRequest();
-            }
-
-            await _service.MergePullRequestsAsync(owner, name);
-        }
-
-        return RedirectToPage("./Index");
     }
 }

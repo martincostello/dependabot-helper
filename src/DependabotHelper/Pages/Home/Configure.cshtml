@@ -1,0 +1,31 @@
+@page "/configure"
+@model ConfigureModel
+@{
+    ViewData["Title"] = "Configure";
+    string login = User.GetUserLogin();
+}
+<table class="table" data-id="@User.GetUserId()">
+    <thead>
+        <tr>
+            <th scope="col">Owner</th>
+            <th class="w-25" scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(string owner in Model.Owners)
+        {
+            string klass = owner == login ? "font-weight-bold" : string.Empty;
+            <tr>
+                <td class="@klass">@owner</td>
+                <td>
+                    <div>
+                        @* TODO Pop-up with selection of repository names *@
+                        <button class="btn btn-primary">
+                            <span>Select repositories</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }        
+    </tbody>
+</table>

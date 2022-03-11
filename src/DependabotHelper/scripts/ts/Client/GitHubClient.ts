@@ -40,23 +40,15 @@ export class GitHubClient {
         return await response.json();
     }
 
-    async getRepos(): Promise<Map<string, string[]>> {
+    async getRepos(owner: string): Promise<string[]> {
 
-        const response = await fetch('/github/repos');
+        const response = await fetch(`/github/repos/${encodeURIComponent(owner)}`);
 
         if (!response.ok) {
             throw new Error(response.status.toString(10));
         }
 
-        const json = await response.text();
-        const mapped = JSON.parse(json);
-
-        const map = new Map();
-        for (let k of Object.keys(mapped)) {
-            map.set(k, mapped[k]);
-        }
-
-        return map;
+        return await response.json();
     }
 
     async mergePullRequests(owner: string, name: string): Promise<void> {

@@ -2,6 +2,8 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 import { GitHubClient } from '../Client/GitHubClient';
+import { StorageClient } from '../Client/StorageClient';
+import { Classes } from './Classes';
 import { OwnerElement } from './OwnerElement';
 import { RateLimitsElement } from './RateLimitsElement';
 import { RepositoryElement } from './RepositoryElement';
@@ -9,25 +11,20 @@ import { Selectors } from './Selectors';
 
 export class App {
 
-    private readonly client: GitHubClient;
+    private readonly gitHub: GitHubClient;
+    private readonly storage: StorageClient;
     private rateLimits?: RateLimitsElement;
 
     constructor() {
-        this.client = new GitHubClient();
+        this.gitHub = new GitHubClient();
+        this.storage = new StorageClient();
     }
 
     async initialize(): Promise<void> {
-        if (await this.client.isAuthenticated()) {
+        if (await this.gitHub.isAuthenticated()) {
 
             this.rateLimits = new RateLimitsElement();
-
-            // TODO Allow the user to select their own account plus any
-            // organizations they this to look at repositories within,
-            // and then select them and store in local storage so that
-            // that it's user configurable, rather than server configurable.
-            // Also shard in loacl storage in some way so that the list
-            // is related to the GitHub server being pointed at.
-            const owners = await this.client.getRepos();
+            const owners = this.storage.getOwners();
 
             // Add the owner tables and each of their repositories
             const ownerList = document.getElementById('owner-list');
@@ -56,7 +53,7 @@ export class App {
                 this.updateRepository(element);
 
                 element.onMerge(async (owner, name) => {
-                    await this.client.mergePullRequests(owner, name);
+                    await this.gitHub.mergePullRequests(owner, name);
                     await this.updateRateLimits();
                     await this.updateRepository(element);
                 });
@@ -64,19 +61,25 @@ export class App {
                 element.onRefresh(async (_owner, _name) => {
                     await this.updateRepository(element);
                 });
+
+                // TODO Add a 5-10 minute auto-refresh setTimeout()
+            }
+
+            if (elements.length < 1) {
+                document.getElementById('not-configured').classList.remove(Classes.hidden);
             }
         }
     }
 
     private async updateRepository(element: RepositoryElement): Promise<void> {
-        const repository = await this.client.getPullRequests(element.owner, element.name);
+        const repository = await this.gitHub.getPullRequests(element.owner, element.name);
         element.update(repository);
         await this.updateRateLimits();
     }
 
     private async updateRateLimits(): Promise<void> {
         if (this.rateLimits) {
-            const limits = await this.client.getRateLimits();
+            const limits = await this.gitHub.getRateLimits();
             this.rateLimits.update(limits);
         }
     }

@@ -3,7 +3,6 @@
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -28,8 +27,10 @@ public static class GitHubEndpoints
             return await service.GetRateLimitsAsync();
         }).RequireAuthorization();
 
-        builder.MapGet("/github/repos", (IOptionsSnapshot<DependabotOptions> options) => options.Value.Repositories)
-               .RequireAuthorization();
+        builder.MapGet("/github/repos/{owner}", async (string owner, GitHubService service) =>
+        {
+            return await service.GetRepositoriesAsync(owner);
+        }).RequireAuthorization();
 
         builder.MapGet("/github/repos/{owner}/{name}/pulls", async (string owner, string name, GitHubService service) =>
         {

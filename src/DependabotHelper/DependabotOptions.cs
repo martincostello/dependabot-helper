@@ -7,7 +7,5 @@ public sealed class DependabotOptions
 {
     public IList<string> Labels { get; set; } = new List<string>();
 
-    public IDictionary<string, IList<string>> Repositories { get; set; } = new Dictionary<string, IList<string>>();
-
     public IList<string> Users { get; set; } = new List<string>();
 }
