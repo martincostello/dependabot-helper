@@ -6,5 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+    <PackageReference Include="Humanizer" />
+    <PackageReference Include="Octokit" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 </Project>

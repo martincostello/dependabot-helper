@@ -9,7 +9,12 @@ using Microsoft.AspNetCore.HttpOverrides;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGitHubAuthentication();
+builder.Services.AddGitHubClient();
+builder.Services.AddMemoryCache();
 builder.Services.AddRazorPages();
+
+builder.Services.AddOptions();
+builder.Services.Configure<DependabotOptions>(builder.Configuration.GetSection("Dependabot"));
 
 if (string.Equals(builder.Configuration["CODESPACES"], "true", StringComparison.OrdinalIgnoreCase))
 {
