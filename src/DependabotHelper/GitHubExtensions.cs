@@ -10,6 +10,7 @@ public static class GitHubExtensions
     public static IServiceCollection AddGitHubClient(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
+        services.AddTransient<GitHubService>();
         services.AddSingleton<ICredentialStore, UserCredentialStore>();
         services.AddTransient<IGitHubClient>((provider) =>
         {
