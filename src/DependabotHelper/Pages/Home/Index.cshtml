@@ -18,75 +18,63 @@
 }
 else
 {
-    <h1>
-        Manage
-    </h1>
-
-    @if (Model.Owners.Count < 1)
-    {
-        <div class="alert alert-success" role="alert">
-            There are no open Dependabot pull requests that can be actioned. 👍
-        </div>
-    }
-    else
-    {
-        @foreach (var owner in Model.Owners)
-        {
-            <h2>@owner.Name</h2>
+    <div id="owner-list">
+        <div class="d-none owner-template">
+            <h2 class="owner-name"></h2>
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Repository</th>
-                        <th>Pending</th>
-                        <th>Failed</th>
-                        <th>Successful</th>
-                        <th>Approved</th>
-                        <th></th>
+                        <th scope="col">Repository</th>
+                        <th scope="col">Pending</th>
+                        <th scope="col">Failed</th>
+                        <th scope="col">Successful</th>
+                        <th scope="col">Approved</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var repository in owner.Repositories)
-                    {
-                        <tr>
-                            <td>
-                                <a href="@repository.HtmlUrl" target="_blank">@repository.Name</a>
-                            </td>
-                            <td>
-                                @repository.Pending.Count
-                                <span class="fa-solid fa-spinner text-warning"></span>
-                            </td>
-                            <td>
-                                @repository.Error.Count
-                                <span class="fa-solid fa-xmark text-danger"></span>
-                            </td>
-                            <td>
-                                @repository.Success.Count
-                                <span class="fa-solid fa-check text-success"></span>
-                            </td>
-                            <td>
-                                @repository.Approved.Count
-                                <span class="fa-solid fa-thumbs-up text-primary"></span>
-                            </td>
-                            <td>
-                                <form action="~/" method="post">
-                                    <input type="hidden" name="Owner" value="@owner.Name" />
-                                    <input type="hidden" name="Repository" value="@repository.Name" />
-                                    <button class="btn btn-success btn-merge" type="submit">Merge</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
+                <tbody class="repo-list">
+                    <tr class="d-none item-template">
+                        <td>
+                            <span class="loader spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <a class="repo-name" href="" target="_blank"></a>
+                        </td>
+                        <td>
+                            <span class="repo-pending-count">&hellip;</span>
+                            <span class="fa-solid fa-spinner text-warning"></span>
+                        </td>
+                        <td>
+                            <span class="repo-error-count loading-count">&hellip;</span>
+                            <span class="fa-solid fa-xmark text-danger"></span>
+                        </td>
+                        <td>
+                            <span class="repo-success-count loading-count">&hellip;</span>
+                            <span class="fa-solid fa-check text-success"></span>
+                        </td>
+                        <td>
+                            <span class="repo-approved-count loading-count">&hellip;</span>
+                            <span class="fa-solid fa-thumbs-up text-primary"></span>
+                        </td>
+                        <td>
+                            <div class="float-right">
+                                <button class="btn btn-secondary mr-2 repo-refresh" disabled data-owner="" data-name="">
+                                    <span class="fa fa-refresh"></span>
+                                    <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                                <button class="btn btn-success btn-merge repo-merge" disabled data-owner="" data-name="">
+                                    <span>Merge</span>
+                                    <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-        }
-    }
-
-    @if (Model.RateLimitRemaining.HasValue)
-    {
-        <div>
-            <small>
-                GitHub API Limits: @(Model.RateLimitRemaining)/@(Model.RateLimitTotal) resetting @(Model.RateLimitResets)
-            </small>
         </div>
-    }
+    </div>
+    <hr />
+    <div>
+        <small>
+            GitHub API Limits: <span id="rate-limit-remaining">@Model.RateLimitRemaining</span>/<span id="rate-limit-total">@(Model.RateLimitTotal)</span>. Resets <span id="rate-limit-resets">@(Model.RateLimitResets)</span>.
+        </small>
+    </div>
 }

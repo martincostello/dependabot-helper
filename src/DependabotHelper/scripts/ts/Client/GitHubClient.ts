@@ -40,6 +40,25 @@ export class GitHubClient {
         return await response.json();
     }
 
+    async getRepos(): Promise<Map<string, string[]>> {
+
+        const response = await fetch('/github/repos');
+
+        if (!response.ok) {
+            throw new Error(response.status.toString(10));
+        }
+
+        const json = await response.text();
+        const mapped = JSON.parse(json);
+
+        const map = new Map();
+        for (let k of Object.keys(mapped)) {
+            map.set(k, mapped[k]);
+        }
+
+        return map;
+    }
+
     async mergePullRequests(owner: string, name: string): Promise<void> {
 
         const antiforgeryHeader = document.querySelector('meta[name="x-antiforgery-header"]').getAttribute('content');

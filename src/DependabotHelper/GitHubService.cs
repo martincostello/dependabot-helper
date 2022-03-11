@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using Humanizer;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -51,7 +52,8 @@ public sealed class GitHubService
 
             result.Limit = rateLimit.Limit;
             result.Remaining = rateLimit.Remaining;
-            result.ResetsAt = rateLimit.Reset;
+            result.Resets = rateLimit.Reset;
+            result.ResetsText = result.Resets.Humanize();
         }
 
         return result;

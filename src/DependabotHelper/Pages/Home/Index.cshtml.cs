@@ -4,7 +4,6 @@
 #pragma warning disable SA1649
 
 using Humanizer;
-using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -20,8 +19,6 @@ public class IndexModel : PageModel
         _service = service;
     }
 
-    public IList<OwnerRepositories> Owners { get; set; } = Array.Empty<OwnerRepositories>();
-
     public int? RateLimitRemaining { get; set; }
 
     public int? RateLimitTotal { get; set; }
@@ -34,13 +31,11 @@ public class IndexModel : PageModel
         {
             try
             {
-                Owners = await _service.GetRepositoriesAsync();
-
                 if (await _service.GetRateLimitsAsync() is { } rateLimit)
                 {
                     RateLimitTotal = rateLimit.Limit;
                     RateLimitRemaining = rateLimit.Remaining;
-                    RateLimitResets = rateLimit.ResetsAt.Humanize();
+                    RateLimitResets = rateLimit.Resets.Humanize();
                 }
             }
             catch (Octokit.AuthorizationException)

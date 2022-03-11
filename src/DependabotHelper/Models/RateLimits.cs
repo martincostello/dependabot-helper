@@ -9,5 +9,7 @@ public sealed class RateLimits
 
     public int? Limit { get; set; }
 
-    public DateTimeOffset? ResetsAt { get; set; }
+    public DateTimeOffset? Resets { get; set; }
+
+    public string? ResetsText { get; set; }
 }
