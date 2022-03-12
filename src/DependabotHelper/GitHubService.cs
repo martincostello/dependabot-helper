@@ -503,6 +503,11 @@ public sealed class GitHubService
 
     private async Task<T> CacheGetOrCreateAsync<T>(ClaimsPrincipal user, string key, Func<Task<T>> factory)
     {
+        if (_options.DisableCaching)
+        {
+            return await factory();
+        }
+
         string prefix = user.GetUserId();
         return await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
         {

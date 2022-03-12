@@ -5,6 +5,8 @@ namespace MartinCostello.DependabotHelper;
 
 public sealed class DependabotOptions
 {
+    public bool DisableCaching { get; set; }
+
     public bool IncludeForks { get; set; }
 
     public IList<string> Labels { get; set; } = new List<string>();
