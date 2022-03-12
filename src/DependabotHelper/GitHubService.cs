@@ -179,6 +179,7 @@ public sealed class GitHubService
         _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
         return repositories
+            .Where((p) => !p.Archived)
             .Where((p) => _options.IncludeForks || !p.Fork)
             .Select((p) =>
             {
