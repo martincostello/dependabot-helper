@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 import { RateLimits } from '../Models/RateLimits';
+import { Elements } from './Elements';
 import { Page } from './Page';
 
 export class RateLimitsElement {
@@ -25,5 +26,6 @@ export class RateLimitsElement {
         this.remaining.innerText = limits.remaining.toLocaleString();
         this.resets.innerText = limits.resetsText;
         this.total.innerText = limits.limit.toLocaleString();
+        Elements.show(this.remaining.parentElement);
     }
 }

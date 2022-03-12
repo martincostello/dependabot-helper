@@ -17,7 +17,7 @@ public sealed class ConfigureModel : PageModel
 
     public async Task OnGet([FromServices] GitHubService service)
     {
-        Owners = await service.GetOwnersAsync();
+        Owners = await service.GetOwnersAsync(User);
         _ = await service.GetRateLimitsAsync();
     }
 }

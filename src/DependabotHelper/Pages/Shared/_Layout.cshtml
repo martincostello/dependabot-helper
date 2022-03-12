@@ -69,15 +69,15 @@
         <footer>
             <p>
                 &copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello
-                @if (RateLimits.Current is { } rateLimits)
-                {
-                    <small class="float-right">
-                        GitHub API Limits:
-                        <span id="rate-limit-remaining">@rateLimits.Remaining</span>/<span id="rate-limit-total">@rateLimits.Limit</span>.
-                        Resets
-                        <span id="rate-limit-resets" title="@rateLimits.Resets!.Value.ToString("u", CultureInfo.InvariantCulture)">@rateLimits.ResetsText</span>.
-                    </small>
+                @{
+                    var rateLimits = RateLimits.Current;
                 }
+                <small class="float-right @(rateLimits?.Limit is null ? "d-none" : string.Empty)">
+                    GitHub API Limits:
+                    <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
+                    Resets
+                    <span id="rate-limit-resets" title="@rateLimits?.Resets.GetValueOrDefault().ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.ResetsText</span>.
+                </small>
             </p>
         </footer>
     </main>

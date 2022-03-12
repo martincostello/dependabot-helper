@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using System.Security.Claims;
 using Humanizer;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,6 +13,8 @@ namespace MartinCostello.DependabotHelper;
 
 public sealed class GitHubService
 {
+    private static readonly TimeSpan CacheLifetime = TimeSpan.FromMinutes(10);
+
     private readonly IMemoryCache _cache;
     private readonly IGitHubClient _client;
     private readonly ILogger _logger;
@@ -32,20 +35,25 @@ public sealed class GitHubService
         _rateLimitsAccessor = rateLimitsAccessor;
     }
 
-    public async Task<IReadOnlyList<Owner>> GetOwnersAsync()
+    public async Task<IReadOnlyList<Owner>> GetOwnersAsync(ClaimsPrincipal user)
     {
-        var user = await _client.User.Current();
+        string id = user.GetUserId();
+        string login = user.GetUserLogin();
 
         _logger.LogInformation(
             "Fetching organizations for user {Login}.",
-            user.Login);
+            login);
 
-        var organizations = await _client.Organization.GetAllForCurrent();
+        var organizations = await _cache.GetOrCreateAsync($"orgs:{id}", async (entry) =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
+            return await _client.Organization.GetAllForCurrent();
+        });
 
         _logger.LogInformation(
             "Found {Count} organizations user {Login} has access to.",
             organizations.Count,
-            user.Login);
+            login);
 
         var owners = new List<Owner>(organizations.Count + 1);
 
@@ -61,27 +69,34 @@ public sealed class GitHubService
         // Always list the user themselves first
         owners.Insert(0, new()
         {
-            AvatarUrl = user.AvatarUrl,
-            Name = user.Login,
+            AvatarUrl = user.GetAvatarUrl(),
+            Name = login,
         });
 
         return owners;
     }
 
-    public async Task<RateLimits?> GetRateLimitsAsync()
+    public async Task<RateLimits> GetRateLimitsAsync()
     {
-        var appInfo = _client.GetLastApiInfo();
+        var rateLimit = _client.GetLastApiInfo()?.RateLimit;
 
-        if (appInfo is null)
+        if (rateLimit is null)
         {
-            // Force an API request to get the rate limits
-            _ = await _client.User.Current();
-            appInfo = _client.GetLastApiInfo();
+            try
+            {
+                // Force an API request to get the rate limits
+                var response = await _client.Miscellaneous.GetRateLimits();
+                rateLimit = response.Rate;
+            }
+            catch (ApiException)
+            {
+                // Ignore
+            }
         }
 
         var result = new RateLimits();
 
-        if (appInfo?.RateLimit is { } rateLimit)
+        if (rateLimit is not null)
         {
             _logger.LogInformation(
                 "GitHub API rate limit {Remaining}/{Limit}. Rate limit resets at {Reset:u}.",
@@ -140,7 +155,7 @@ public sealed class GitHubService
                 repos = await _client.Repository.GetAllForUser(owner);
             }
 
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
 
             return repos;
         });
@@ -456,11 +471,8 @@ public sealed class GitHubService
     {
         return await _cache.GetOrCreateAsync($"repo:{owner}/{name}", async (entry) =>
         {
-            var repos = await _client.Repository.Get(owner, name);
-
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-
-            return repos;
+            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
+            return await _client.Repository.Get(owner, name);
         });
     }
 }
