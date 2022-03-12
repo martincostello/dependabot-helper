@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 import { RateLimits } from '../Models/RateLimits';
+import { Page } from './Page';
 
 export class RateLimitsElement {
 
@@ -10,16 +11,19 @@ export class RateLimitsElement {
     private total: HTMLElement;
 
     constructor() {
-        this.remaining = document.getElementById('rate-limit-remaining');
-        this.resets = document.getElementById('rate-limit-resets');
-        this.total = document.getElementById('rate-limit-total');
+        this.remaining = Page.findId('rate-limit-remaining');
+        this.resets = Page.findId('rate-limit-resets');
+        this.total = Page.findId('rate-limit-total');
     }
 
     update(limits: RateLimits): void {
-        if (limits.limit) {
-            this.remaining.innerText = limits.remaining.toLocaleString();
-            this.resets.innerText = limits.resetsText;
-            this.total.innerText = limits.limit.toLocaleString();
+
+        if (!limits.limit) {
+            return;
         }
+
+        this.remaining.innerText = limits.remaining.toLocaleString();
+        this.resets.innerText = limits.resetsText;
+        this.total.innerText = limits.limit.toLocaleString();
     }
 }

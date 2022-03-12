@@ -4,28 +4,75 @@
     ViewData["Title"] = "Configure";
     string login = User.GetUserLogin();
 }
-<table class="table" data-id="@User.GetUserId()">
-    <thead>
-        <tr>
-            <th scope="col">Owner</th>
-            <th class="w-25" scope="col"></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach(string owner in Model.Owners)
-        {
-            string klass = owner == login ? "font-weight-bold" : string.Empty;
-            <tr>
-                <td class="@klass">@owner</td>
-                <td>
-                    <div>
-                        @* TODO Pop-up with selection of repository names *@
-                        <button class="btn btn-primary">
-                            <span>Select repositories</span>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        }        
-    </tbody>
-</table>
+<div class="row justify-content-center">
+    <div class="col-auto">
+        <table class="table table-responsive" data-id="@User.GetUserId()">
+            <caption>
+                GitHub Organizations you have access to.
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col">Owner</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var owner in Model.Owners)
+                {
+                    string highlight = owner.Name == login ? "font-weight-bold" : string.Empty;
+                    <tr>
+                        <td>
+                            <img src="@owner.AvatarUrl" class="user-profile" aria-hidden="true" />
+                        </td>
+                        <td class="align-middle @highlight">@owner.Name</td>
+                        <td>
+                            <div>
+                                <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-toggle="modal" data-target="#repo-search-modal">
+                                    <span>Select repositories</span>
+                                    <span class="fa-solid fa-gears" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }        
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade"
+     id="repo-search-modal"
+     role="dialog"
+     tabindex="-1"
+     aria-labelledby="repo-search-label"
+     aria-hidden="true"
+     data-backdrop="static"
+     data-owner="">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="repo-search-label">Select repositories to manage Dependabot updates for</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                 <div class="form-check check-template d-none">
+                    <input class="form-check-input" type="checkbox" value="" id="">
+                    <label class="form-check-label" for="">
+                    </label>
+                    <span class="fa-solid fa-lock repo-is-private d-none" aria-label="Private"></span>
+                    <span class="fa-solid fa-code-fork repo-is-fork d-none" aria-label="Fork"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="repo-save">
+                    Save changes
+                    <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

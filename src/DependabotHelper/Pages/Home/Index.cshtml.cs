@@ -3,45 +3,26 @@
 
 #pragma warning disable SA1649
 
-using Humanizer;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace MartinCostello.DependabotHelper.Pages;
 
-public class IndexModel : PageModel
+[Authorize]
+public sealed class IndexModel : PageModel
 {
-    private readonly GitHubService _service;
-
-    public IndexModel(GitHubService service)
+    public async Task OnGet([FromServices] GitHubService service)
     {
-        _service = service;
-    }
-
-    public int? RateLimitRemaining { get; set; }
-
-    public int? RateLimitTotal { get; set; }
-
-    public string? RateLimitResets { get; set; }
-
-    public async Task OnGet()
-    {
-        if (User.Identity?.IsAuthenticated == true)
+        try
         {
-            try
-            {
-                if (await _service.GetRateLimitsAsync() is { } rateLimit)
-                {
-                    RateLimitTotal = rateLimit.Limit;
-                    RateLimitRemaining = rateLimit.Remaining;
-                    RateLimitResets = rateLimit.Resets.Humanize();
-                }
-            }
-            catch (Octokit.AuthorizationException)
-            {
-                // Sign the user out if the credentials are invalid/expired
-                await HttpContext.SignOutAsync();
-            }
+            _ = await service.GetRateLimitsAsync();
+        }
+        catch (Octokit.AuthorizationException)
+        {
+            // Sign the user out if the credentials are invalid/expired
+            await HttpContext.SignOutAsync();
         }
     }
 }

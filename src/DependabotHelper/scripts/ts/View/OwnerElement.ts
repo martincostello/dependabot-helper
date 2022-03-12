@@ -1,11 +1,12 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { Classes } from './Classes';
+import { Elements } from './Elements';
 import { RepositoryElement } from './RepositoryElement';
-import { Selectors } from './Selectors';
 
 export class OwnerElement {
+
+    private readonly itemTemplateClass = 'item-template';
 
     private readonly element: Element;
     private readonly itemTemplate: Element;
@@ -17,13 +18,13 @@ export class OwnerElement {
         this.owner = owner;
         this.element = element;
 
-        this.element.querySelector(Selectors.ownerName).textContent = owner;
+        const ownerElement = this.element.querySelector('.owner-name');
+        ownerElement.textContent = owner;
 
-        this.element.classList.remove(Classes.ownerTemplate);
-        this.element.classList.remove(Classes.hidden);
+        Elements.show(this.element);
 
-        this.itemTemplate = this.element.querySelector(Selectors.itemTemplate);
-        this.repostoryList = this.element.querySelector(Selectors.repositoryList);
+        this.itemTemplate = this.element.querySelector('.' + this.itemTemplateClass);
+        this.repostoryList = this.element.querySelector('.repo-list');
     }
 
     addRepository(name: string): RepositoryElement {
@@ -31,6 +32,9 @@ export class OwnerElement {
         const node = this.itemTemplate.cloneNode(true);
         this.repostoryList.appendChild(node);
 
-        return new RepositoryElement(this.owner, name, this.repostoryList.lastElementChild);
+        const element = this.repostoryList.lastElementChild;
+        element.classList.remove(this.itemTemplateClass);
+
+        return new RepositoryElement(this.owner, name, element);
     }
 }

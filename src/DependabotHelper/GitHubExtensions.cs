@@ -10,9 +10,11 @@ public static class GitHubExtensions
     public static IServiceCollection AddGitHubClient(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
-        services.AddTransient<GitHubService>();
         services.AddSingleton<ICredentialStore, UserCredentialStore>();
-        services.AddTransient<IGitHubClient>((provider) =>
+
+        services.AddScoped<GitHubRateLimitsAccessor>();
+        services.AddScoped<GitHubService>();
+        services.AddScoped<IGitHubClient>((provider) =>
         {
             string productName = "DependabotHelper";
             string productVersion = typeof(GitHubExtensions).Assembly.GetName().Version!.ToString(3);

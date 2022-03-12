@@ -102,7 +102,7 @@ public static class AuthenticationEndpoints
     /// The user Id for the current user.
     /// </returns>
     public static string GetUserId(this ClaimsPrincipal user)
-        => user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        => user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
     /// <summary>
     /// Gets the user's login.

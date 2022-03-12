@@ -3,62 +3,36 @@
 
 import { RateLimits } from '../Models/RateLimits';
 import { Repository } from '../Models/Repository';
+import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
 
 export class GitHubClient {
 
     async isAuthenticated(): Promise<boolean> {
-
-        const response = await fetch('/github/is-authenticated');
-
-        if (!response.ok) {
-            throw new Error(response.status.toString(10));
-        }
-
-        const body = await response.json();
-        return body.isAuthenticated;
+        const response = await this.getJson<any>('/github/is-authenticated');
+        return response.isAuthenticated;
     }
 
-    async getPullRequests(owner: string, name: string): Promise<Repository> {
-
-        const response = await fetch(`/github/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/pulls`);
-
-        if (!response.ok) {
-            throw new Error(response.status.toString(10));
-        }
-
-        return await response.json();
+    async getPullRequests(owner: string, name: string): Promise<RepositoryPullRequests> {
+        return await this.getJson<RepositoryPullRequests>(
+            `/github/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/pulls`);
     }
 
     async getRateLimits(): Promise<RateLimits> {
-
-        const response = await fetch('/github/rate-limits');
-
-        if (!response.ok) {
-            throw new Error(response.status.toString(10));
-        }
-
-        return await response.json();
+        return await this.getJson<RateLimits>('/github/rate-limits');
     }
 
-    async getRepos(owner: string): Promise<string[]> {
-
-        const response = await fetch(`/github/repos/${encodeURIComponent(owner)}`);
-
-        if (!response.ok) {
-            throw new Error(response.status.toString(10));
-        }
-
-        return await response.json();
+    async getRepositories(owner: string): Promise<Repository[]> {
+        return await this.getJson<Repository[]>(`/github/repos/${encodeURIComponent(owner)}`);
     }
 
     async mergePullRequests(owner: string, name: string): Promise<void> {
 
-        const antiforgeryHeader = document.querySelector('meta[name="x-antiforgery-header"]').getAttribute('content');
-        const antiforgeryToken = document.querySelector('meta[name="x-antiforgery-token"]').getAttribute('content');
+        const antiforgeryHeader = this.getMetaContent('x-antiforgery-header');
+        const antiforgeryToken = this.getMetaContent('x-antiforgery-token');
 
         const payload = {};
-
         const headers = new Headers();
+
         headers.set('Accept', 'application/json');
         headers.set('Content-Type', 'application/json');
         headers.set(antiforgeryHeader, antiforgeryToken);
@@ -74,5 +48,21 @@ export class GitHubClient {
         if (!response.ok) {
             throw new Error(response.status.toString(10));
         }
+    }
+
+    private async getJson<T>(url: string): Promise<T> {
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(response.status.toString(10));
+        }
+
+        return await response.json();
+    }
+
+    private getMetaContent(name: string): string {
+        const element = document.querySelector(`meta[name="${name}"]`);
+        return element?.getAttribute('content') ?? '';
     }
 }

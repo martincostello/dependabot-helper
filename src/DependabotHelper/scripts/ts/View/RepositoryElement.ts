@@ -1,14 +1,15 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { Repository } from '../Models/Repository';
-import { Classes } from './Classes';
-import { Selectors } from './Selectors';
+import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
+import { Elements } from './Elements';
 
 export class RepositoryElement {
 
     readonly owner: string;
     readonly name: string;
+
+    private readonly loaderSelector = '.loader';
 
     private readonly container: Element;
     private readonly loader: Element;
@@ -31,21 +32,21 @@ export class RepositoryElement {
         this.name = name;
         this.container = element;
 
-        this.loader = this.container.querySelector(Selectors.loader);
-        this.repoName = this.container.querySelector(Selectors.repositoryName);
+        this.loader = this.container.querySelector(this.loaderSelector);
+        this.repoName = this.container.querySelector('.repo-name');
 
-        this.approvedCount = this.container.querySelector(Selectors.countApproved);
-        this.errorCount = this.container.querySelector(Selectors.countError);
-        this.pendingCount = this.container.querySelector(Selectors.countPending);
-        this.successCount = this.container.querySelector(Selectors.countSuccess);
+        this.approvedCount = this.container.querySelector('.repo-approved-count');
+        this.errorCount = this.container.querySelector('.repo-error-count');
+        this.pendingCount = this.container.querySelector('.repo-pending-count');
+        this.successCount = this.container.querySelector('.repo-success-count');
 
-        this.mergeButton = this.container.querySelector(Selectors.mergePullRequests);
-        this.refreshButton = this.container.querySelector(Selectors.refreshPullRequests);
+        this.mergeButton = this.container.querySelector('.repo-merge');
+        this.refreshButton = this.container.querySelector('.repo-refresh');
 
         this.mergeButton.addEventListener('click', async () => {
             if (this.onMergeHandler) {
                 try {
-                    this.disable(this.mergeButton);
+                    Elements.disable(this.mergeButton);
                     this.showLoader(this.mergeButton);
                     await this.onMergeHandler(this.owner, this.name);
                 } catch (err) {
@@ -59,21 +60,20 @@ export class RepositoryElement {
         this.refreshButton.addEventListener('click', async () => {
             if (this.onRefreshHandler) {
                 try {
-                    this.disable(this.refreshButton);
+                    Elements.disable(this.refreshButton);
                     this.showLoader(this.refreshButton);
                     await this.onRefreshHandler(this.owner, this.name);
                 } catch (err) {
                     throw err;
                 } finally {
                     this.hideLoader(this.refreshButton);
-                    this.enable(this.refreshButton);
+                    Elements.enable(this.refreshButton);
                 }
             }
         });
 
         this.repoName.textContent = name;
-        this.container.classList.remove(Classes.itemTemplate);
-        this.container.classList.remove(Classes.hidden);
+        Elements.show(this.container);
     }
 
     onMerge(handler: (owner: string, name: string) => Promise<void>) {
@@ -84,7 +84,7 @@ export class RepositoryElement {
         this.onRefreshHandler = handler;
     }
 
-    update(repository: Repository): void {
+    update(repository: RepositoryPullRequests): void {
 
         this.repoName.setAttribute('href', repository.htmlUrl);
 
@@ -94,29 +94,20 @@ export class RepositoryElement {
         this.successCount.textContent = repository.success.length.toLocaleString();
 
         if (repository.all.length > 0) {
-            this.enable(this.mergeButton);
+            Elements.enable(this.mergeButton);
         } else {
-            this.disable(this.mergeButton);
+            Elements.disable(this.mergeButton);
         }
 
-        this.enable(this.refreshButton);
-
-        this.loader.classList.add(Classes.hidden);
-    }
-
-    private disable(element: Element): void {
-        element.setAttribute('disabled', '');
-    }
-
-    private enable(element: Element): void {
-        element.removeAttribute('disabled');
+        Elements.enable(this.refreshButton);
+        Elements.hide(this.loader);
     }
 
     private hideLoader(element: Element): void {
-        element.querySelector(Selectors.loader).classList.add(Classes.hidden);
+        Elements.hide(element.querySelector(this.loaderSelector));
     }
 
     private showLoader(element: Element): void {
-        element.querySelector(Selectors.loader).classList.remove(Classes.hidden);
+        Elements.show(element.querySelector(this.loaderSelector));
     }
 }

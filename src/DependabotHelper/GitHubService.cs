@@ -16,10 +16,12 @@ public sealed class GitHubService
     private readonly IGitHubClient _client;
     private readonly ILogger _logger;
     private readonly DependabotOptions _options;
+    private readonly GitHubRateLimitsAccessor _rateLimitsAccessor;
 
     public GitHubService(
         IGitHubClient client,
         IMemoryCache cache,
+        GitHubRateLimitsAccessor rateLimitsAccessor,
         IOptionsSnapshot<DependabotOptions> options,
         ILogger<GitHubService> logger)
     {
@@ -27,31 +29,41 @@ public sealed class GitHubService
         _cache = cache;
         _logger = logger;
         _options = options.Value;
+        _rateLimitsAccessor = rateLimitsAccessor;
     }
 
-    public async Task<IReadOnlyList<string>> GetOwnersAsync()
+    public async Task<IReadOnlyList<Owner>> GetOwnersAsync()
     {
-        var self = await _client.User.Current();
+        var user = await _client.User.Current();
 
         _logger.LogInformation(
             "Fetching organizations for user {Login}.",
-            self.Login);
+            user.Login);
 
         var organizations = await _client.Organization.GetAllForCurrent();
 
         _logger.LogInformation(
             "Found {Count} organizations user {Login} has access to.",
             organizations.Count,
-            self.Login);
+            user.Login);
 
-        var owners = new List<string>(organizations.Count + 1);
+        var owners = new List<Owner>(organizations.Count + 1);
 
-        owners.AddRange(organizations.Select((p) => p.Login));
+        foreach (var organization in organizations.OrderBy((p) => p.Login, StringComparer.OrdinalIgnoreCase))
+        {
+            owners.Add(new()
+            {
+                AvatarUrl = organization.AvatarUrl,
+                Name = organization.Login,
+            });
+        }
 
-        owners.Sort();
-
-        // Always list the user themself first
-        owners.Insert(0, self.Login);
+        // Always list the user themselves first
+        owners.Insert(0, new()
+        {
+            AvatarUrl = user.AvatarUrl,
+            Name = user.Login,
+        });
 
         return owners;
     }
@@ -83,17 +95,21 @@ public sealed class GitHubService
             result.ResetsText = result.Resets.Humanize();
         }
 
+        _rateLimitsAccessor.Current = result;
+
         return result;
     }
 
-    public async Task<Models.Repository> GetPullRequestsAsync(string owner, string name)
+    public async Task<RepositoryPullRequests> GetPullRequestsAsync(string owner, string name)
     {
         var repository = await GetRepositoryAsync(owner, name);
 
-        var result = new Models.Repository()
+        var result = new RepositoryPullRequests()
         {
             HtmlUrl = repository.HtmlUrl + "/pulls",
             Id = repository.Id,
+            IsFork = repository.Fork,
+            IsPrivate = repository.Private || repository.Visibility != RepositoryVisibility.Public,
             Name = repository.Name,
         };
 
@@ -105,11 +121,11 @@ public sealed class GitHubService
         return result;
     }
 
-    public async Task<IList<string>> GetRepositoriesAsync(string owner)
+    public async Task<IList<Models.Repository>> GetRepositoriesAsync(string owner)
     {
         _logger.LogInformation("Fetching repositories for owner {Owner}.", owner);
 
-        var result = await _cache.GetOrCreateAsync($"repos:{owner}", async (entry) =>
+        var repositories = await _cache.GetOrCreateAsync($"repos:{owner}", async (entry) =>
         {
             var user = await _client.User.Get(owner);
 
@@ -124,19 +140,28 @@ public sealed class GitHubService
                 repos = await _client.Repository.GetAllForUser(owner);
             }
 
-            var names = repos
-                .Select((p) => p.Name)
-                .OrderBy((p) => p)
-                .ToList();
-
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
 
-            return names;
+            return repos;
         });
 
-        _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", result.Count, owner);
+        _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
-        return result;
+        return repositories
+            .Where((p) => _options.IncludeForks || !p.Fork)
+            .Select((p) =>
+            {
+                return new Models.Repository()
+                {
+                    HtmlUrl = p.HtmlUrl,
+                    Id = p.Id,
+                    IsFork = p.Fork,
+                    IsPrivate = p.Private || p.Visibility != RepositoryVisibility.Public,
+                    Name = p.Name,
+                };
+            })
+            .OrderBy((p) => p.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     public async Task MergePullRequestsAsync(string owner, string name)

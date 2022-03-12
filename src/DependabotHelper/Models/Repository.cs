@@ -3,7 +3,7 @@
 
 namespace MartinCostello.DependabotHelper.Models;
 
-public sealed class Repository
+public class Repository
 {
     public long Id { get; set; } = default!;
 
@@ -11,13 +11,7 @@ public sealed class Repository
 
     public string HtmlUrl { get; set; } = default!;
 
-    public IList<PullRequest> All { get; set; } = new List<PullRequest>();
+    public bool IsFork { get; set; }
 
-    public IReadOnlyList<PullRequest> Error => All.Where((p) => p.Status == ChecksStatus.Error).ToList();
-
-    public IReadOnlyList<PullRequest> Pending => All.Where((p) => p.Status == ChecksStatus.Pending).ToList();
-
-    public IReadOnlyList<PullRequest> Success => All.Where((p) => p.Status == ChecksStatus.Success).ToList();
-
-    public IReadOnlyList<PullRequest> Approved => All.Where((p) => p.IsApproved).ToList();
+    public bool IsPrivate { get; set; }
 }

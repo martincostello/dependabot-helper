@@ -3,6 +3,7 @@
 
 #pragma warning disable SA1649
 
+using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -10,12 +11,13 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace MartinCostello.DependabotHelper.Pages;
 
 [Authorize]
-public class ConfigureModel : PageModel
+public sealed class ConfigureModel : PageModel
 {
-    public IReadOnlyList<string> Owners { get; set; } = new List<string>();
+    public IReadOnlyList<Owner> Owners { get; set; } = Array.Empty<Owner>();
 
     public async Task OnGet([FromServices] GitHubService service)
     {
         Owners = await service.GetOwnersAsync();
+        _ = await service.GetRateLimitsAsync();
     }
 }

@@ -1,4 +1,5 @@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject GitHubRateLimitsAccessor RateLimits
 <!DOCTYPE html>
 <html>
 <head>
@@ -66,7 +67,18 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello</p>
+            <p>
+                &copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello
+                @if (RateLimits.Current is { } rateLimits)
+                {
+                    <small class="float-right">
+                        GitHub API Limits:
+                        <span id="rate-limit-remaining">@rateLimits.Remaining</span>/<span id="rate-limit-total">@rateLimits.Limit</span>.
+                        Resets
+                        <span id="rate-limit-resets" title="@rateLimits.Resets!.Value.ToString("u", CultureInfo.InvariantCulture)">@rateLimits.ResetsText</span>.
+                    </small>
+                }
+            </p>
         </footer>
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.slim.min.js" integrity="sha512-6ORWJX/LrnSjBzwefdNUyLCMTIsGoNP6NftMy2UAm1JBm6PRZCO1d7OHBStWpVFZLO+RerTvqX/Z9mBFfCJZ4A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
