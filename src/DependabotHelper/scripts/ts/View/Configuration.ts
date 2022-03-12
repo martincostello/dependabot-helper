@@ -10,9 +10,11 @@ import { RateLimitsElement } from './RateLimitsElement';
 export class Configuration extends Page {
 
     private readonly checkTemplateClass = 'check-template';
-    private readonly ownerAttribute = 'data-owner';
 
-    private readonly checkboxSelector = '.form-check-input';
+    private readonly ownerAttribute = 'data-owner';
+    private readonly valueAttribute = 'value';
+
+    private readonly checkboxSelector = '.repo-enable';
 
     private modal: Element;
     private save: Element;
@@ -64,35 +66,32 @@ export class Configuration extends Page {
         for (const repository of repositories) {
 
             const node = this.template.cloneNode(true);
-
             body.appendChild(node);
 
-            const check = body.lastElementChild;
+            const element = body.lastElementChild;
+            element.classList.remove(this.checkTemplateClass);
 
-            const id = `check-${repository}`;
+            const name = element.querySelector('.repo-name');
+            name.textContent = repository.name;
+            name.setAttribute('href', repository.htmlUrl);
 
-            const input = <HTMLInputElement>check.querySelector(this.checkboxSelector);
-            input.setAttribute('id', id);
-            input.setAttribute('value', repository.name);
-
-            const label = check.querySelector('.form-check-label');
-            label.setAttribute('for', id);
-            label.textContent = repository.name;
+            const checkbox = <HTMLInputElement>element.querySelector(this.checkboxSelector);
+            checkbox.setAttribute('aria-label', `Toggle whether to manage dependabot updates for the ${repository.name} repository.`);
+            checkbox.setAttribute(this.valueAttribute, repository.name);
 
             if (checkedNames.indexOf(repository.name) > -1) {
-                input.checked = true;
+                checkbox.checked = true;
             }
 
             if (repository.isFork) {
-                Elements.show(check.querySelector('.repo-is-fork'));
+                Elements.show(element.querySelector('.repo-is-fork'));
             }
 
             if (repository.isPrivate) {
-                Elements.show(check.querySelector('.repo-is-private'));
+                Elements.show(element.querySelector('.repo-is-private'));
             }
 
-            check.classList.remove(this.checkTemplateClass);
-            Elements.show(check);
+            Elements.show(element);
         }
     }
 
@@ -123,7 +122,7 @@ export class Configuration extends Page {
             const check = <HTMLInputElement>element.querySelector(this.checkboxSelector);
 
             if (check.checked) {
-                const name = check.getAttribute('value');
+                const name = check.getAttribute(this.valueAttribute);
                 names.push(name);
             }
 

@@ -58,13 +58,29 @@
                 </button>
             </div>
             <div class="modal-body">
-                 <div class="form-check check-template d-none">
-                    <input class="form-check-input" type="checkbox" value="" id="">
-                    <label class="form-check-label" for="">
-                    </label>
-                    <span class="fa-solid fa-lock repo-is-private d-none" aria-label="Private"></span>
-                    <span class="fa-solid fa-code-fork repo-is-fork d-none" aria-label="Fork"></span>
-                </div>
+                <table class="table">
+                    <caption>The repositories that belong to this owner.</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" aria-label="The name of the repository">Repository</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="check-template d-none">
+                            <td>
+                                <a href="" target="_blank" class="repo-name"></a>
+                                <span class="fa-solid fa-lock repo-is-private text-muted d-none" aria-label="The repository is private"></span>
+                                <span class="fa-solid fa-code-fork repo-is-fork text-muted d-none" aria-label="The repository is a fork"></span>
+                            </td>
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input position-static repo-enable" type="checkbox" value="" aria-label="">
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
