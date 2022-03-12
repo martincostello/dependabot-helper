@@ -21,6 +21,9 @@ export class OwnerElement {
         const ownerElement = this.element.querySelector('.owner-name');
         ownerElement.textContent = owner;
 
+        const captionElement = this.element.querySelector('.owner-caption');
+        captionElement.textContent = `The GitHub repositories of ${owner} to manage Dependabot updates for.`;
+
         Elements.show(this.element);
 
         this.itemTemplate = this.element.querySelector('.' + this.itemTemplateClass);

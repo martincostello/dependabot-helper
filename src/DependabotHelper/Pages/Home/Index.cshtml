@@ -15,17 +15,17 @@
     <div class="d-none owner-template">
         <h2 class="owner-name"></h2>
         <table class="table">
+            <caption class="owner-caption"></caption>
             <thead>
                 <tr>
-                    <th scope="col">Repository</th>
-                    <th scope="col">Pending</th>
-                    <th scope="col">Failed</th>
-                    <th scope="col">Successful</th>
-                    <th scope="col">Approved</th>
+                    <th scope="col" aria-label="The name of the repository">Repository</th>
+                    <th scope="col" aria-label="The number of pending checks">Pending</th>
+                    <th scope="col" aria-label="The number of failed checks">Failed</th>
+                    <th scope="col" aria-label="The number of successful checks">Successful</th>
+                    <th scope="col" aria-label="The number of approved pull requests">Approved</th>
                     <th scope="col"></th>
                 </tr>
             </thead>
-            @* TODO Accessibility labels *@
             <tbody class="repo-list">
                 <tr class="d-none item-template">
                     <td>
@@ -51,11 +51,11 @@
                     <td>
                         <div class="float-right">
                             <button class="btn btn-secondary mr-2 repo-refresh" disabled>
-                                <span class="fa fa-refresh"></span>
+                                <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
                                 <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
                             <button class="btn btn-success btn-merge repo-merge" disabled>
-                                <span>Merge</span>
+                                <span aria-label="Attempt to merge all mergeable pull requests">Merge</span>
                                 <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
                         </div>
