@@ -10,4 +10,5 @@ export interface PullRequest {
     repositoryOwner: string;
     repositoryName: string;
     status: ChecksStatus;
+    title: string;
 }

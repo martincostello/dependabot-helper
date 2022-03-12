@@ -16,4 +16,6 @@ public sealed class PullRequest
     public string RepositoryName { get; set; } = default!;
 
     public ChecksStatus Status { get; set; }
+
+    public string Title { get; set; } = default!;
 }

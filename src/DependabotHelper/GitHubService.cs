@@ -352,6 +352,7 @@ public sealed class GitHubService
                     RepositoryName = name,
                     RepositoryOwner = owner,
                     Status = status,
+                    Title = issue.Title,
                 });
             }
         }
