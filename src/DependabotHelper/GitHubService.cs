@@ -152,7 +152,7 @@ public sealed class GitHubService
 
         var repositories = await _cache.GetOrCreateAsync($"repos:{owner}", async (entry) =>
         {
-            var user = await _client.User.Get(owner);
+            var user = await GetUserAsync(owner);
 
             IReadOnlyList<Octokit.Repository> repos;
 
@@ -162,7 +162,16 @@ public sealed class GitHubService
             }
             else
             {
-                repos = await _client.Repository.GetAllForUser(owner);
+                var current = await _client.User.Current();
+
+                if (current.Login == user.Login)
+                {
+                    repos = await _client.Repository.GetAllForCurrent();
+                }
+                else
+                {
+                    repos = await _client.Repository.GetAllForUser(owner);
+                }
             }
 
             entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
@@ -483,6 +492,15 @@ public sealed class GitHubService
         {
             entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
             return await _client.Repository.Get(owner, name);
+        });
+    }
+
+    private async Task<User> GetUserAsync(string login)
+    {
+        return await _cache.GetOrCreateAsync($"user:{login}", async (entry) =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
+            return await _client.User.Get(login);
         });
     }
 }
