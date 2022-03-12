@@ -53,6 +53,9 @@ export class Configuration extends Page {
 
         this.modal.setAttribute(this.ownerAttribute, owner);
 
+        const loader = this.modal.querySelector('.table-loader');
+        Elements.show(loader);
+
         const repositories = await this.gitHub.getRepositories(owner);
 
         await this.updateRateLimits();
@@ -93,6 +96,8 @@ export class Configuration extends Page {
 
             Elements.show(element);
         }
+
+        Elements.hide(loader);
     }
 
     private saveChanges() {
