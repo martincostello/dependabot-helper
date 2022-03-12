@@ -35,6 +35,16 @@ public sealed class GitHubService
         _rateLimitsAccessor = rateLimitsAccessor;
     }
 
+    public static string ApplyMaximumAvatarSize(string url)
+    {
+        if (!string.IsNullOrEmpty(url))
+        {
+            url += "&size=32";
+        }
+
+        return url;
+    }
+
     public async Task<IReadOnlyList<Owner>> GetOwnersAsync(ClaimsPrincipal user)
     {
         string id = user.GetUserId();
@@ -61,7 +71,7 @@ public sealed class GitHubService
         {
             owners.Add(new()
             {
-                AvatarUrl = organization.AvatarUrl,
+                AvatarUrl = ApplyMaximumAvatarSize(organization.AvatarUrl),
                 Name = organization.Login,
             });
         }
