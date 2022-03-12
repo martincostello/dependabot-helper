@@ -27,19 +27,27 @@ public static class GitHubEndpoints
             return await service.GetRateLimitsAsync();
         }).RequireAuthorization();
 
-        builder.MapGet("/github/repos/{owner}", async (string owner, GitHubService service) =>
+        builder.MapGet("/github/repos/{owner}", async (
+            string owner,
+            ClaimsPrincipal user,
+            GitHubService service) =>
         {
-            return await service.GetRepositoriesAsync(owner);
+            return await service.GetRepositoriesAsync(user, owner);
         }).RequireAuthorization();
 
-        builder.MapGet("/github/repos/{owner}/{name}/pulls", async (string owner, string name, GitHubService service) =>
+        builder.MapGet("/github/repos/{owner}/{name}/pulls", async (
+            string owner,
+            string name,
+            ClaimsPrincipal user,
+            GitHubService service) =>
         {
-            return await service.GetPullRequestsAsync(owner, name);
+            return await service.GetPullRequestsAsync(user, owner, name);
         }).RequireAuthorization();
 
         builder.MapPost("/github/repos/{owner}/{name}/pulls/merge", async (
             string owner,
             string name,
+            ClaimsPrincipal user,
             GitHubService service,
             IAntiforgery antiforgery,
             HttpContext httpContext) =>
@@ -49,7 +57,7 @@ public static class GitHubEndpoints
                 return Results.Problem("Invalid CSRF token specified.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            await service.MergePullRequestsAsync(owner, name);
+            await service.MergePullRequestsAsync(user, owner, name);
 
             return Results.NoContent();
         }).RequireAuthorization();

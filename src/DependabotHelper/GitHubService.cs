@@ -54,9 +54,8 @@ public sealed class GitHubService
             "Fetching organizations for user {Login}.",
             login);
 
-        var organizations = await _cache.GetOrCreateAsync($"orgs:{id}", async (entry) =>
+        var organizations = await CacheGetOrCreateAsync(user, $"orgs:{id}", async () =>
         {
-            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
             return await _client.Organization.GetAllForCurrent();
         });
 
@@ -125,9 +124,9 @@ public sealed class GitHubService
         return result;
     }
 
-    public async Task<RepositoryPullRequests> GetPullRequestsAsync(string owner, string name)
+    public async Task<RepositoryPullRequests> GetPullRequestsAsync(ClaimsPrincipal user, string owner, string name)
     {
-        var repository = await GetRepositoryAsync(owner, name);
+        var repository = await GetRepositoryAsync(user, owner, name);
 
         var result = new RepositoryPullRequests()
         {
@@ -146,17 +145,17 @@ public sealed class GitHubService
         return result;
     }
 
-    public async Task<IList<Models.Repository>> GetRepositoriesAsync(string owner)
+    public async Task<IList<Models.Repository>> GetRepositoriesAsync(ClaimsPrincipal user, string owner)
     {
         _logger.LogInformation("Fetching repositories for owner {Owner}.", owner);
 
-        var repositories = await _cache.GetOrCreateAsync($"repos:{owner}", async (entry) =>
+        var repositories = await CacheGetOrCreateAsync(user, $"repos:{owner}", async () =>
         {
-            var user = await GetUserAsync(owner);
+            var ownerUser = await GetUserAsync(user, owner);
 
             IReadOnlyList<Octokit.Repository> repos;
 
-            if (user.Type == AccountType.Organization)
+            if (ownerUser.Type == AccountType.Organization)
             {
                 repos = await _client.Repository.GetAllForOrg(owner);
             }
@@ -164,7 +163,7 @@ public sealed class GitHubService
             {
                 var current = await _client.User.Current();
 
-                if (current.Login == user.Login)
+                if (current.Login == ownerUser.Login)
                 {
                     repos = await _client.Repository.GetAllForCurrent();
                 }
@@ -173,8 +172,6 @@ public sealed class GitHubService
                     repos = await _client.Repository.GetAllForUser(owner);
                 }
             }
-
-            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
 
             return repos;
         });
@@ -198,14 +195,14 @@ public sealed class GitHubService
             .ToList();
     }
 
-    public async Task MergePullRequestsAsync(string owner, string name)
+    public async Task MergePullRequestsAsync(ClaimsPrincipal user, string owner, string name)
     {
         var mergeRequest = new MergePullRequest()
         {
             MergeMethod = PullRequestMergeMethod.Merge,
         };
 
-        var repository = await GetRepositoryAsync(owner, name);
+        var repository = await GetRepositoryAsync(user, owner, name);
 
         if (repository.AllowMergeCommit == false)
         {
@@ -486,21 +483,29 @@ public sealed class GitHubService
         return status ?? ChecksStatus.Pending;
     }
 
-    private async Task<Octokit.Repository> GetRepositoryAsync(string owner, string name)
+    private async Task<Octokit.Repository> GetRepositoryAsync(ClaimsPrincipal user, string owner, string name)
     {
-        return await _cache.GetOrCreateAsync($"repo:{owner}/{name}", async (entry) =>
+        return await CacheGetOrCreateAsync(user, $"repo:{owner}/{name}", async () =>
         {
-            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
             return await _client.Repository.Get(owner, name);
         });
     }
 
-    private async Task<User> GetUserAsync(string login)
+    private async Task<User> GetUserAsync(ClaimsPrincipal user, string login)
     {
-        return await _cache.GetOrCreateAsync($"user:{login}", async (entry) =>
+        return await CacheGetOrCreateAsync(user, $"user:{login}", async () =>
+        {
+            return await _client.User.Get(login);
+        });
+    }
+
+    private async Task<T> CacheGetOrCreateAsync<T>(ClaimsPrincipal user, string key, Func<Task<T>> factory)
+    {
+        string prefix = user.GetUserId();
+        return await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
         {
             entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
-            return await _client.User.Get(login);
+            return await factory();
         });
     }
 }
