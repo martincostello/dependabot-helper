@@ -67,7 +67,14 @@ export class Manage extends Page {
                 await this.updateRepository(element);
             });
 
-            // TODO Add a 5-10 minute auto-refresh setTimeout()
+            // Automatically refresh the UI every 10 minutes
+            // plus a random jitter factory of 0-30 seconds.
+            const jitter = Math.floor(Math.random() * 30) * 1000;
+            const interval = (10 * 60 * 1000) + jitter;
+
+            setInterval(async () => {
+                await this.updateRepository(element);
+            }, interval);
         }
 
         if (repoElements.length < 1) {
