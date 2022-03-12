@@ -50,12 +50,16 @@
                     </td>
                     <td>
                         <div class="float-right">
-                            <button class="btn btn-secondary mr-2 repo-refresh" disabled>
+                            <button class="btn btn-secondary repo-refresh" type="button" disabled>
                                 <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
                                 <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
-                            <button class="btn btn-success btn-merge repo-merge" disabled>
+                            <button class="btn btn-primary ml-2 mr-2 repo-pull-requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
+                                <span class="fa-solid fa-code-pull-request" aria-label="View pull requests"></span>
+                            </button>
+                            <button class="btn btn-success btn-merge repo-merge" type="button" disabled>
                                 <span aria-label="Attempt to merge all mergeable pull requests">Merge</span>
+                                <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
                                 <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
                         </div>
@@ -63,5 +67,52 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<div class="modal fade"
+     id="pr-modal"
+     role="dialog"
+     tabindex="-1"
+     aria-labelledby="pr-label"
+     aria-hidden="true"
+     data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pr-label">Dependabot pull requests</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <caption>Open Dependabot pull requests.</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Title</th>
+                            <th class="text-center" scope="col">Status</th>
+                            <th class="text-center" scope="col">Approved?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="pr-template d-none">
+                            <td>
+                                <span class="fa-solid fa-code-merge text-github-open" aria-hidden="true"></span>
+                                <a href="" target="_blank" class="pr-title">Title</a>
+                            </td>
+                            <td class="text-center">
+                                <span class="fa-solid fa-xmark text-danger pr-status-error d-none" aria-label="Error"></span>
+                                <span class="fa-solid fa-spinner text-warning pr-status-pending d-none" aria-label="Pending"></span>
+                                <span class="fa-solid fa-check text-success pr-status-success d-none" aria-label="Success"></span>
+                            </td>
+                            <td class="text-center">
+                                <span class="fa-solid fa-thumbs-up text-primary pr-is-approved align-middle d-none" aria-label="Approved"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

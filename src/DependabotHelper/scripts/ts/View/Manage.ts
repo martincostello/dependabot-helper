@@ -3,15 +3,19 @@
 
 import { GitHubClient } from '../Client/GitHubClient';
 import { StorageClient } from '../Client/StorageClient';
+import { PullRequest } from '../Models/PullRequest';
 import { Elements } from './Elements';
 import { OwnerElement } from './OwnerElement';
 import { Page } from './Page';
+import { PullRequestsElement } from './PullRequestsElement';
 import { RateLimitsElement } from './RateLimitsElement';
 import { RepositoryElement } from './RepositoryElement';
 
 export class Manage extends Page {
 
     private readonly ownerTemplateClass = 'owner-template';
+
+    private modal: PullRequestsElement;
 
     constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement) {
         super(gitHub, storage, rateLimits);
@@ -55,6 +59,10 @@ export class Manage extends Page {
                 await this.updateRepository(element);
             });
 
+            element.onPullRequests((pullRequests) => {
+                this.modal.update(pullRequests);
+            });
+
             element.onRefresh(async (_owner, _name) => {
                 await this.updateRepository(element);
             });
@@ -65,6 +73,9 @@ export class Manage extends Page {
         if (repoElements.length < 1) {
             Elements.show(Page.findId('not-configured'));
         }
+
+        const modal = Page.findId('pr-modal');
+        this.modal = new PullRequestsElement(modal);
     }
 
     private async updateRepository(element: RepositoryElement): Promise<void> {
