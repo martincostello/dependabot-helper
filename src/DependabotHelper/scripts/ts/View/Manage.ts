@@ -51,7 +51,7 @@ export class Manage extends Page {
         // Sequentially load the Pull Requests for each repository listed
         for (const element of repoElements) {
 
-            this.updateRepository(element);
+            await this.updateRepository(element);
 
             element.onMerge(async (owner, name) => {
                 await this.gitHub.mergePullRequests(owner, name);
