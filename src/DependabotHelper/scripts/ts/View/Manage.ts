@@ -51,7 +51,14 @@ export class Manage extends Page {
         this.modal = new PullRequestsElement(modal);
 
         this.modal.onApprove(async (owner, name, number) => {
+
             await this.gitHub.approvePullRequest(owner, name, number);
+
+            const element = repoElements.find((element) => element.owner === owner && element.name === name);
+
+            if (element) {
+                await this.updateRepository(element);
+            }
         });
 
         // Sequentially load the Pull Requests for each repository listed
