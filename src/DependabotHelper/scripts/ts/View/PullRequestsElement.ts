@@ -41,7 +41,9 @@ export class PullRequestsElement {
             title.setAttribute('data-number', pullRequest.number.toString(10));
             title.setAttribute('href', pullRequest.htmlUrl);
 
-            Elements.show(element.querySelector(`.pr-status-${pullRequest.status.toLowerCase()}`));
+            const status = element.querySelector(`.pr-status-${pullRequest.status.toLowerCase()}`);
+            status.setAttribute('data-count', '1');
+            Elements.show(status);
 
             if (pullRequest.isApproved) {
                 Elements.show(element.querySelector('.pr-is-approved'));

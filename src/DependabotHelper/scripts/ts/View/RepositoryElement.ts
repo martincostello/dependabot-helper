@@ -116,9 +116,16 @@ export class RepositoryElement {
         }
 
         this.approvedCount.textContent = repository.approved.length.toLocaleString();
+        this.approvedCount.setAttribute('data-count', repository.approved.length.toString(10));
+
         this.errorCount.textContent = repository.error.length.toLocaleString();
+        this.errorCount.setAttribute('data-count', repository.error.length.toString(10));
+
         this.pendingCount.textContent = repository.pending.length.toLocaleString();
+        this.pendingCount.setAttribute('data-count', repository.pending.length.toString(10));
+
         this.successCount.textContent = repository.success.length.toLocaleString();
+        this.successCount.setAttribute('data-count', repository.success.length.toString(10));
 
         if (this.pullRequests.length > 0) {
             this.container.classList.remove(this.inactiveClass);

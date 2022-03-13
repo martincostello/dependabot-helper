@@ -39,6 +39,11 @@ img.user-profile:after {
     width: 100%;
 }
 
+span[class^="repo-count-"][data-count]:not([data-count="0"]) + span.fa-spinner,
+span.fa-spinner[data-count]:not([data-count="0"]) {
+    animation: 2s linear infinite spinner-border;
+}
+
 tr.table-inactive {
     color: #b9b9b9;
 }
