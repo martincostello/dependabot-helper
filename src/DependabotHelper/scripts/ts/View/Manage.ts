@@ -3,7 +3,6 @@
 
 import { GitHubClient } from '../Client/GitHubClient';
 import { StorageClient } from '../Client/StorageClient';
-import { PullRequest } from '../Models/PullRequest';
 import { Elements } from './Elements';
 import { OwnerElement } from './OwnerElement';
 import { Page } from './Page';
@@ -48,6 +47,9 @@ export class Manage extends Page {
             }
         }
 
+        const modal = Page.findId('pr-modal');
+        this.modal = new PullRequestsElement(modal);
+
         // Sequentially load the Pull Requests for each repository listed
         for (const element of repoElements) {
 
@@ -80,9 +82,6 @@ export class Manage extends Page {
         if (repoElements.length < 1) {
             Elements.show(Page.findId('not-configured'));
         }
-
-        const modal = Page.findId('pr-modal');
-        this.modal = new PullRequestsElement(modal);
     }
 
     private async updateRepository(element: RepositoryElement): Promise<void> {
