@@ -37,7 +37,8 @@ export class PullRequestsElement {
             element.classList.remove(this.templateClass);
 
             const title = element.querySelector('.pr-title');
-            title.textContent = `${pullRequest.title} (#${pullRequest.number})`;
+            title.textContent = pullRequest.title;
+            title.setAttribute('data-number', pullRequest.number.toString(10));
             title.setAttribute('href', pullRequest.htmlUrl);
 
             Elements.show(element.querySelector(`.pr-status-${pullRequest.status.toLowerCase()}`));

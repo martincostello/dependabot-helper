@@ -33,6 +33,10 @@ tr.table-inactive {
     color: #B0B0B0;
 }
 
+.pr-title::after {
+    content: ' (#' attr(data-number) ')';
+}
+
 .text-github-open {
     color: #2da44e;
 }
