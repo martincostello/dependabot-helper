@@ -65,7 +65,7 @@
                     <caption>The repositories that belong to this owner.</caption>
                     <thead>
                         <tr>
-                            <th scope="col" aria-label="The name of the repository">Repository</th>
+                            <th scope="col">Repository</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -73,8 +73,8 @@
                         <tr class="check-template d-none">
                             <td>
                                 <a href="" target="_blank" class="repo-name"></a>
-                                <span class="fa-solid fa-lock repo-is-private text-muted d-none" aria-label="The repository is private"></span>
-                                <span class="fa-solid fa-code-fork repo-is-fork text-muted d-none" aria-label="The repository is a fork"></span>
+                                <span class="fa-solid fa-lock repo-is-private text-muted d-none" title="Private" aria-label="The repository is private"></span>
+                                <span class="fa-solid fa-code-fork repo-is-fork text-muted d-none" title="Fork" aria-label="The repository is a fork"></span>
                             </td>
                             <td>
                                 <div class="form-check">
@@ -89,7 +89,9 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="repo-save">
                     Save changes
-                    <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                        <span class="sr-only">Saving...</span>
+                    </span>
                 </button>
             </div>
         </div>

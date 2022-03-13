@@ -33,37 +33,40 @@
                         <a class="repo-name" href="#" target="_blank"></a>
                     </td>
                     <td>
-                        <span class="repo-count-pending">&hellip;</span>
+                        <span class="repo-count-pending" aria-label="The number of pending checks">&hellip;</span>
                         <span class="fa-solid fa-spinner repo-status text-warning" data-count="0" aria-hidden="true"></span>
                     </td>
                     <td>
-                        <span class="repo-count-error loading-count">&hellip;</span>
+                        <span class="repo-count-error loading-count" aria-label="The number of failed checks">&hellip;</span>
                         <span class="fa-solid fa-xmark repo-status text-danger" data-count="0" aria-hidden="true"></span>
                     </td>
                     <td>
-                        <span class="repo-count-success loading-count">&hellip;</span>
+                        <span class="repo-count-success loading-count" aria-label="The number of successful checks">&hellip;</span>
                         <span class="fa-solid fa-check repo-status text-success" data-count="0" aria-hidden="true"></span>
                     </td>
                     <td>
-                        <span class="repo-count-approved loading-count">&hellip;</span>
+                        <span class="repo-count-approved loading-count" aria-label="The number of approvals">&hellip;</span>
                         <span class="fa-solid fa-thumbs-up repo-status text-primary" data-count="0" aria-hidden="true"></span>
                     </td>
                     <td>
                         <div class="float-right">
-                            <button class="btn btn-secondary repo-refresh" type="button" disabled>
+                            <button class="btn btn-secondary repo-refresh" title="Refresh" type="button" disabled>
                                 <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
-                                <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                    <span class="sr-only">Refreshing...</span>
+                                </span>
                             </button>
-                            <a class="btn btn-primary repo-configure disabled" href="#" role="button" target="_blank">
-                                <span class="fa-solid fa-robot" aria-label="Configure Dependabot"></span>
+                            <a class="btn btn-primary repo-configure disabled" href="#" role="button" target="_blank" title="View the Dependabot configuration">
+                                <span class="fa-solid fa-robot" aria-hidden="true"></span>
                             </a>
-                            <button class="btn btn-pr repo-pull-requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
-                                <span class="fa-solid fa-code-pull-request" aria-label="View pull requests"></span>
+                            <button class="btn btn-pr repo-pull-requests" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
+                                <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
                             </button>
-                            <button class="btn btn-success btn-merge repo-merge" type="button" disabled>
-                                <span aria-label="Attempt to merge all mergeable pull requests">Merge</span>
+                            <button class="btn btn-success btn-merge repo-merge" title="Attempt to merge all mergeable pull requests" type="button" disabled>
                                 <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
-                                <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                    <span class="sr-only">Merging...</span>
+                                </span>
                             </button>
                         </div>
                     </td>
@@ -114,7 +117,9 @@
                                 <button class="btn btn-success btn-approve pr-approve d-none" type="button">
                                     <span aria-label="Approve this pull request">Approve</span>
                                     <span class="fa-solid fa-check" aria-hidden="true"></span>
-                                    <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                        <span class="sr-only">Approving...</span>
+                                    </span>
                                 </button>
                             </td>
                         </tr>
