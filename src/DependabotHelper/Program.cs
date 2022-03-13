@@ -49,7 +49,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthenticationRoutes();
-app.MapGitHubRoutes();
+app.MapGitHubRoutes(app.Logger);
 
 app.MapRazorPages();
 

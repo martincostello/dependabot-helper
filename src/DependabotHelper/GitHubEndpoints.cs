@@ -15,14 +15,22 @@ public static class GitHubEndpoints
     /// Maps the endpoints for GitHub.
     /// </summary>
     /// <param name="builder">The <see cref="IEndpointConventionBuilder"/>.</param>
+    /// <param name="logger">The <see cref="ILogger"/> to use.</param>
     /// <returns>
     /// A <see cref="IEndpointConventionBuilder"/> that can be used to further customize the endpoint.
     /// </returns>
-    public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder, ILogger logger)
     {
         builder.MapGet("/github/rate-limits", async (GitHubService service) =>
         {
-            return await service.GetRateLimitsAsync();
+            try
+            {
+                return Results.Json(await service.GetRateLimitsAsync());
+            }
+            catch (Exception ex)
+            {
+                return Results.Extensions.Exception(ex, logger);
+            }
         }).RequireAuthorization();
 
         builder.MapGet("/github/repos/{owner}", async (
@@ -30,7 +38,14 @@ public static class GitHubEndpoints
             ClaimsPrincipal user,
             GitHubService service) =>
         {
-            return await service.GetRepositoriesAsync(user, owner);
+            try
+            {
+                return Results.Json(await service.GetRepositoriesAsync(user, owner));
+            }
+            catch (Exception ex)
+            {
+                return Results.Extensions.Exception(ex, logger);
+            }
         }).RequireAuthorization();
 
         builder.MapGet("/github/repos/{owner}/{name}/pulls", async (
@@ -39,7 +54,14 @@ public static class GitHubEndpoints
             ClaimsPrincipal user,
             GitHubService service) =>
         {
-            return await service.GetPullRequestsAsync(user, owner, name);
+            try
+            {
+                return Results.Json(await service.GetPullRequestsAsync(user, owner, name));
+            }
+            catch (Exception ex)
+            {
+                return Results.Extensions.Exception(ex, logger);
+            }
         }).RequireAuthorization();
 
         builder.MapPost("/github/repos/{owner}/{name}/pulls/merge", async (
@@ -52,12 +74,18 @@ public static class GitHubEndpoints
         {
             if (!await antiforgery.IsRequestValidAsync(httpContext))
             {
-                return Results.Problem("Invalid CSRF token specified.", statusCode: StatusCodes.Status400BadRequest);
+                return Results.Extensions.AntiforgeryValidationFailed();
             }
 
-            await service.MergePullRequestsAsync(user, owner, name);
-
-            return Results.NoContent();
+            try
+            {
+                await service.MergePullRequestsAsync(user, owner, name);
+                return Results.NoContent();
+            }
+            catch (Exception ex)
+            {
+                return Results.Extensions.Exception(ex, logger);
+            }
         }).RequireAuthorization();
 
         builder.MapPost("/github/repos/{owner}/{name}/pulls/{number:int}/approve", async (
@@ -71,12 +99,18 @@ public static class GitHubEndpoints
         {
             if (!await antiforgery.IsRequestValidAsync(httpContext))
             {
-                return Results.Problem("Invalid CSRF token specified.", statusCode: StatusCodes.Status400BadRequest);
+                return Results.Extensions.AntiforgeryValidationFailed();
             }
 
-            await service.ApprovePullRequestAsync(owner, name, number);
-
-            return Results.NoContent();
+            try
+            {
+                await service.ApprovePullRequestAsync(owner, name, number);
+                return Results.NoContent();
+            }
+            catch (Exception ex)
+            {
+                return Results.Extensions.Exception(ex, logger);
+            }
         }).RequireAuthorization();
 
         return builder;
