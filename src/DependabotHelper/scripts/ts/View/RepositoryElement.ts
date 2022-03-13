@@ -115,17 +115,16 @@ export class RepositoryElement {
             this.configureLink.classList.remove('disabled');
         }
 
-        this.approvedCount.textContent = repository.approved.length.toLocaleString();
-        this.approvedCount.setAttribute('data-count', repository.approved.length.toString(10));
+        const statuses = new Map<Element, number>();
+        statuses.set(this.approvedCount, repository.approved.length);
+        statuses.set(this.errorCount, repository.error.length);
+        statuses.set(this.pendingCount, repository.pending.length);
+        statuses.set(this.successCount, repository.success.length);
 
-        this.errorCount.textContent = repository.error.length.toLocaleString();
-        this.errorCount.setAttribute('data-count', repository.error.length.toString(10));
-
-        this.pendingCount.textContent = repository.pending.length.toLocaleString();
-        this.pendingCount.setAttribute('data-count', repository.pending.length.toString(10));
-
-        this.successCount.textContent = repository.success.length.toLocaleString();
-        this.successCount.setAttribute('data-count', repository.success.length.toString(10));
+        for (const [element, count] of statuses) {
+            element.textContent = count.toLocaleString();
+            element.setAttribute('data-count', count.toString(10));
+        }
 
         if (this.pullRequests.length > 0) {
             this.container.classList.remove(this.inactiveClass);
