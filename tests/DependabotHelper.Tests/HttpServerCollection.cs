@@ -3,11 +3,8 @@
 
 namespace MartinCostello.DependabotHelper;
 
-public class UnitTests
+[CollectionDefinition(Name)]
+public sealed class HttpServerCollection : ICollectionFixture<HttpServerFixture>
 {
-    [Fact]
-    public void Test_That_Always_Passes()
-    {
-        // No-op
-    }
+    public const string Name = "DependabotHelper HTTP server collection";
 }
