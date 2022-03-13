@@ -32,15 +32,18 @@ internal static class ResultsExtensions
             logger.LogInformation(exception, "Unauthorized.");
             return Results.Problem(statusCode: StatusCodes.Status401Unauthorized);
         }
+        else if (exception is RateLimitExceededException)
+        {
+            logger.LogWarning(exception, "API rate limit exceeded.");
+            return Results.Problem(
+                statusCode: StatusCodes.Status429TooManyRequests,
+                title: "Too Many Requests",
+                type: "https://tools.ietf.org/html/rfc6585#section-4");
+        }
         else if (exception is ForbiddenException)
         {
             logger.LogInformation(exception, "Forbidden.");
             return Results.Problem(statusCode: StatusCodes.Status403Forbidden);
-        }
-        else if (exception is RateLimitExceededException)
-        {
-            logger.LogWarning(exception, "Rate limit exceeded.");
-            return Results.Problem("Rate limit exceeded.", statusCode: StatusCodes.Status429TooManyRequests);
         }
         else
         {
