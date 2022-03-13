@@ -105,6 +105,111 @@ public sealed class ApiTests : IDisposable
         actual.ResetsText.ShouldBe("59 minutes from now");
     }
 
+    [Fact]
+    public async Task Can_Get_Repositories_If_No_Repositories()
+    {
+        // Arrange
+        string owner = RandomString();
+
+        RegisterGetUser(owner);
+        RegisterGetUserRepositories(owner);
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Can_Get_Repositories_For_Self()
+    {
+        // Arrange
+        string owner = "john-smith";
+        string name = RandomString();
+
+        RegisterGetUser(owner);
+        RegisterGetRepositoriesForCurrentUser(
+            response: () => new[]
+            {
+                new
+                {
+                    name,
+                },
+            });
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.Count.ShouldBe(1);
+        actual[0].Name.ShouldBe(name);
+    }
+
+    [Fact]
+    public async Task Can_Get_Repositories_If_Organization_Has_Repositories()
+    {
+        // Arrange
+        string owner = RandomString();
+        string name = RandomString();
+
+        RegisterGetUser(owner, userType: "organization");
+        RegisterGetOrganizationRepositories(
+            owner,
+            response: () => new[]
+            {
+                new
+                {
+                    name,
+                },
+            });
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.Count.ShouldBe(1);
+        actual[0].Name.ShouldBe(name);
+    }
+
+    [Fact]
+    public async Task Can_Get_Repositories_If_User_Has_Repositories()
+    {
+        // Arrange
+        string owner = RandomString();
+        string name = RandomString();
+
+        RegisterGetUser(owner);
+        RegisterGetUserRepositories(
+            owner,
+            response: () => new[]
+            {
+                new
+                {
+                    name,
+                },
+            });
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.Count.ShouldBe(1);
+        actual[0].Name.ShouldBe(name);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -460,6 +565,82 @@ public sealed class ApiTests : IDisposable
             .Requests()
             .ForGet()
             .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetOrganizationRepositories(string login, Func<object>? response = null)
+    {
+        response ??= () => Array.Empty<object>();
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/orgs/{login}/repos")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetUserRepositories(string login, Func<object>? response = null)
+    {
+        response ??= () => Array.Empty<object>();
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/users/{login}/repos")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetRepositoriesForCurrentUser(Func<object>? response = null)
+    {
+        response ??= () => Array.Empty<object>();
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/user/repos")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetUser(string login, string userType = "user", Func<object>? response = null)
+    {
+        response ??= () => new
+        {
+            login,
+            type = userType,
+        };
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/users/{login}")
             .ForRequestHeader("Authorization", AuthorizationHeader)
             .Responds()
             .WithStatus(StatusCodes.Status200OK)
