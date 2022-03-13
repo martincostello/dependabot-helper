@@ -42,10 +42,10 @@ export class RepositoryElement {
         this.loader = this.container.querySelector(this.loaderSelector);
         this.repoName = this.container.querySelector('.repo-name');
 
-        this.approvedCount = this.container.querySelector('.repo-approved-count');
-        this.errorCount = this.container.querySelector('.repo-error-count');
-        this.pendingCount = this.container.querySelector('.repo-pending-count');
-        this.successCount = this.container.querySelector('.repo-success-count');
+        this.approvedCount = this.container.querySelector('.repo-count-approved');
+        this.errorCount = this.container.querySelector('.repo-count-error');
+        this.pendingCount = this.container.querySelector('.repo-count-pending');
+        this.successCount = this.container.querySelector('.repo-count-success');
 
         this.mergeButton = this.container.querySelector('.repo-merge');
         this.pullRequestsButton = this.container.querySelector('.repo-pull-requests');

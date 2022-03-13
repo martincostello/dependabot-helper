@@ -20,6 +20,10 @@ tr.table-inactive {
     color: #b9b9b9;
 }
 
+tr.table-inactive > td span[aria-hidden="true"].repo-status {
+    color: #b9b9b9 !important;
+}
+
 .body-content {
     padding-top: 10px;
 }
