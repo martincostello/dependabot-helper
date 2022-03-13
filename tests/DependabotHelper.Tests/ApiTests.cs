@@ -248,9 +248,11 @@ public sealed class ApiTests : IDisposable
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Can_Merge_Pull_Requests(bool allowMergeCommit)
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Can_Merge_Pull_Requests(bool allowMergeCommit, bool allowRebaseMerge)
     {
         // Arrange
         string owner = RandomString();
@@ -260,9 +262,9 @@ public sealed class ApiTests : IDisposable
         int pullRequest2 = RandomNumber();
         int pullRequest3 = RandomNumber();
 
-        RegisterGetRepository(owner, name, allowMergeCommit);
+        RegisterGetRepository(owner, name, allowMergeCommit, allowRebaseMerge);
         RegisterGetPullRequest(owner, name, pullRequest1);
-        RegisterGetPullRequest(owner, name, pullRequest2);
+        RegisterGetPullRequest(owner, name, pullRequest2, isDraft: true);
         RegisterPutPullRequestMerge(owner, name, pullRequest1, mergeable: true);
         RegisterPutPullRequestMerge(owner, name, pullRequest2, mergeable: false);
 
@@ -545,6 +547,7 @@ public sealed class ApiTests : IDisposable
         string owner,
         string name,
         bool allowMergeCommit = true,
+        bool allowRebaseMerge = true,
         int statusCode = StatusCodes.Status200OK,
         Func<object>? response = null,
         Action<HttpRequestInterceptionBuilder>? configure = null)
@@ -554,6 +557,7 @@ public sealed class ApiTests : IDisposable
             name,
             full_name = $"{owner}/{name}",
             allow_merge_commit = allowMergeCommit,
+            allow_rebase_merge = allowRebaseMerge,
         };
 
         var builder = new HttpRequestInterceptionBuilder()
@@ -594,9 +598,18 @@ public sealed class ApiTests : IDisposable
         builder.RegisterWith(Fixture.Interceptor);
     }
 
-    private void RegisterGetPullRequest(string owner, string name, int number, Func<object>? response = null)
+    private void RegisterGetPullRequest(
+        string owner,
+        string name,
+        int number,
+        bool isDraft = false,
+        Func<object>? response = null)
     {
-        response ??= () => new { number };
+        response ??= () => new
+        {
+            number,
+            draft = isDraft,
+        };
 
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
