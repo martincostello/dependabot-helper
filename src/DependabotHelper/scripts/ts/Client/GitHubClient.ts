@@ -7,11 +7,6 @@ import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
 
 export class GitHubClient {
 
-    async isAuthenticated(): Promise<boolean> {
-        const response = await this.getJson<any>('/github/is-authenticated');
-        return response.isAuthenticated;
-    }
-
     async getPullRequests(owner: string, name: string): Promise<RepositoryPullRequests> {
         return await this.getJson<RepositoryPullRequests>(
             `/github/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/pulls`);

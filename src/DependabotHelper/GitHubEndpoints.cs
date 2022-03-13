@@ -20,8 +20,6 @@ public static class GitHubEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/github/is-authenticated", (ClaimsPrincipal user) => new { user.Identity?.IsAuthenticated });
-
         builder.MapGet("/github/rate-limits", async (GitHubService service) =>
         {
             return await service.GetRateLimitsAsync();

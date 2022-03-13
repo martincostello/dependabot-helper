@@ -18,7 +18,10 @@ export class App {
 
     async initialize(): Promise<void> {
 
-        if (!await this.gitHub.isAuthenticated()) {
+        const userElement = document.querySelector('meta[name="x-user-id"]');
+        const userId = userElement?.getAttribute('content') ?? '';
+
+        if (!userId) {
             return;
         }
 
