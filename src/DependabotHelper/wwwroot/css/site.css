@@ -11,9 +11,32 @@ a {
     color: #0060C7;
 }
 
+img {
+    position: relative;
+}
+
 img.user-profile {
     max-height: 30px;
     max-width: 30px;
+}
+
+/*
+    Hide avatar images that fail to load.
+    See https://stackoverflow.com/a/37192970/1064169.
+*/
+img.user-profile:after {
+    background-color: #fff;
+    content: '';
+    display: block;
+    font-family: 'Helvetica';
+    font-weight: 300;
+    height: 100%;
+    left: 0;
+    line-height: 2;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 100%;
 }
 
 tr.table-inactive {
