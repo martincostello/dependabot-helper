@@ -47,7 +47,7 @@
                                     string profileUrl = User.GetProfileUrl();
                                     string? avatarUrl = User.GetAvatarUrl();
                                 }
-                                <a class="nav-link" href="@profileUrl" title="GitHub Profile" target="_blank">
+                                <a class="nav-link" href="@profileUrl" title="View your GitHub profile" target="_blank">
                                     <span id="user-name">@displayName</span>
                                     @if (!string.IsNullOrWhiteSpace(avatarUrl))
                                     {
