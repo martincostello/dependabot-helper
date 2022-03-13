@@ -467,11 +467,14 @@ public sealed class GitHubService
                    suite.Conclusion == CheckConclusion.Failure ||
                    suite.Conclusion == CheckConclusion.TimedOut;
 
+            static bool IsPending(CheckSuite suite)
+                => suite.Conclusion is null && suite.Status == CheckStatus.InProgress;
+
             // If a check has not run at all consider it successful as it
             // might not be required to run at all (e.g. an old installation)
             // as it would otherwise block the Pull Request from being successful.
             static bool IsSuccess(CheckSuite suite)
-                => suite.Conclusion is null ||
+                => (suite.Conclusion is null && suite.Status != CheckStatus.InProgress) ||
                    suite.Conclusion == CheckConclusion.Success ||
                    suite.Conclusion == CheckConclusion.Neutral;
 
@@ -489,6 +492,10 @@ public sealed class GitHubService
             else if (checkSuitesResponse.CheckSuites.Any(IsError))
             {
                 status = ChecksStatus.Error;
+            }
+            else if (checkSuitesResponse.CheckSuites.Any(IsPending))
+            {
+                status = ChecksStatus.Pending;
             }
         }
 
