@@ -130,6 +130,7 @@ public sealed class ApiTests : IDisposable
         // Arrange
         string owner = "john-smith";
         string name = RandomString();
+        int id = RandomNumber();
 
         RegisterGetUser(owner);
         RegisterGetRepositoriesForCurrentUser(
@@ -137,7 +138,12 @@ public sealed class ApiTests : IDisposable
             {
                 new
                 {
+                    id,
                     name,
+                    fork = false,
+                    @private = false,
+                    visibility = "internal",
+                    html_url = $"https://github.com/{owner}/{name}",
                 },
             });
 
@@ -149,7 +155,14 @@ public sealed class ApiTests : IDisposable
         // Assert
         actual.ShouldNotBeNull();
         actual.Count.ShouldBe(1);
-        actual[0].Name.ShouldBe(name);
+
+        var repository = actual[0];
+
+        repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
+        repository.Id.ShouldBe(id);
+        repository.IsFork.ShouldBeFalse();
+        repository.IsPrivate.ShouldBeTrue();
+        repository.Name.ShouldBe(name);
     }
 
     [Fact]
@@ -158,6 +171,7 @@ public sealed class ApiTests : IDisposable
         // Arrange
         string owner = RandomString();
         string name = RandomString();
+        int id = RandomNumber();
 
         RegisterGetUser(owner, userType: "organization");
         RegisterGetOrganizationRepositories(
@@ -166,7 +180,11 @@ public sealed class ApiTests : IDisposable
             {
                 new
                 {
+                    id,
                     name,
+                    fork = true,
+                    @private = true,
+                    html_url = $"https://github.com/{owner}/{name}",
                 },
             });
 
@@ -178,7 +196,14 @@ public sealed class ApiTests : IDisposable
         // Assert
         actual.ShouldNotBeNull();
         actual.Count.ShouldBe(1);
-        actual[0].Name.ShouldBe(name);
+
+        var repository = actual[0];
+
+        repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
+        repository.Id.ShouldBe(id);
+        repository.IsFork.ShouldBeTrue();
+        repository.IsPrivate.ShouldBeTrue();
+        repository.Name.ShouldBe(name);
     }
 
     [Fact]
@@ -187,6 +212,7 @@ public sealed class ApiTests : IDisposable
         // Arrange
         string owner = RandomString();
         string name = RandomString();
+        int id = RandomNumber();
 
         RegisterGetUser(owner);
         RegisterGetUserRepositories(
@@ -195,7 +221,11 @@ public sealed class ApiTests : IDisposable
             {
                 new
                 {
+                    id,
                     name,
+                    fork = false,
+                    @private = false,
+                    html_url = $"https://github.com/{owner}/{name}",
                 },
             });
 
@@ -207,7 +237,14 @@ public sealed class ApiTests : IDisposable
         // Assert
         actual.ShouldNotBeNull();
         actual.Count.ShouldBe(1);
-        actual[0].Name.ShouldBe(name);
+
+        var repository = actual[0];
+
+        repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
+        repository.Id.ShouldBe(id);
+        repository.IsFork.ShouldBeFalse();
+        repository.IsPrivate.ShouldBeFalse();
+        repository.Name.ShouldBe(name);
     }
 
     [Theory]

@@ -215,7 +215,7 @@ public sealed class GitHubService
                     HtmlUrl = p.HtmlUrl,
                     Id = p.Id,
                     IsFork = p.Fork,
-                    IsPrivate = p.Private || p.Visibility != RepositoryVisibility.Public,
+                    IsPrivate = p.Private || (p.Visibility.HasValue && p.Visibility.Value != RepositoryVisibility.Public),
                     Name = p.Name,
                 };
             })
