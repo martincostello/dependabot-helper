@@ -45,6 +45,28 @@ public sealed class GitHubService
         return url;
     }
 
+    public async Task ApprovePullRequestAsync(string owner, string name, int number)
+    {
+        _logger.LogInformation(
+            "Approving pull request {Owner}/{Repository}#{Number}.",
+            owner,
+            name,
+            number);
+
+        var review = new PullRequestReviewCreate()
+        {
+            Event = PullRequestReviewEvent.Approve,
+        };
+
+        await _client.PullRequest.Review.Create(owner, name, number, review);
+
+        _logger.LogInformation(
+            "Pull request {Owner}/{Repository}#{Number} approved.",
+            owner,
+            name,
+            number);
+    }
+
     public async Task<IReadOnlyList<Owner>> GetOwnersAsync(ClaimsPrincipal user)
     {
         string id = user.GetUserId();
@@ -232,8 +254,20 @@ public sealed class GitHubService
             {
                 try
                 {
+                    _logger.LogInformation(
+                        "Merging pull request {Owner}/{Repository}#{Number}.",
+                        owner,
+                        name,
+                        pr.Number);
+
                     await policy.ExecuteAsync(
                         () => _client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
+
+                    _logger.LogInformation(
+                        "Pull request {Owner}/{Repository}#{Number} merged.",
+                        owner,
+                        name,
+                        pr.Number);
                 }
                 catch (ApiException ex)
                 {
@@ -388,7 +422,23 @@ public sealed class GitHubService
             owner,
             name);
 
-        return approved.Any() && approved.All((p) => p.State != PullRequestReviewState.ChangesRequested);
+        if (approved.Count < 1)
+        {
+            return false;
+        }
+
+        // Only use the most recent review for each approver
+        var reviewsPerUsers = approved
+            .OrderByDescending((p) => p.SubmittedAt)
+            .DistinctBy((p) => p.User.Login)
+            .ToList();
+
+        if (reviewsPerUsers.Any((p) => p.State == PullRequestReviewState.ChangesRequested))
+        {
+            return false;
+        }
+
+        return reviewsPerUsers.Any((p) => p.State == PullRequestReviewState.Approved);
     }
 
     private async Task<ChecksStatus> GetChecksStatusAsync(string owner, string name, string commitSha)

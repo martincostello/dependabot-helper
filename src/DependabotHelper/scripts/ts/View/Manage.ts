@@ -50,6 +50,10 @@ export class Manage extends Page {
         const modal = Page.findId('pr-modal');
         this.modal = new PullRequestsElement(modal);
 
+        this.modal.onApprove(async (owner, name, number) => {
+            await this.gitHub.approvePullRequest(owner, name, number);
+        });
+
         // Sequentially load the Pull Requests for each repository listed
         for (const element of repoElements) {
 

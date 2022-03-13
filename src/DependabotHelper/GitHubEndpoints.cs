@@ -60,6 +60,25 @@ public static class GitHubEndpoints
             return Results.NoContent();
         }).RequireAuthorization();
 
+        builder.MapPost("/github/repos/{owner}/{name}/pulls/{number:int}/approve", async (
+            string owner,
+            string name,
+            int number,
+            ClaimsPrincipal user,
+            GitHubService service,
+            IAntiforgery antiforgery,
+            HttpContext httpContext) =>
+        {
+            if (!await antiforgery.IsRequestValidAsync(httpContext))
+            {
+                return Results.Problem("Invalid CSRF token specified.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            await service.ApprovePullRequestAsync(owner, name, number);
+
+            return Results.NoContent();
+        }).RequireAuthorization();
+
         return builder;
     }
 }

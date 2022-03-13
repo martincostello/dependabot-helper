@@ -56,14 +56,28 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     padding-top: 10px;
 }
 
+.btn-approve,
 .btn-merge {
     background-color: #2da44e;
     border-color: #2da44e;
 }
 
-.btn-pr {
+.btn-approve:hover,
+.btn-merge:hover {
+    background-color: #2c974b;
+    border-color: #2c974b;
+}
+
+.btn-pr,
+.btn-pr:disabled {
     background-color: #8250df;
     border-color: #8250df;
+    color: #fff;
+}
+
+.btn-pr:hover {
+    background-color: #6b30d9;
+    border-color: #6b30d9;
     color: #fff;
 }
 
