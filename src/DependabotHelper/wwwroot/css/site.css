@@ -56,6 +56,12 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     border-color: #2da44e;
 }
 
+.btn-pr {
+    background-color: #8250df;
+    border-color: #8250df;
+    color: #fff;
+}
+
 .navbar-dark .navbar-nav .nav-link {
     color: #B0B0B0;
 }

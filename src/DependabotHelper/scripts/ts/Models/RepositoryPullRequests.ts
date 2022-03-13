@@ -5,6 +5,7 @@ import { PullRequest } from './PullRequest';
 import { Repository } from './Repository';
 
 export interface RepositoryPullRequests extends Repository {
+    dependabotHtmlUrl: string;
     all: PullRequest[];
     error: PullRequest[];
     pending: PullRequest[];

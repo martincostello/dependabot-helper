@@ -5,6 +5,8 @@ namespace MartinCostello.DependabotHelper.Models;
 
 public sealed class RepositoryPullRequests : Repository
 {
+    public string DependabotHtmlUrl { get; set; } = string.Empty;
+
     public IList<PullRequest> All { get; set; } = new List<PullRequest>();
 
     public IReadOnlyList<PullRequest> Error => All.Where((p) => p.Status == ChecksStatus.Error).ToList();

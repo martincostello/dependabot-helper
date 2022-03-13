@@ -22,6 +22,7 @@ export class RepositoryElement {
     private readonly pendingCount: Element;
     private readonly successCount: Element;
 
+    private readonly configureLink: Element;
     private readonly mergeButton: Element;
     private readonly pullRequestsButton: Element;
     private readonly refreshButton: Element;
@@ -47,6 +48,7 @@ export class RepositoryElement {
         this.pendingCount = this.container.querySelector('.repo-count-pending');
         this.successCount = this.container.querySelector('.repo-count-success');
 
+        this.configureLink = this.container.querySelector('.repo-configure');
         this.mergeButton = this.container.querySelector('.repo-merge');
         this.pullRequestsButton = this.container.querySelector('.repo-pull-requests');
         this.refreshButton = this.container.querySelector('.repo-refresh');
@@ -107,6 +109,11 @@ export class RepositoryElement {
         this.pullRequests = repository.all;
 
         this.repoName.setAttribute('href', repository.htmlUrl);
+
+        if (repository.dependabotHtmlUrl) {
+            this.configureLink.setAttribute('href', repository.dependabotHtmlUrl);
+            this.configureLink.classList.remove('disabled');
+        }
 
         this.approvedCount.textContent = repository.approved.length.toLocaleString();
         this.errorCount.textContent = repository.error.length.toLocaleString();

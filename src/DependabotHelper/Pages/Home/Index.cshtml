@@ -30,7 +30,7 @@
                 <tr class="d-none item-template">
                     <td>
                         <span class="loader spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <a class="repo-name" href="" target="_blank"></a>
+                        <a class="repo-name" href="#" target="_blank"></a>
                     </td>
                     <td>
                         <span class="repo-count-pending">&hellip;</span>
@@ -54,7 +54,10 @@
                                 <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
                                 <span class="loader spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
-                            <button class="btn btn-primary ml-2 mr-2 repo-pull-requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
+                            <a class="btn btn-primary repo-configure disabled" href="#" role="button" target="_blank">
+                                <span class="fa-solid fa-robot" aria-label="Configure Dependabot"></span>
+                            </a>
+                            <button class="btn btn-pr repo-pull-requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
                                 <span class="fa-solid fa-code-pull-request" aria-label="View pull requests"></span>
                             </button>
                             <button class="btn btn-success btn-merge repo-merge" type="button" disabled>

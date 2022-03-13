@@ -137,6 +137,11 @@ public sealed class GitHubService
             Name = repository.Name,
         };
 
+        if (await IsDependabotEnabledAsync(user, owner, name))
+        {
+            result.DependabotHtmlUrl = repository.HtmlUrl + "/network/updates";
+        }
+
         result.All = await GetPullRequestsAsync(
             owner,
             repository.Name,
@@ -503,6 +508,22 @@ public sealed class GitHubService
         return await CacheGetOrCreateAsync(user, $"user:{login}", async () =>
         {
             return await _client.User.Get(login);
+        });
+    }
+
+    private async Task<bool> IsDependabotEnabledAsync(ClaimsPrincipal user, string owner, string name)
+    {
+        return await CacheGetOrCreateAsync(user, $"repo:{owner}/{name}/dependabot", async () =>
+        {
+            try
+            {
+                _ = await _client.Repository.Content.GetRawContent(owner, name, ".github/dependabot.yml");
+                return true;
+            }
+            catch (NotFoundException)
+            {
+                return false;
+            }
         });
     }
 
