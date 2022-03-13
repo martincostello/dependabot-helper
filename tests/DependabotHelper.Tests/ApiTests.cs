@@ -3,6 +3,7 @@
 
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using JustEat.HttpClientInterception;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,13 +32,44 @@ public sealed class ApiTests : IDisposable
     private ITestOutputHelper OutputHelper { get; }
 
     [Fact]
-    public async Task Cannot_Get_Repo_That_Does_Not_Exist()
+    public async Task Can_Approve_Pull_Request()
     {
         // Arrange
+        string owner = Guid.NewGuid().ToString();
+        string name = Guid.NewGuid().ToString();
+        int number = RandomNumberGenerator.GetInt32(int.MaxValue);
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForPost()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/reviews")
+            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
+            .Responds()
+            .WithStatus(StatusCodes.Status201Created)
+            .WithSystemTextJsonContent(new { });
+
+        builder.RegisterWith(Fixture.Interceptor);
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var response = await client.PostAsJsonAsync($"/github/repos/{owner}/{name}/pulls/{number}/approve", new { });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task Cannot_Get_Repository_That_Does_Not_Exist()
+    {
+        // Arrange
+        string owner = Guid.NewGuid().ToString();
+        string name = Guid.NewGuid().ToString();
+
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl("https://api.github.com/repos/foo/bar")
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
             .ForRequestHeader("Authorization", "Token gho_secret-access-token")
             .Responds()
             .WithStatus(StatusCodes.Status404NotFound)
@@ -48,7 +80,7 @@ public sealed class ApiTests : IDisposable
         var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync("/github/repos/foo/bar/pulls");
+        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -67,10 +99,13 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_401_If_Token_Invalid()
     {
         // Arrange
+        string owner = Guid.NewGuid().ToString();
+        string name = Guid.NewGuid().ToString();
+
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl("https://api.github.com/repos/martincostello/website")
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
             .ForRequestHeader("Authorization", "Token gho_secret-access-token")
             .Responds()
             .WithStatus(StatusCodes.Status401Unauthorized)
@@ -81,7 +116,7 @@ public sealed class ApiTests : IDisposable
         var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync("/github/repos/martincostello/website/pulls");
+        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -100,10 +135,13 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_403_If_Token_Forbidden()
     {
         // Arrange
+        string owner = Guid.NewGuid().ToString();
+        string name = Guid.NewGuid().ToString();
+
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl("https://api.github.com/repos/martincostello/website")
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
             .ForRequestHeader("Authorization", "Token gho_secret-access-token")
             .Responds()
             .WithStatus(StatusCodes.Status403Forbidden)
@@ -114,7 +152,7 @@ public sealed class ApiTests : IDisposable
         var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync("/github/repos/martincostello/website/pulls");
+        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -133,10 +171,13 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_429_If_Api_Rate_Limits_Exceeded()
     {
         // Arrange
+        string owner = Guid.NewGuid().ToString();
+        string name = Guid.NewGuid().ToString();
+
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl("https://api.github.com/repos/martincostello/website")
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
             .ForRequestHeader("Authorization", "Token gho_secret-access-token")
             .Responds()
             .WithStatus(StatusCodes.Status403Forbidden)
@@ -150,7 +191,7 @@ public sealed class ApiTests : IDisposable
         var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync("/github/repos/martincostello/website/pulls");
+        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe((HttpStatusCode)StatusCodes.Status429TooManyRequests);
@@ -169,10 +210,13 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_500_If_An_Error_Occurs()
     {
         // Arrange
+        string owner = Guid.NewGuid().ToString();
+        string name = Guid.NewGuid().ToString();
+
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl("https://api.github.com/repos/martincostello/website")
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
             .ForRequestHeader("Authorization", "Token gho_secret-access-token")
             .Responds()
             .WithStatus(StatusCodes.Status500InternalServerError)
@@ -183,7 +227,7 @@ public sealed class ApiTests : IDisposable
         var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync("/github/repos/martincostello/website/pulls");
+        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
@@ -205,27 +249,31 @@ public sealed class ApiTests : IDisposable
 
     private async Task<HttpClient> CreateAuthenticatedClientAsync()
     {
-        AntiforgeryTokens tokens = await Fixture.GetAntiforgeryTokensAsync();
+        AntiforgeryTokens anonymousTokens = await Fixture.GetAntiforgeryTokensAsync();
 
         var redirectHandler = new RedirectHandler(Fixture.ClientOptions.MaxAutomaticRedirections);
 
-        var cookieHandler = new CookieContainerHandler();
-        cookieHandler.Container.Add(
+        var anonymousCookieHandler = new CookieContainerHandler();
+        anonymousCookieHandler.Container.Add(
             Fixture.Server.BaseAddress,
-            new Cookie(tokens.CookieName, tokens.CookieValue));
+            new Cookie(anonymousTokens.CookieName, anonymousTokens.CookieValue));
 
-        var client = Fixture.CreateDefaultClient(redirectHandler, cookieHandler);
-
-        client.DefaultRequestHeaders.Add(tokens.HeaderName, tokens.RequestToken);
+        using var anonymousClient = Fixture.CreateDefaultClient(redirectHandler, anonymousCookieHandler);
+        anonymousClient.DefaultRequestHeaders.Add(anonymousTokens.HeaderName, anonymousTokens.RequestToken);
 
         var parameters = Array.Empty<KeyValuePair<string?, string?>>();
         using var content = new FormUrlEncodedContent(parameters);
 
-        using var response = await client.PostAsync("/sign-in", content);
+        using var response = await anonymousClient.PostAsync("/sign-in", content);
         response.IsSuccessStatusCode.ShouldBeTrue();
 
-        tokens = await Fixture.GetAntiforgeryTokensAsync();
+        var authenticatedTokens = await Fixture.GetAntiforgeryTokensAsync(() => anonymousClient);
 
-        return client;
+        var authenticatedCookieHandler = new CookieContainerHandler(anonymousCookieHandler.Container);
+
+        var authenticatedClient = Fixture.CreateDefaultClient(authenticatedCookieHandler);
+        authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
+
+        return authenticatedClient;
     }
 }
