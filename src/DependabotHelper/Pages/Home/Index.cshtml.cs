@@ -3,7 +3,6 @@
 
 #pragma warning disable SA1649
 
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -17,12 +16,12 @@ public sealed class IndexModel : PageModel
     {
         try
         {
+            await service.VerifyCredentialsAsync();
             _ = await service.GetRateLimitsAsync();
         }
         catch (Octokit.AuthorizationException)
         {
-            // Sign the user out if the credentials are invalid/expired
-            await HttpContext.SignOutAsync();
+            await HttpContext.ReauthenticateAsync();
         }
     }
 }

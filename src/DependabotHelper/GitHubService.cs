@@ -243,6 +243,11 @@ public sealed class GitHubService
         }
     }
 
+    public async Task VerifyCredentialsAsync()
+    {
+        _ = await _client.User.Current();
+    }
+
     private static AsyncPolicy CreateMergePolicy()
     {
         return Policy

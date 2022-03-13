@@ -125,6 +125,19 @@ public static class AuthenticationEndpoints
         => user.FindFirst(GitHubAuthenticationConstants.Claims.Name)!.Value;
 
     /// <summary>
+    /// Signs out the current user and challenges them to authenticate with GitHub as an asynchronous operation.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> that challenges the current user to re-authenticate.
+    /// </returns>
+    public static async Task ReauthenticateAsync(this HttpContext context)
+    {
+        await context.SignOutAsync();
+        await context.ChallengeAsync(GitHubAuthenticationDefaults.AuthenticationScheme);
+    }
+
+    /// <summary>
     /// Maps the endpoints for authentication.
     /// </summary>
     /// <param name="builder">The <see cref="IEndpointConventionBuilder"/>.</param>
