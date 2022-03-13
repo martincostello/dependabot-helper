@@ -12,6 +12,8 @@ public static class GitHubExtensions
         services.AddHttpContextAccessor();
         services.AddSingleton<ICredentialStore, UserCredentialStore>();
 
+        services.AddMemoryCache();
+
         services.AddScoped<GitHubRateLimitsAccessor>();
         services.AddScoped<GitHubService>();
         services.AddScoped<IGitHubClient>((provider) =>

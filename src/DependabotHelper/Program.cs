@@ -11,7 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGitHubAuthentication();
 builder.Services.AddGitHubClient();
-builder.Services.AddMemoryCache();
 builder.Services.AddRazorPages();
 
 builder.Services.AddOptions();
