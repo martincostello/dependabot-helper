@@ -10,6 +10,7 @@ export class RepositoryElement {
     readonly owner: string;
     readonly name: string;
 
+    private readonly inactiveClass = 'table-inactive';
     private readonly loaderSelector = '.loader';
 
     private readonly container: Element;
@@ -113,9 +114,11 @@ export class RepositoryElement {
         this.successCount.textContent = repository.success.length.toLocaleString();
 
         if (this.pullRequests.length > 0) {
+            this.container.classList.remove(this.inactiveClass);
             Elements.enable(this.mergeButton);
             Elements.enable(this.pullRequestsButton);
         } else {
+            this.container.classList.add(this.inactiveClass);
             Elements.disable(this.mergeButton);
             Elements.disable(this.pullRequestsButton);
         }
