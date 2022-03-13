@@ -14,6 +14,8 @@ namespace MartinCostello.DependabotHelper;
 [Collection(AppCollection.Name)]
 public sealed class ApiTests : IDisposable
 {
+    private const string AuthorizationHeader = "Token gho_secret-access-token";
+
     private readonly IDisposable _scope;
 
     public ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
@@ -35,20 +37,11 @@ public sealed class ApiTests : IDisposable
     public async Task Can_Approve_Pull_Request()
     {
         // Arrange
-        string owner = Guid.NewGuid().ToString();
-        string name = Guid.NewGuid().ToString();
-        int number = RandomNumberGenerator.GetInt32(int.MaxValue);
+        string owner = RandomString();
+        string name = RandomString();
+        int number = RandomNumber();
 
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForPost()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/reviews")
-            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
-            .Responds()
-            .WithStatus(StatusCodes.Status201Created)
-            .WithSystemTextJsonContent(new { });
-
-        builder.RegisterWith(Fixture.Interceptor);
+        RegisterPostReview(owner, name, number);
 
         var client = await CreateAuthenticatedClientAsync();
 
@@ -60,22 +53,131 @@ public sealed class ApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Can_Get_Rate_Limits()
+    {
+        // Arrange
+        var utcNow = DateTimeOffset.UtcNow;
+
+        long oneHourFromNowEpoch = utcNow.AddHours(1).ToUnixTimeSeconds();
+        string oneHourFromNowEpochString = oneHourFromNowEpoch.ToString(CultureInfo.InvariantCulture);
+
+        RegisterGetRateLimit(
+            response: () => new
+            {
+                resources = new
+                {
+                    core = new
+                    {
+                        limit = 5000,
+                        remaining = 4999,
+                        reset = oneHourFromNowEpoch,
+                        used = 1,
+                        resource = "core",
+                    },
+                },
+                rate = new
+                {
+                    limit = 5000,
+                    remaining = 4999,
+                    reset = oneHourFromNowEpoch,
+                    used = 1,
+                    resource = "core",
+                },
+            },
+            configure: (builder) =>
+            {
+                builder.WithResponseHeader("X-RateLimit-Limit", "5000")
+                       .WithResponseHeader("X-RateLimit-Remaining", "4999")
+                       .WithResponseHeader("X-RateLimit-Reset", oneHourFromNowEpochString);
+            });
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<Models.RateLimits>($"/github/rate-limits");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.Limit.ShouldBe(5000);
+        actual.Remaining.ShouldBe(4999);
+        actual.Resets.ShouldNotBeNull();
+        actual.Resets.Value.ShouldBe(utcNow.AddHours(1), TimeSpan.FromSeconds(2));
+        actual.ResetsText.ShouldBe("59 minutes from now");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Can_Merge_Pull_Requests(bool allowMergeCommit)
+    {
+        // Arrange
+        string owner = RandomString();
+        string name = RandomString();
+
+        int pullRequest1 = RandomNumber();
+        int pullRequest2 = RandomNumber();
+        int pullRequest3 = RandomNumber();
+
+        RegisterGetRepository(owner, name, allowMergeCommit);
+        RegisterGetPullRequest(owner, name, pullRequest1);
+        RegisterGetPullRequest(owner, name, pullRequest2);
+        RegisterPutPullRequestMerge(owner, name, pullRequest1, mergeable: true);
+        RegisterPutPullRequestMerge(owner, name, pullRequest2, mergeable: false);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/dependabot",
+            () => new[]
+            {
+                new
+                {
+                    number = pullRequest1,
+                    draft = false,
+                    pull_request = new
+                    {
+                    },
+                },
+                new
+                {
+                    number = pullRequest2,
+                    draft = true,
+                    pull_request = new
+                    {
+                    },
+                },
+            });
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[]
+            {
+                new
+                {
+                    number = pullRequest3,
+                    draft = true,
+                },
+            });
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var response = await client.PostAsJsonAsync($"/github/repos/{owner}/{name}/pulls/merge", new { });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
     public async Task Cannot_Get_Repository_That_Does_Not_Exist()
     {
         // Arrange
-        string owner = Guid.NewGuid().ToString();
-        string name = Guid.NewGuid().ToString();
+        string owner = RandomString();
+        string name = RandomString();
 
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
-            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
-            .Responds()
-            .WithStatus(StatusCodes.Status404NotFound)
-            .WithSystemTextJsonContent(new { });
-
-        builder.RegisterWith(Fixture.Interceptor);
+        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status404NotFound);
 
         var client = await CreateAuthenticatedClientAsync();
 
@@ -99,19 +201,10 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_401_If_Token_Invalid()
     {
         // Arrange
-        string owner = Guid.NewGuid().ToString();
-        string name = Guid.NewGuid().ToString();
+        string owner = RandomString();
+        string name = RandomString();
 
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
-            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
-            .Responds()
-            .WithStatus(StatusCodes.Status401Unauthorized)
-            .WithSystemTextJsonContent(new { });
-
-        builder.RegisterWith(Fixture.Interceptor);
+        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status401Unauthorized);
 
         var client = await CreateAuthenticatedClientAsync();
 
@@ -135,19 +228,10 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_403_If_Token_Forbidden()
     {
         // Arrange
-        string owner = Guid.NewGuid().ToString();
-        string name = Guid.NewGuid().ToString();
+        string owner = RandomString();
+        string name = RandomString();
 
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
-            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
-            .Responds()
-            .WithStatus(StatusCodes.Status403Forbidden)
-            .WithSystemTextJsonContent(new { });
-
-        builder.RegisterWith(Fixture.Interceptor);
+        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status403Forbidden);
 
         var client = await CreateAuthenticatedClientAsync();
 
@@ -171,22 +255,20 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_429_If_Api_Rate_Limits_Exceeded()
     {
         // Arrange
-        string owner = Guid.NewGuid().ToString();
-        string name = Guid.NewGuid().ToString();
+        string owner = RandomString();
+        string name = RandomString();
 
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
-            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
-            .Responds()
-            .WithStatus(StatusCodes.Status403Forbidden)
-            .WithSystemTextJsonContent(new { message = "API rate limit exceeded" })
-            .WithResponseHeader("x-ratelimit-limit", "60")
-            .WithResponseHeader("x-ratelimit-remaining", "0")
-            .WithResponseHeader("x-ratelimit-reset", "1377013266");
-
-        builder.RegisterWith(Fixture.Interceptor);
+        RegisterGetRepository(
+            owner,
+            name,
+            statusCode: StatusCodes.Status403Forbidden,
+            response: () => new { message = "API rate limit exceeded" },
+            configure: (builder) =>
+            {
+                builder.WithResponseHeader("x-ratelimit-limit", "60")
+                       .WithResponseHeader("x-ratelimit-remaining", "0")
+                       .WithResponseHeader("x-ratelimit-reset", "1377013266");
+            });
 
         var client = await CreateAuthenticatedClientAsync();
 
@@ -210,19 +292,10 @@ public sealed class ApiTests : IDisposable
     public async Task Api_Returns_Http_500_If_An_Error_Occurs()
     {
         // Arrange
-        string owner = Guid.NewGuid().ToString();
-        string name = Guid.NewGuid().ToString();
+        string owner = RandomString();
+        string name = RandomString();
 
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
-            .ForRequestHeader("Authorization", "Token gho_secret-access-token")
-            .Responds()
-            .WithStatus(StatusCodes.Status500InternalServerError)
-            .WithSystemTextJsonContent(new { message = "Whoops" });
-
-        builder.RegisterWith(Fixture.Interceptor);
+        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status500InternalServerError);
 
         var client = await CreateAuthenticatedClientAsync();
 
@@ -245,6 +318,22 @@ public sealed class ApiTests : IDisposable
     public void Dispose()
     {
         _scope?.Dispose();
+    }
+
+    private static int RandomNumber() => RandomNumberGenerator.GetInt32(int.MaxValue);
+
+    private static string RandomString() => Guid.NewGuid().ToString();
+
+    private static void ConfigureRateLimit(HttpRequestInterceptionBuilder builder)
+    {
+        string oneHourFromNowEpoch = DateTimeOffset.UtcNow
+            .AddHours(1)
+            .ToUnixTimeSeconds()
+            .ToString(CultureInfo.InvariantCulture);
+
+        builder.WithResponseHeader("x-ratelimit-limit", "5000")
+               .WithResponseHeader("x-ratelimit-remaining", "4999")
+               .WithResponseHeader("x-ratelimit-reset", oneHourFromNowEpoch);
     }
 
     private async Task<HttpClient> CreateAuthenticatedClientAsync()
@@ -275,5 +364,141 @@ public sealed class ApiTests : IDisposable
         authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
 
         return authenticatedClient;
+    }
+
+    private void RegisterGetRateLimit(
+        Func<object>? response = null,
+        Action<HttpRequestInterceptionBuilder>? configure = null)
+    {
+        response ??= () => new
+        {
+            resources = new
+            {
+                core = new
+                {
+                    limit = 5000,
+                    remaining = 4999,
+                    reset = 1377013266,
+                    used = 1,
+                    resource = "core",
+                },
+            },
+        };
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl("https://api.github.com/rate_limit")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        configure?.Invoke(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetRepository(
+        string owner,
+        string name,
+        bool allowMergeCommit = true,
+        int statusCode = StatusCodes.Status200OK,
+        Func<object>? response = null,
+        Action<HttpRequestInterceptionBuilder>? configure = null)
+    {
+        response ??= () => new
+        {
+            name,
+            full_name = $"{owner}/{name}",
+            allow_merge_commit = allowMergeCommit,
+        };
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(statusCode)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        configure?.Invoke(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetIssues(
+        string owner,
+        string name,
+        string creator,
+        Func<object>? response = null)
+    {
+        response ??= () => Array.Empty<object>();
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/issues?creator={Uri.EscapeDataString(creator)}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterGetPullRequest(string owner, string name, int number, Func<object>? response = null)
+    {
+        response ??= () => new { number };
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterPostReview(string owner, string name, int number)
+    {
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForPost()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/reviews")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status201Created)
+            .WithSystemTextJsonContent(new { });
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
+    private void RegisterPutPullRequestMerge(string owner, string name, int number, bool mergeable = true)
+    {
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForPut()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/merge")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(mergeable ? StatusCodes.Status200OK : StatusCodes.Status405MethodNotAllowed)
+            .WithSystemTextJsonContent(new { });
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
     }
 }
