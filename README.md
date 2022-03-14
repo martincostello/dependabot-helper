@@ -2,8 +2,6 @@
 
 [![Build status](https://github.com/martincostello/dependabot-helper/workflows/build/badge.svg?branch=main&event=push)](https://github.com/martincostello/dependabot-helper/actions?query=workflow%3Abuild+branch%3Amain+event%3Apush)
 
-[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/martincostello/dependabot-helper)
-
 ## Introduction
 
 Dependabot Helper is an ASP.NET Core application that helps manage dependabot updates across GitHub multiple repositories.
