@@ -1095,6 +1095,565 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         actualPullRequest.IsApproved.ShouldBeTrue();
     }
 
+    [Theory]
+    [InlineData("in_progress", null)]
+    [InlineData("completed", "skipped")]
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Pending(string status, string? conclusion)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+        RegisterGetStatuses(owner, name, commit);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetCheckSuites(
+            owner,
+            name,
+            commit,
+            () => CreateCheckSuites(new[] { CreateCheckSuite(status, conclusion) }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(0);
+
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Pending);
+    }
+
+    [Theory]
+    [InlineData("action_required")]
+    [InlineData("cancelled")]
+    [InlineData("failure")]
+    [InlineData("timed_out")]
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Failure(string conclusion)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+        RegisterGetStatuses(owner, name, commit);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetCheckSuites(
+            owner,
+            name,
+            commit,
+            () => CreateCheckSuites(new[] { CreateCheckSuite("completed", conclusion) }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(0);
+
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Error[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Error);
+    }
+
+    [Theory]
+    [InlineData("queued", null)]
+    [InlineData("completed", "neutral")]
+    [InlineData("completed", "success")]
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Success(string status, string? conclusion)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+        RegisterGetStatuses(owner, name, commit);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetCheckSuites(
+            owner,
+            name,
+            commit,
+            () => CreateCheckSuites(new[] { CreateCheckSuite(status, conclusion) }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Success[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Theory]
+    [InlineData(new[] { "completed", "success" }, new[] { "completed", "success" }, ChecksStatus.Success)]
+    [InlineData(new[] { "queued", null }, new[] { "completed", "success" }, ChecksStatus.Success)]
+    [InlineData(new[] { "in_progress", null }, new[] { "completed", "success" }, ChecksStatus.Pending)]
+    [InlineData(new[] { "in_progress", null }, new[] { "in_progress", null }, ChecksStatus.Pending)]
+    [InlineData(new[] { "queued", null }, new[] { "in_progress", null }, ChecksStatus.Pending)]
+    [InlineData(new[] { "queued", null }, new[] { "queued", null }, ChecksStatus.Success)]
+    [InlineData(new[] { "queued", null }, new[] { "completed", "failure" }, ChecksStatus.Error)]
+    [InlineData(new[] { "completed", "success" }, new[] { "completed", "failure" }, ChecksStatus.Error)]
+    public async Task Can_Get_Pull_Requests_With_Multiple_Check_Suites(
+        string?[] first,
+        string?[] second,
+        ChecksStatus expected)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+        RegisterGetStatuses(owner, name, commit);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        var firstSuite = CreateCheckSuite(first[0]!, first[1]);
+        var secondSuite = CreateCheckSuite(second[0]!, second[1]);
+
+        RegisterGetCheckSuites(
+            owner,
+            name,
+            commit,
+            () => CreateCheckSuites(new[] { firstSuite, secondSuite }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Status_Pending()
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetStatuses(
+            owner,
+            name,
+            commit,
+            () => CreateStatuses("pending", new[] { CreateStatus("pending") }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(0);
+
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Pending);
+    }
+
+    [Theory]
+    [InlineData("error")]
+    [InlineData("failure")]
+    public async Task Can_Get_Pull_Requests_When_Status_Failure(string state)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetStatuses(
+            owner,
+            name,
+            commit,
+            () => CreateStatuses(state, new[] { CreateStatus(state) }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(0);
+
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Error[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Error);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Status_Success()
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetStatuses(
+            owner,
+            name,
+            commit,
+            () => CreateStatuses("success", new[] { CreateStatus("success") }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Success[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Theory]
+    [InlineData("success", "success", "success", ChecksStatus.Success)]
+    [InlineData("pending", "pending", "success", ChecksStatus.Pending)]
+    [InlineData("pending", "pending", "pending", ChecksStatus.Pending)]
+    [InlineData("failure", "pending", "failure", ChecksStatus.Error)]
+    [InlineData("failure", "success", "failure", ChecksStatus.Error)]
+    public async Task Can_Get_Pull_Requests_With_Multiple_Statuses(
+        string overallState,
+        string firstState,
+        string secondState,
+        ChecksStatus expected)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        var firstStatus = CreateStatus(firstState);
+        var secondStatus = CreateStatus(secondState);
+
+        RegisterGetStatuses(
+            owner,
+            name,
+            commit,
+            () => CreateStatuses(overallState, new[] { firstStatus, secondStatus }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("failure", "completed", "failure", ChecksStatus.Error)]
+    [InlineData("failure", "completed", "success", ChecksStatus.Error)]
+    [InlineData("failure", "in_progress", null, ChecksStatus.Error)]
+    [InlineData("pending", "completed", "success", ChecksStatus.Pending)]
+    [InlineData("pending", "in_progress", null, ChecksStatus.Pending)]
+    [InlineData("pending", "completed", "failure", ChecksStatus.Error)]
+    [InlineData("success", "completed", "failure", ChecksStatus.Error)]
+    [InlineData("success", "completed", "success", ChecksStatus.Success)]
+    [InlineData("success", "in_progress", null, ChecksStatus.Pending)]
+    public async Task Can_Get_Pull_Requests_With_Check_Suites_And_Statuses(
+        string state,
+        string checkSuiteStatus,
+        string? checkSuiteConclusion,
+        ChecksStatus expected)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetReviews(owner, name, number);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        RegisterGetCheckSuites(
+            owner,
+            name,
+            commit,
+            () => CreateCheckSuites(new[] { CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion) }));
+
+        RegisterGetStatuses(
+            owner,
+            name,
+            commit,
+            () => CreateStatuses(state, new[] { CreateStatus(state) }));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(expected);
+    }
+
     private static JsonSerializerOptions CreateSerializerOptions()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
