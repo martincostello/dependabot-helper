@@ -1,7 +1,7 @@
 {
-    "name": "Depandabot Helper",
-    "short_name": "DepandabotHelper",
-    "description": "Depandabot Helper is an application that helps manage dependabot updates across multiple repositories.",
+    "name": "Dependabot Helper",
+    "short_name": "DependabotHelper",
+    "description": "Dependabot Helper is an application that helps manage dependabot updates across multiple repositories.",
     "id": "/",
     "start_url": "/",
     "background_color": "#ffffff",
