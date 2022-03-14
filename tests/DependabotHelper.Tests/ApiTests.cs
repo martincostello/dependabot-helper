@@ -182,7 +182,7 @@ public sealed class ApiTests : IDisposable
                 {
                     id,
                     name,
-                    fork = true,
+                    fork = false,
                     @private = true,
                     html_url = $"https://github.com/{owner}/{name}",
                 },
@@ -201,7 +201,7 @@ public sealed class ApiTests : IDisposable
 
         repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
         repository.Id.ShouldBe(id);
-        repository.IsFork.ShouldBeTrue();
+        repository.IsFork.ShouldBeFalse();
         repository.IsPrivate.ShouldBeTrue();
         repository.Name.ShouldBe(name);
     }
@@ -245,6 +245,61 @@ public sealed class ApiTests : IDisposable
         repository.IsFork.ShouldBeFalse();
         repository.IsPrivate.ShouldBeFalse();
         repository.Name.ShouldBe(name);
+    }
+
+    [Theory]
+    [InlineData(false, false, 1)]
+    [InlineData(false, true, 0)]
+    [InlineData(true, false, 1)]
+    [InlineData(true, true, 1)]
+    public async Task Can_Filter_Repositories_That_Are_Forks(
+        bool includeForks,
+        bool isFork,
+        int expectedCount)
+    {
+        // Arrange
+        Fixture.OverrideConfiguration(
+            "Dependabot:IncludeForks",
+            includeForks.ToString(CultureInfo.InvariantCulture));
+
+        string owner = RandomString();
+        string name = RandomString();
+        int id = RandomNumber();
+
+        RegisterGetUser(owner);
+        RegisterGetUserRepositories(
+            owner,
+            response: () => new[]
+            {
+                new
+                {
+                    id,
+                    name,
+                    fork = isFork,
+                    @private = false,
+                    html_url = $"https://github.com/{owner}/{name}",
+                },
+            });
+
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.Count.ShouldBe(expectedCount);
+
+        if (expectedCount > 0)
+        {
+            var repository = actual[0];
+
+            repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
+            repository.Id.ShouldBe(id);
+            repository.IsFork.ShouldBe(isFork);
+            repository.IsPrivate.ShouldBeFalse();
+            repository.Name.ShouldBe(name);
+        }
     }
 
     [Theory]
@@ -462,6 +517,7 @@ public sealed class ApiTests : IDisposable
     public void Dispose()
     {
         _scope?.Dispose();
+        Fixture.ClearConfigurationOverrides();
     }
 
     private static int RandomNumber() => RandomNumberGenerator.GetInt32(int.MaxValue);

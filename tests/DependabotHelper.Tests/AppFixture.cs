@@ -19,6 +19,8 @@ namespace MartinCostello.DependabotHelper;
 
 public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAccessor
 {
+    private readonly Dictionary<string, string> _configOverrides = new(StringComparer.OrdinalIgnoreCase);
+
     public AppFixture()
     {
         ClientOptions.AllowAutoRedirect = false;
@@ -35,6 +37,26 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
 
     public void SetOutputHelper(ITestOutputHelper value)
         => OutputHelper = value;
+
+    public void ClearConfigurationOverrides(bool reload = true)
+    {
+        _configOverrides.Clear();
+
+        if (reload)
+        {
+            ReloadConfiguration();
+        }
+    }
+
+    public void OverrideConfiguration(string key, string value, bool reload = true)
+    {
+        _configOverrides[key] = value;
+
+        if (reload)
+        {
+            ReloadConfiguration();
+        }
+    }
 
     public async Task<AntiforgeryTokens> GetAntiforgeryTokensAsync(
         Func<HttpClient>? httpClientFactory = null,
@@ -61,6 +83,7 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
             };
 
             configBuilder.AddInMemoryCollection(config);
+            configBuilder.Add(new AppFixtureConfigurationSource(this));
         });
 
         builder.ConfigureAntiforgeryTokenResource();
@@ -81,5 +104,36 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
         });
 
         Interceptor.RegisterBundle(Path.Combine("Bundles", "oauth-http-bundle.json"));
+    }
+
+    private void ReloadConfiguration()
+    {
+        var config = Services.GetRequiredService<IConfiguration>();
+
+        if (config is IConfigurationRoot root)
+        {
+            root.Reload();
+        }
+    }
+
+    private sealed class AppFixtureConfigurationProvider : ConfigurationProvider
+    {
+        internal AppFixtureConfigurationProvider(AppFixture fixture)
+        {
+            Data = fixture._configOverrides;
+        }
+    }
+
+    private sealed class AppFixtureConfigurationSource : IConfigurationSource
+    {
+        internal AppFixtureConfigurationSource(AppFixture fixture)
+        {
+            Fixture = fixture;
+        }
+
+        internal AppFixture Fixture { get; }
+
+        public IConfigurationProvider Build(IConfigurationBuilder builder)
+            => new AppFixtureConfigurationProvider(Fixture);
     }
 }
