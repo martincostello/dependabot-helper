@@ -21,11 +21,11 @@
                 @foreach(var owner in Model.Owners)
                 {
                     string highlight = owner.Name == login ? "font-weight-bold" : string.Empty;
-                    <tr>
+                    <tr class="owner-item">
                         <td>
                             <img src="@owner.AvatarUrl" class="user-profile" aria-hidden="true" />
                         </td>
-                        <td class="align-middle @highlight">@owner.Name</td>
+                        <td class="align-middle owner-name @highlight">@owner.Name</td>
                         <td>
                             <div>
                                 <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-toggle="modal" data-target="#repo-search-modal">
@@ -61,7 +61,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <table class="table">
+                <table class="table" id="repository-list">
                     <caption>The repositories that belong to this owner.</caption>
                     <thead>
                         <tr>
@@ -70,7 +70,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="check-template d-none">
+                        <tr class="check-template repository-item d-none">
                             <td>
                                 <a href="" target="_blank" class="repo-name"></a>
                                 <span class="fa-solid fa-lock repo-is-private text-muted d-none" title="Private" aria-label="The repository is private"></span>
@@ -86,7 +86,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="repo-cancel" >Close</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal" id="repo-save">
                     Save changes
                     <span class="loader spinner-border spinner-border-sm d-none" role="status">

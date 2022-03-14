@@ -75,10 +75,24 @@ public class UITests : IntegrationTests<HttpServerFixture>
     public async Task Can_Manage_Updates(string browserType, string? browserChannel)
     {
         // Arrange
+        string currentUser = "john-smith";
+        string organization1 = "dotnet";
+        string organization2 = "github";
+
         RegisterGetUserOrganizations(() => new[]
         {
-            CreateUser("dotnet", id: 9011267),
-            CreateUser("github", id: 67483024),
+            CreateUser(organization1, id: 9011267),
+            CreateUser(organization2, id: 67483024),
+        });
+
+        RegisterGetUser(currentUser);
+
+        RegisterGetRepositoriesForCurrentUser(response: () => new[]
+        {
+            CreateRepository(currentUser, "website"),
+            CreateRepository(currentUser, "awesome-project", isPrivate: true),
+            CreateRepository(currentUser, "blog"),
+            CreateRepository(currentUser, "aspnetcore", isFork: true),
         });
 
         var options = new BrowserFixtureOptions()
@@ -105,9 +119,79 @@ public class UITests : IntegrationTests<HttpServerFixture>
             // Arrange - Wait for the page to be ready
             await managePage.WaitForNoRepositoriesAsync();
 
+            // Act - Navigate to the configure page
             var configurePage = await managePage.ConfigureAsync();
-
             await configurePage.WaitForOwnerListAsync();
+
+            // Assert
+            var owners = await configurePage.GetOwnersAsync();
+            owners.Count.ShouldBe(3);
+
+            await owners[0].NameAsync().ShouldBe(currentUser);
+            await owners[1].NameAsync().ShouldBe(organization1);
+            await owners[2].NameAsync().ShouldBe(organization2);
+
+            // Act
+            var modal = await owners[0].ConfigureAsync();
+            await modal.WaitForRepositoryListAsync();
+
+            // Assert
+            var repositories = await modal.GetRepositoriesAsync();
+            repositories.Count.ShouldBe(4);
+
+            await repositories[0].NameAsync().ShouldBe("aspnetcore");
+            await repositories[0].IsForkAsync().ShouldBeTrue();
+            await repositories[0].IsPrivateAsync().ShouldBeFalse();
+            await repositories[0].IsSelectedAsync().ShouldBeFalse();
+
+            await repositories[1].NameAsync().ShouldBe("awesome-project");
+            await repositories[1].IsForkAsync().ShouldBeFalse();
+            await repositories[1].IsPrivateAsync().ShouldBeTrue();
+            await repositories[1].IsSelectedAsync().ShouldBeFalse();
+
+            await repositories[2].NameAsync().ShouldBe("blog");
+            await repositories[2].IsForkAsync().ShouldBeFalse();
+            await repositories[2].IsPrivateAsync().ShouldBeFalse();
+            await repositories[2].IsSelectedAsync().ShouldBeFalse();
+
+            await repositories[3].NameAsync().ShouldBe("website");
+            await repositories[3].IsForkAsync().ShouldBeFalse();
+            await repositories[3].IsPrivateAsync().ShouldBeFalse();
+            await repositories[3].IsSelectedAsync().ShouldBeFalse();
+
+            // Act - Select some of the repositories and save the changes
+            await repositories[1].ToggleAsync();
+            await repositories[3].ToggleAsync();
+            configurePage = await modal.SaveChangesAsync();
+
+            // Assert - Check the selected repositories are enabled
+            modal = await owners[0].ConfigureAsync();
+            await modal.WaitForRepositoryListAsync();
+
+            repositories = await modal.GetRepositoriesAsync();
+            repositories.Count.ShouldBe(4);
+
+            await repositories[0].IsSelectedAsync().ShouldBeFalse();
+            await repositories[1].IsSelectedAsync().ShouldBeTrue();
+            await repositories[2].IsSelectedAsync().ShouldBeFalse();
+            await repositories[3].IsSelectedAsync().ShouldBeTrue();
+
+            // Act - Change the selection and dismiss the modal
+            await repositories[1].ToggleAsync();
+            await repositories[3].ToggleAsync();
+            configurePage = await modal.CloseAsync();
+
+            // Assert - The selected repositories remains the same
+            modal = await owners[0].ConfigureAsync();
+            await modal.WaitForRepositoryListAsync();
+
+            repositories = await modal.GetRepositoriesAsync();
+            repositories.Count.ShouldBe(4);
+
+            await repositories[0].IsSelectedAsync().ShouldBeFalse();
+            await repositories[1].IsSelectedAsync().ShouldBeTrue();
+            await repositories[2].IsSelectedAsync().ShouldBeFalse();
+            await repositories[3].IsSelectedAsync().ShouldBeTrue();
         });
     }
 
