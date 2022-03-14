@@ -56,59 +56,6 @@ public sealed class ApiTests : IDisposable
     }
 
     [Fact]
-    public async Task Can_Get_Rate_Limits()
-    {
-        // Arrange
-        var utcNow = DateTimeOffset.UtcNow;
-
-        long oneHourFromNowEpoch = utcNow.AddHours(1).ToUnixTimeSeconds();
-        string oneHourFromNowEpochString = oneHourFromNowEpoch.ToString(CultureInfo.InvariantCulture);
-
-        RegisterGetRateLimit(
-            response: () => new
-            {
-                resources = new
-                {
-                    core = new
-                    {
-                        limit = 5000,
-                        remaining = 4999,
-                        reset = oneHourFromNowEpoch,
-                        used = 1,
-                        resource = "core",
-                    },
-                },
-                rate = new
-                {
-                    limit = 5000,
-                    remaining = 4999,
-                    reset = oneHourFromNowEpoch,
-                    used = 1,
-                    resource = "core",
-                },
-            },
-            configure: (builder) =>
-            {
-                builder.WithResponseHeader("X-RateLimit-Limit", "5000")
-                       .WithResponseHeader("X-RateLimit-Remaining", "4999")
-                       .WithResponseHeader("X-RateLimit-Reset", oneHourFromNowEpochString);
-            });
-
-        using var client = await CreateAuthenticatedClientAsync();
-
-        // Act
-        var actual = await client.GetFromJsonAsync<RateLimits>($"/github/rate-limits");
-
-        // Assert
-        actual.ShouldNotBeNull();
-        actual.Limit.ShouldBe(5000);
-        actual.Remaining.ShouldBe(4999);
-        actual.Resets.ShouldNotBeNull();
-        actual.Resets.Value.ShouldBe(utcNow.AddHours(1), TimeSpan.FromSeconds(2));
-        actual.ResetsText.ShouldBe("59 minutes from now");
-    }
-
-    [Fact]
     public async Task Can_Get_Repositories_If_No_Repositories()
     {
         // Arrange
@@ -518,39 +465,6 @@ public sealed class ApiTests : IDisposable
         authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
 
         return authenticatedClient;
-    }
-
-    private void RegisterGetRateLimit(
-        Func<object>? response = null,
-        Action<HttpRequestInterceptionBuilder>? configure = null)
-    {
-        response ??= () => new
-        {
-            resources = new
-            {
-                core = new
-                {
-                    limit = 5000,
-                    remaining = 4999,
-                    reset = 1377013266,
-                    used = 1,
-                    resource = "core",
-                },
-            },
-        };
-
-        var builder = new HttpRequestInterceptionBuilder()
-            .Requests()
-            .ForGet()
-            .ForUrl("https://api.github.com/rate_limit")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
-            .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        configure?.Invoke(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
     }
 
     private void RegisterGetRepository(

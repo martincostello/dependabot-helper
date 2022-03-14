@@ -20,7 +20,6 @@ public sealed class ConfigureModel : PageModel
         try
         {
             Owners = await service.GetOwnersAsync(User);
-            _ = await service.GetRateLimitsAsync();
         }
         catch (Octokit.AuthorizationException)
         {

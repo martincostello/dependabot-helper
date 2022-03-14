@@ -17,7 +17,6 @@ public sealed class IndexModel : PageModel
         try
         {
             await service.VerifyCredentialsAsync();
-            _ = await service.GetRateLimitsAsync();
         }
         catch (Octokit.AuthorizationException)
         {

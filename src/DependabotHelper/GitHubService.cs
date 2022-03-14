@@ -2,7 +2,6 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Security.Claims;
-using Humanizer;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -19,12 +18,10 @@ public sealed class GitHubService
     private readonly IGitHubClient _client;
     private readonly ILogger _logger;
     private readonly DependabotOptions _options;
-    private readonly GitHubRateLimitsAccessor _rateLimitsAccessor;
 
     public GitHubService(
         IGitHubClient client,
         IMemoryCache cache,
-        GitHubRateLimitsAccessor rateLimitsAccessor,
         IOptionsSnapshot<DependabotOptions> options,
         ILogger<GitHubService> logger)
     {
@@ -32,7 +29,6 @@ public sealed class GitHubService
         _cache = cache;
         _logger = logger;
         _options = options.Value;
-        _rateLimitsAccessor = rateLimitsAccessor;
     }
 
     public static string ApplyMaximumAvatarSize(string url)
@@ -105,45 +101,6 @@ public sealed class GitHubService
         });
 
         return owners;
-    }
-
-    public async Task<RateLimits> GetRateLimitsAsync()
-    {
-        var rateLimit = _client.GetLastApiInfo()?.RateLimit;
-
-        if (rateLimit is null)
-        {
-            try
-            {
-                // Force an API request to get the rate limits
-                var response = await _client.Miscellaneous.GetRateLimits();
-                rateLimit = response.Rate;
-            }
-            catch (ApiException)
-            {
-                // Ignore
-            }
-        }
-
-        var result = new RateLimits();
-
-        if (rateLimit is not null)
-        {
-            _logger.LogInformation(
-                "GitHub API rate limit {Remaining}/{Limit}. Rate limit resets at {Reset:u}.",
-                rateLimit.Remaining,
-                rateLimit.Limit,
-                rateLimit.Reset);
-
-            result.Limit = rateLimit.Limit;
-            result.Remaining = rateLimit.Remaining;
-            result.Resets = rateLimit.Reset;
-            result.ResetsText = result.Resets.Humanize();
-        }
-
-        _rateLimitsAccessor.Current = result;
-
-        return result;
     }
 
     public async Task<RepositoryPullRequests> GetPullRequestsAsync(ClaimsPrincipal user, string owner, string name)

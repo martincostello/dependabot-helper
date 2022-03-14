@@ -21,18 +21,6 @@ public static class GitHubEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder, ILogger logger)
     {
-        builder.MapGet("/github/rate-limits", async (GitHubService service) =>
-        {
-            try
-            {
-                return Results.Json(await service.GetRateLimitsAsync());
-            }
-            catch (Exception ex)
-            {
-                return Results.Extensions.Exception(ex, logger);
-            }
-        }).RequireAuthorization();
-
         builder.MapGet("/github/repos/{owner}", async (
             string owner,
             ClaimsPrincipal user,

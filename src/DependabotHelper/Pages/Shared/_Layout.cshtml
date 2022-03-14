@@ -1,5 +1,6 @@
+@using Humanizer;
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-@inject GitHubRateLimitsAccessor RateLimits
+@inject Octokit.IGitHubClient GitHubClient
 <!DOCTYPE html>
 <html>
 <head>
@@ -74,13 +75,13 @@
             <p>
                 &copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello
                 @{
-                    var rateLimits = RateLimits.Current;
+                    var rateLimits = GitHubClient.GetLastApiInfo()?.RateLimit;
                 }
                 <small class="float-right @(rateLimits?.Limit is null ? "d-none" : string.Empty)">
                     GitHub API Limits:
                     <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
                     Resets
-                    <span id="rate-limit-resets" title="@rateLimits?.Resets.GetValueOrDefault().ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.ResetsText</span>.
+                    <span id="rate-limit-resets" title="@rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.Reset.Humanize()</span>.
                 </small>
             </p>
         </footer>

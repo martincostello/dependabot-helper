@@ -17,9 +17,7 @@ public static class GitHubExtensions
         services.AddSingleton<ICredentialStore, UserCredentialStore>();
         services.AddSingleton<IJsonSerializer, SimpleJsonSerializer>();
 
-        services.AddScoped<GitHubRateLimitsAccessor>();
         services.AddScoped<GitHubService>();
-
         services.AddScoped<IHttpClient>((provider) =>
         {
             var httpClientFactory = provider.GetRequiredService<IHttpMessageHandlerFactory>();

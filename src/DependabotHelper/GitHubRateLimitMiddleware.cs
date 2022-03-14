@@ -14,7 +14,10 @@ public class GitHubRateLimitMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IGitHubClient client)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IGitHubClient client,
+        ILogger<GitHubRateLimitMiddleware> logger)
     {
         context.Response.OnStarting(() =>
         {
@@ -22,6 +25,12 @@ public class GitHubRateLimitMiddleware
 
             if (rateLimit is { } limits)
             {
+                logger.LogInformation(
+                    "GitHub API rate limit {Remaining}/{Limit}. Rate limit resets at {Reset:u}.",
+                    limits.Remaining,
+                    limits.Limit,
+                    limits.Reset);
+
                 string limit = limits.Limit.ToString(CultureInfo.InvariantCulture);
                 string remaining = limits.Remaining.ToString(CultureInfo.InvariantCulture);
                 string reset = limits.ResetAsUtcEpochSeconds.ToString(CultureInfo.InvariantCulture);
