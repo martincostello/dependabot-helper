@@ -49,7 +49,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthenticationRoutes();
+
 app.MapGitHubRoutes(app.Logger);
+app.UseMiddleware<GitHubRateLimitMiddleware>();
 
 app.MapRazorPages();
 
