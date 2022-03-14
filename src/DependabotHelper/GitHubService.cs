@@ -155,7 +155,7 @@ public sealed class GitHubService
             HtmlUrl = repository.HtmlUrl + "/pulls",
             Id = repository.Id,
             IsFork = repository.Fork,
-            IsPrivate = repository.Private || repository.Visibility != RepositoryVisibility.Public,
+            IsPrivate = repository.IsPrivate(),
             Name = repository.Name,
         };
 
@@ -215,7 +215,7 @@ public sealed class GitHubService
                     HtmlUrl = p.HtmlUrl,
                     Id = p.Id,
                     IsFork = p.Fork,
-                    IsPrivate = p.Private || (p.Visibility.HasValue && p.Visibility.Value != RepositoryVisibility.Public),
+                    IsPrivate = p.IsPrivate(),
                     Name = p.Name,
                 };
             })
