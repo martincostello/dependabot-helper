@@ -384,10 +384,12 @@ public sealed class GitHubService
             return false;
         }
 
-        // Only use the most recent review for each approver
+        // Only use the most recent review for each approver.
+        // Ignore reviews from people unassociated with the repository.
         var reviewsPerUsers = approved
             .OrderByDescending((p) => p.SubmittedAt)
             .DistinctBy((p) => p.User.Login)
+            .Where((p) => p.AuthorAssociation.Value.CanReview())
             .ToList();
 
         if (reviewsPerUsers.Any((p) => p.State == PullRequestReviewState.ChangesRequested))

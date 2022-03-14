@@ -5,6 +5,15 @@ namespace Octokit;
 
 public static class OctokitExtensions
 {
+    public static bool CanReview(this AuthorAssociation value)
+        => value switch
+           {
+               AuthorAssociation.Collaborator => true,
+               AuthorAssociation.Member => true,
+               AuthorAssociation.Owner => true,
+               _ => false,
+           };
+
     public static bool IsPrivate(this Repository value)
         => value.Private || (value.Visibility.HasValue && value.Visibility.Value != RepositoryVisibility.Public);
 }
