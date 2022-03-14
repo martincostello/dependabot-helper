@@ -8,6 +8,8 @@ namespace MartinCostello.DependabotHelper;
 
 public static class GitHubExtensions
 {
+    private static readonly ProductHeaderValue UserAgent = CreateUserAgent();
+
     public static IServiceCollection AddGitHubClient(this IServiceCollection services)
     {
         services.AddHttpClient();
@@ -26,10 +28,6 @@ public static class GitHubExtensions
 
         services.AddScoped<IConnection>((provider) =>
         {
-            string productName = "DependabotHelper";
-            string productVersion = typeof(GitHubExtensions).Assembly.GetName().Version!.ToString(3);
-
-            var productInformation = new ProductHeaderValue(productName, productVersion);
             var baseAddress = GitHubClient.GitHubApiUrl;
 
             var configuration = provider.GetRequiredService<IConfiguration>();
@@ -44,15 +42,40 @@ public static class GitHubExtensions
             var httpClient = provider.GetRequiredService<IHttpClient>();
             var serializer = provider.GetRequiredService<IJsonSerializer>();
 
-            return new Connection(productInformation, baseAddress, credentialStore, httpClient, serializer);
+            return new Connection(UserAgent, baseAddress, credentialStore, httpClient, serializer);
         });
 
         services.AddScoped<IGitHubClient>((provider) =>
         {
-            var connection = provider.GetRequiredService<IConnection>();
-            return new GitHubClient(connection);
+            var baseAddress = GitHubClient.GitHubApiUrl;
+            var configuration = provider.GetRequiredService<IConfiguration>();
+
+            if (configuration["GitHub:EnterpriseDomain"] is string enterpriseUri &&
+                !string.IsNullOrWhiteSpace(enterpriseUri))
+            {
+                baseAddress = new(enterpriseUri, UriKind.Absolute);
+            }
+
+            if (baseAddress == GitHubClient.GitHubApiUrl)
+            {
+                var connection = provider.GetRequiredService<IConnection>();
+                return new GitHubClient(connection);
+            }
+            else
+            {
+                // Using IConnection does not seem to work correctly with
+                // GitHub Enterprise as the requests still get sent to github.com.
+                var credentialStore = provider.GetRequiredService<ICredentialStore>();
+                return new GitHubClient(UserAgent, credentialStore, baseAddress);
+            }
         });
 
         return services;
+    }
+
+    private static ProductHeaderValue CreateUserAgent()
+    {
+        string productVersion = typeof(GitHubExtensions).Assembly.GetName().Version!.ToString(3);
+        return new ProductHeaderValue("DependabotHelper", productVersion);
     }
 }
