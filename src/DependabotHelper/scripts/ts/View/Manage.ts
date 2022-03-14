@@ -81,7 +81,7 @@ export class Manage extends Page {
             });
 
             // Automatically refresh the UI every 10 minutes
-            // plus a random jitter factory of 0-30 seconds.
+            // plus a random jitter factor of 0-30 seconds.
             const jitter = Math.floor(Math.random() * 30) * 1000;
             const interval = (10 * 60 * 1000) + jitter;
 
