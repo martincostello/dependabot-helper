@@ -370,19 +370,21 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Instance.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task Api_Returns_Http_500_If_An_Error_Occurs()
+    [Theory]
+    [InlineData("GET", "/github/repos/owner-name")]
+    [InlineData("GET", "/github/repos/owner-name/repo-name/pulls")]
+    [InlineData("POST", "/github/repos/owner-name/repo-name/pulls/merge")]
+    [InlineData("POST", "/github/repos/owner-name/repo-name/pulls/42/approve")]
+    public async Task Api_Returns_Http_500_If_An_Error_Occurs(
+        string httpMethod,
+        string requestUri)
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
-
-        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status500InternalServerError);
-
         using var client = await CreateAuthenticatedClientAsync();
+        using var request = new HttpRequestMessage(new(httpMethod), requestUri);
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.SendAsync(request);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
@@ -394,6 +396,30 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Title.ShouldBe("An error occurred while processing your request.");
         problem.Detail.ShouldBeNull();
         problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7231#section-6.6.1");
+        problem.Instance.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData("/github/repos/owner-name/repo-name/pulls/merge")]
+    [InlineData("/github/repos/owner-name/repo-name/pulls/42/approve")]
+    public async Task Api_Returns_Http_400_If_Antiforgery_Token_Missing(string requestUri)
+    {
+        // Arrange
+        using var client = await CreateAuthenticatedClientAsync(setAntiforgeryTokenHeader: false);
+
+        // Act
+        using var response = await client.PostAsJsonAsync(requestUri, new { });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        problem.ShouldNotBeNull();
+        problem.Status.ShouldBe(StatusCodes.Status400BadRequest);
+        problem.Title.ShouldBe("Bad Request");
+        problem.Detail.ShouldBe("Invalid CSRF token specified.");
+        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7231#section-6.5.1");
         problem.Instance.ShouldBeNull();
     }
 
@@ -1074,7 +1100,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         return options;
     }
 
-    private async Task<HttpClient> CreateAuthenticatedClientAsync()
+    private async Task<HttpClient> CreateAuthenticatedClientAsync(bool setAntiforgeryTokenHeader = true)
     {
         AntiforgeryTokens anonymousTokens = await Fixture.GetAntiforgeryTokensAsync();
 
@@ -1099,7 +1125,11 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var authenticatedCookieHandler = new CookieContainerHandler(anonymousCookieHandler.Container);
 
         var authenticatedClient = Fixture.CreateDefaultClient(authenticatedCookieHandler);
-        authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
+
+        if (setAntiforgeryTokenHeader)
+        {
+            authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
+        }
 
         return authenticatedClient;
     }
