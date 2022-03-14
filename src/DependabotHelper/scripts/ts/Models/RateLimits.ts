@@ -4,6 +4,5 @@
 export interface RateLimits {
     remaining?: number;
     limit?: number;
-    resets?: string;
-    resetsText?: string;
+    resets?: number;
 }

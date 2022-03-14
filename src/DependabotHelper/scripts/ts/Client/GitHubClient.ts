@@ -1,7 +1,6 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import * as moment from '../../../node_modules/moment/moment';
 import { RateLimits } from '../Models/RateLimits';
 import { Repository } from '../Models/Repository';
 import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
@@ -16,7 +15,6 @@ export class GitHubClient {
             limit: null,
             remaining: null,
             resets: null,
-            resetsText: null,
         };
     }
 
@@ -104,14 +102,9 @@ export class GitHubClient {
         const resetKey = 'x-ratelimit-reset';
 
         if (headers.has(limitKey)) {
-
             this.rateLimits.limit = parseInt(headers.get(limitKey), 10);
             this.rateLimits.remaining = parseInt(headers.get(remainingKey), 10);
-
-            const resets = parseInt(headers.get(resetKey), 10);
-            const resetsAt = moment(resets * 1000);
-            this.rateLimits.resets = resetsAt.format();
-            this.rateLimits.resetsText = resetsAt.fromNow();
+            this.rateLimits.resets = parseInt(headers.get(resetKey), 10);
         }
     }
 }
