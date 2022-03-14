@@ -835,6 +835,121 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
+    [InlineData("COLLABORATOR")]
+    [InlineData("MEMBER")]
+    [InlineData("OWNER")]
+    public async Task Can_Get_Pull_Requests_Project_Member_Can_Approve(string authorAssociation)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        var submittedAt = DateTimeOffset.UtcNow;
+
+        RegisterGetReviews(
+            owner,
+            name,
+            number,
+            () => new[] { CreateReview("octocat", "APPROVED", authorAssociation) });
+
+        RegisterGetStatuses(owner, name, commit);
+        RegisterGetCheckSuites(owner, name, commit);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.IsApproved.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("COLLABORATOR")]
+    [InlineData("MEMBER")]
+    [InlineData("OWNER")]
+    public async Task Can_Get_Pull_Requests_Project_Member_Can_Request_Changes(string authorAssociation)
+    {
+        // Arrange
+        int number = RandomNumber();
+        string owner = RandomString();
+        string name = RandomString();
+        string commit = RandomString();
+        string title = RandomString();
+
+        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
+
+        RegisterGetRepository(owner, name, number);
+        RegisterGetDependabotContent(owner, name);
+        RegisterGetIssues(owner, name, "app/dependabot");
+        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+
+        RegisterGetIssues(
+            owner,
+            name,
+            "app/github-actions",
+            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+
+        var submittedAt = DateTimeOffset.UtcNow;
+
+        RegisterGetReviews(
+            owner,
+            name,
+            number,
+            () => new[]
+            {
+                CreateReview("octocat", "CHANGES_REQUESTED", authorAssociation),
+            });
+
+        RegisterGetStatuses(owner, name, commit);
+        RegisterGetCheckSuites(owner, name, commit);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner}/{name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.IsApproved.ShouldBeFalse();
+    }
+
+    [Theory]
     [InlineData("CONTRIBUTOR")]
     [InlineData("FIRST_TIMER")]
     [InlineData("FIRST_TIME_CONTRIBUTOR")]
