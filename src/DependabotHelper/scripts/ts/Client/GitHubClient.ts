@@ -1,11 +1,24 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+import * as moment from '../../../node_modules/moment/moment';
 import { RateLimits } from '../Models/RateLimits';
 import { Repository } from '../Models/Repository';
 import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
 
 export class GitHubClient {
+
+    readonly rateLimits: RateLimits;
+
+    constructor() {
+        this.rateLimits =
+        {
+            limit: null,
+            remaining: null,
+            resets: null,
+            resetsText: null,
+        };
+    }
 
     async approvePullRequest(owner: string, name: string, number: number): Promise<void> {
 
@@ -26,10 +39,6 @@ export class GitHubClient {
             `/github/repos/${encodedOwner}/${encodedName}/pulls`);
     }
 
-    async getRateLimits(): Promise<RateLimits> {
-        return await this.getJson<RateLimits>('/github/rate-limits');
-    }
-
     async getRepositories(owner: string): Promise<Repository[]> {
         const encodedOwner = encodeURIComponent(owner);
         return await this.getJson<Repository[]>(`/github/repos/${encodedOwner}`);
@@ -46,6 +55,8 @@ export class GitHubClient {
     private async getJson<T>(url: string): Promise<T> {
 
         const response = await fetch(url);
+
+        this.updateRateLimits(response.headers);
 
         if (!response.ok) {
             throw new Error(response.status.toString(10));
@@ -74,6 +85,8 @@ export class GitHubClient {
 
         const response = await fetch(url, init);
 
+        this.updateRateLimits(response.headers);
+
         if (!response.ok) {
             throw new Error(response.status.toString(10));
         }
@@ -82,5 +95,23 @@ export class GitHubClient {
     private getMetaContent(name: string): string {
         const element = document.querySelector(`meta[name="${name}"]`);
         return element?.getAttribute('content') ?? '';
+    }
+
+    private updateRateLimits(headers: Headers) {
+
+        const limitKey = 'x-ratelimit-limit';
+        const remainingKey = 'x-ratelimit-remaining';
+        const resetKey = 'x-ratelimit-reset';
+
+        if (headers.has(limitKey)) {
+
+            this.rateLimits.limit = parseInt(headers.get(limitKey), 10);
+            this.rateLimits.remaining = parseInt(headers.get(remainingKey), 10);
+
+            const resets = parseInt(headers.get(resetKey), 10);
+            const resetsAt = moment(resets * 1000);
+            this.rateLimits.resets = resetsAt.format();
+            this.rateLimits.resetsText = resetsAt.fromNow();
+        }
     }
 }

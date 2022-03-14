@@ -58,7 +58,7 @@ export class Configuration extends Page {
 
         const repositories = await this.gitHub.getRepositories(owner);
 
-        await this.updateRateLimits();
+        this.updateRateLimits();
 
         const body = this.template.parentElement;
 

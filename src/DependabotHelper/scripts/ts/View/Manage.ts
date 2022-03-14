@@ -68,7 +68,7 @@ export class Manage extends Page {
 
             element.onMerge(async (owner, name) => {
                 await this.gitHub.mergePullRequests(owner, name);
-                await this.updateRateLimits();
+                this.updateRateLimits();
                 await this.updateRepository(element);
             });
 
@@ -98,6 +98,6 @@ export class Manage extends Page {
     private async updateRepository(element: RepositoryElement): Promise<void> {
         const repository = await this.gitHub.getPullRequests(element.owner, element.name);
         element.update(repository);
-        await this.updateRateLimits();
+        this.updateRateLimits();
     }
 }

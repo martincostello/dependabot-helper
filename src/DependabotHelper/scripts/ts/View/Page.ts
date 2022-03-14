@@ -29,8 +29,8 @@ export abstract class Page {
         return Page.findId('repo-search-modal');
     }
 
-    protected async updateRateLimits(): Promise<void> {
-        const limits = await this.gitHub.getRateLimits();
+    protected updateRateLimits() {
+        const limits = this.gitHub.rateLimits;
         this.rateLimits.update(limits);
     }
 }
