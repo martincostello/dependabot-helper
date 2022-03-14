@@ -3,11 +3,12 @@
 
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Cryptography;
 using JustEat.HttpClientInterception;
+using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
+using static MartinCostello.DependabotHelper.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -43,10 +44,12 @@ public sealed class ApiTests : IDisposable
 
         RegisterPostReview(owner, name, number);
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.PostAsJsonAsync($"/github/repos/{owner}/{name}/pulls/{number}/approve", new { });
+        using var response = await client.PostAsJsonAsync(
+            $"/github/repos/{owner}/{name}/pulls/{number}/approve",
+            new { });
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
@@ -91,10 +94,10 @@ public sealed class ApiTests : IDisposable
                        .WithResponseHeader("X-RateLimit-Reset", oneHourFromNowEpochString);
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<Models.RateLimits>($"/github/rate-limits");
+        var actual = await client.GetFromJsonAsync<RateLimits>($"/github/rate-limits");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -114,10 +117,10 @@ public sealed class ApiTests : IDisposable
         RegisterGetUser(owner);
         RegisterGetUserRepositories(owner);
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -136,21 +139,13 @@ public sealed class ApiTests : IDisposable
         RegisterGetRepositoriesForCurrentUser(
             response: () => new[]
             {
-                new
-                {
-                    id,
-                    name,
-                    fork = false,
-                    @private = false,
-                    visibility = "internal",
-                    html_url = $"https://github.com/{owner}/{name}",
-                },
+                CreateRepository(owner, name, id, visibility: "internal"),
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -178,20 +173,13 @@ public sealed class ApiTests : IDisposable
             owner,
             response: () => new[]
             {
-                new
-                {
-                    id,
-                    name,
-                    fork = false,
-                    @private = true,
-                    html_url = $"https://github.com/{owner}/{name}",
-                },
+                CreateRepository(owner, name, id, isPrivate: true),
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -219,20 +207,13 @@ public sealed class ApiTests : IDisposable
             owner,
             response: () => new[]
             {
-                new
-                {
-                    id,
-                    name,
-                    fork = false,
-                    @private = false,
-                    html_url = $"https://github.com/{owner}/{name}",
-                },
+                CreateRepository(owner, name, id),
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -271,20 +252,13 @@ public sealed class ApiTests : IDisposable
             owner,
             response: () => new[]
             {
-                new
-                {
-                    id,
-                    name,
-                    fork = isFork,
-                    @private = false,
-                    html_url = $"https://github.com/{owner}/{name}",
-                },
+                CreateRepository(owner, name, id, isFork: isFork),
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Models.Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -329,22 +303,8 @@ public sealed class ApiTests : IDisposable
             "app/dependabot",
             () => new[]
             {
-                new
-                {
-                    number = pullRequest1,
-                    draft = false,
-                    pull_request = new
-                    {
-                    },
-                },
-                new
-                {
-                    number = pullRequest2,
-                    draft = true,
-                    pull_request = new
-                    {
-                    },
-                },
+                CreateIssue(pullRequest1, new { }, isDraft: false),
+                CreateIssue(pullRequest2, new { }, isDraft: true),
             });
 
         RegisterGetIssues(
@@ -353,17 +313,15 @@ public sealed class ApiTests : IDisposable
             "app/github-actions",
             () => new[]
             {
-                new
-                {
-                    number = pullRequest3,
-                    draft = true,
-                },
+                CreateIssue(pullRequest3, pullRequest: null),
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.PostAsJsonAsync($"/github/repos/{owner}/{name}/pulls/merge", new { });
+        using var response = await client.PostAsJsonAsync(
+            $"/github/repos/{owner}/{name}/pulls/merge",
+            new { });
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
@@ -378,10 +336,10 @@ public sealed class ApiTests : IDisposable
 
         RegisterGetRepository(owner, name, statusCode: StatusCodes.Status404NotFound);
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -405,10 +363,10 @@ public sealed class ApiTests : IDisposable
 
         RegisterGetRepository(owner, name, statusCode: StatusCodes.Status401Unauthorized);
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -432,10 +390,10 @@ public sealed class ApiTests : IDisposable
 
         RegisterGetRepository(owner, name, statusCode: StatusCodes.Status403Forbidden);
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -469,10 +427,10 @@ public sealed class ApiTests : IDisposable
                        .WithResponseHeader("x-ratelimit-reset", "1377013266");
             });
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe((HttpStatusCode)StatusCodes.Status429TooManyRequests);
@@ -496,10 +454,10 @@ public sealed class ApiTests : IDisposable
 
         RegisterGetRepository(owner, name, statusCode: StatusCodes.Status500InternalServerError);
 
-        var client = await CreateAuthenticatedClientAsync();
+        using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
@@ -519,10 +477,6 @@ public sealed class ApiTests : IDisposable
         _scope?.Dispose();
         Fixture.ClearConfigurationOverrides();
     }
-
-    private static int RandomNumber() => RandomNumberGenerator.GetInt32(int.MaxValue);
-
-    private static string RandomString() => Guid.NewGuid().ToString();
 
     private static void ConfigureRateLimit(HttpRequestInterceptionBuilder builder)
     {
@@ -608,13 +562,11 @@ public sealed class ApiTests : IDisposable
         Func<object>? response = null,
         Action<HttpRequestInterceptionBuilder>? configure = null)
     {
-        response ??= () => new
-        {
+        response ??= () => CreateRepository(
+            owner,
             name,
-            full_name = $"{owner}/{name}",
-            allow_merge_commit = allowMergeCommit,
-            allow_rebase_merge = allowRebaseMerge,
-        };
+            allowMergeCommit: allowMergeCommit,
+            allowRebaseMerge: allowRebaseMerge);
 
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
@@ -640,10 +592,12 @@ public sealed class ApiTests : IDisposable
     {
         response ??= () => Array.Empty<object>();
 
+        string encodedCreator = Uri.EscapeDataString(creator);
+
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/issues?creator={Uri.EscapeDataString(creator)}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/issues?creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
             .ForRequestHeader("Authorization", AuthorizationHeader)
             .Responds()
             .WithStatus(StatusCodes.Status200OK)
@@ -661,11 +615,7 @@ public sealed class ApiTests : IDisposable
         bool isDraft = false,
         Func<object>? response = null)
     {
-        response ??= () => new
-        {
-            number,
-            draft = isDraft,
-        };
+        response ??= () => CreatePullRequest(number, isDraft);
 
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
@@ -737,11 +687,7 @@ public sealed class ApiTests : IDisposable
 
     private void RegisterGetUser(string login, string userType = "user", Func<object>? response = null)
     {
-        response ??= () => new
-        {
-            login,
-            type = userType,
-        };
+        response ??= () => CreateUser(login, userType);
 
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
