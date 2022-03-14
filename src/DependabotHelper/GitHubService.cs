@@ -348,9 +348,9 @@ public sealed class GitHubService
 
                 result.Add(new()
                 {
-                    HtmlUrl = issue.HtmlUrl,
-                    Number = issue.Number,
+                    HtmlUrl = pr.HtmlUrl,
                     IsApproved = isApproved,
+                    Number = pr.Number,
                     RepositoryName = name,
                     RepositoryOwner = owner,
                     Status = status,
