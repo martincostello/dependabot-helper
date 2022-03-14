@@ -4,11 +4,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
-using static MartinCostello.DependabotHelper.GitHubFixtures;
+using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 

@@ -3,7 +3,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public class AntiforgeryTokens
 {

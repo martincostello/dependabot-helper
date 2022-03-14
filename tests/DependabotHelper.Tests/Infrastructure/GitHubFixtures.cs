@@ -3,7 +3,7 @@
 
 using System.Security.Cryptography;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public static class GitHubFixtures
 {

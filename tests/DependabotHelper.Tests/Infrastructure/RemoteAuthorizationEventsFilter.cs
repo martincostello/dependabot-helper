@@ -4,7 +4,7 @@
 using AspNet.Security.OAuth.GitHub;
 using Microsoft.Extensions.Options;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public sealed class RemoteAuthorizationEventsFilter : IPostConfigureOptions<GitHubAuthenticationOptions>
 {

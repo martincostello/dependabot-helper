@@ -4,7 +4,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Playwright;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public class BrowserFixture
 {

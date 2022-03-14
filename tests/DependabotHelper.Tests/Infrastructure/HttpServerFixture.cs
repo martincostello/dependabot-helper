@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public sealed class HttpServerFixture : AppFixture
 {

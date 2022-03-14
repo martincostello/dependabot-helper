@@ -3,9 +3,9 @@
 
 using JustEat.HttpClientInterception;
 using Microsoft.AspNetCore.Http;
-using static MartinCostello.DependabotHelper.GitHubFixtures;
+using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public abstract class IntegrationTests<T> : IAsyncLifetime
     where T : AppFixture

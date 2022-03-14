@@ -4,7 +4,7 @@
 using JustEat.HttpClientInterception;
 using Microsoft.Extensions.Http;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public sealed class HttpRequestInterceptionFilter : IHttpMessageHandlerBuilderFilter
 {

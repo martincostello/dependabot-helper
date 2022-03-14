@@ -3,7 +3,7 @@
 
 using Microsoft.Playwright;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Pages;
 
 public class ConfigurePage : AppPage
 {

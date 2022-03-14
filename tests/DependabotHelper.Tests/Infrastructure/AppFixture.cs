@@ -15,7 +15,7 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace MartinCostello.DependabotHelper;
+namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAccessor
 {
