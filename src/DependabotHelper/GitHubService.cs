@@ -253,11 +253,11 @@ public sealed class GitHubService
         _ = await _client.User.Current();
     }
 
-    private static AsyncPolicy CreateMergePolicy()
+    private AsyncPolicy CreateMergePolicy()
     {
         return Policy
             .Handle<PullRequestNotMergeableException>()
-            .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) });
+            .WaitAndRetryAsync(_options.MergeRetryWaits);
     }
 
     private async Task<IList<Models.PullRequest>> GetPullRequestsAsync(

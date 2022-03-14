@@ -78,6 +78,8 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
             var config = new[]
             {
                 KeyValuePair.Create("Dependabot:IncludeForks", bool.TrueString),
+                KeyValuePair.Create("Dependabot:MergeRetryWaits:0", "00:00:00.100"),
+                KeyValuePair.Create("Dependabot:MergeRetryWaits:1", "00:00:00.200"),
                 KeyValuePair.Create("GitHub:ClientId", "github-id"),
                 KeyValuePair.Create("GitHub:ClientSecret", "github-secret"),
                 KeyValuePair.Create("GitHub:EnterpriseDomain", string.Empty),
