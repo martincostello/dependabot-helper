@@ -226,11 +226,20 @@ public sealed class GitHubService
                         name,
                         pr.Number);
                 }
+                catch (PullRequestNotMergeableException ex)
+                {
+                    _logger.LogInformation(
+                        ex,
+                        "Could not merge pull request {Owner}/{Repository}#{Number} as it is not mergeable.",
+                        pr.RepositoryOwner,
+                        pr.RepositoryName,
+                        pr.Number);
+                }
                 catch (ApiException ex)
                 {
                     _logger.LogError(
                         ex,
-                        "Could not merge pull request {Owner}/{Repository}#{Number}.",
+                        "Could not merge pull request {Owner}/{Repository}#{Number} due to an error.",
                         pr.RepositoryOwner,
                         pr.RepositoryName,
                         pr.Number);

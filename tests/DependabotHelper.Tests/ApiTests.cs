@@ -212,13 +212,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         int pullRequest2 = RandomNumber();
         int pullRequest3 = RandomNumber();
         int pullRequest4 = RandomNumber();
+        int pullRequest5 = RandomNumber();
 
         RegisterGetRepository(owner, name, allowMergeCommit: allowMergeCommit, allowRebaseMerge: allowRebaseMerge);
         RegisterGetPullRequest(owner, name, pullRequest1);
         RegisterGetPullRequest(owner, name, pullRequest2, isDraft: true);
         RegisterGetPullRequest(owner, name, pullRequest4, response: () => CreatePullRequest(owner, name, pullRequest4, isMergeable: false));
+        RegisterGetPullRequest(owner, name, pullRequest5);
         RegisterPutPullRequestMerge(owner, name, pullRequest1, mergeable: true);
-        RegisterPutPullRequestMerge(owner, name, pullRequest2, mergeable: false);
+        RegisterPutPullRequestMerge(owner, name, pullRequest5, mergeable: false);
 
         RegisterGetIssues(
             owner,
@@ -238,6 +240,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             {
                 CreateIssue(owner, name, pullRequest3, pullRequest: null),
                 CreateIssue(owner, name, pullRequest4, CreatePullRequest(owner, name, pullRequest4, isMergeable: false)),
+                CreateIssue(owner, name, pullRequest5, CreatePullRequest(owner, name, pullRequest5)),
             });
 
         using var client = await CreateAuthenticatedClientAsync();
