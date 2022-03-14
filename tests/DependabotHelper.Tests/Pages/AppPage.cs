@@ -41,6 +41,23 @@ public abstract class AppPage
     public async Task WaitForSignedOutAsync()
         => await Page.WaitForSelectorAsync(Selectors.SignIn);
 
+    public abstract class Item
+    {
+        protected Item(IElementHandle handle)
+        {
+            Handle = handle;
+        }
+
+        protected IElementHandle Handle { get; }
+
+        protected async Task<IPage> GetPageAsync()
+        {
+            var frame = await Handle.OwnerFrameAsync();
+            frame.ShouldNotBeNull();
+            return frame.Page;
+        }
+    }
+
     private sealed class Selectors
     {
         internal const string ConfigureLink = "id=configure-link";

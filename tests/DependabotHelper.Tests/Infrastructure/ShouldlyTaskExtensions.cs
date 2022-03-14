@@ -11,6 +11,12 @@ public static class ShouldlyTaskExtensions
         actual.ShouldBe(expected);
     }
 
+    public static async Task ShouldBe<T>(this Task<T> task, T expected)
+    {
+        T actual = await task;
+        actual.ShouldBe(expected);
+    }
+
     public static async Task ShouldBeFalse(this Task<bool> task)
     {
         bool actual = await task;

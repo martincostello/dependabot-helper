@@ -21,26 +21,23 @@ public class ConfigurePage : AppPage
     public async Task WaitForOwnerListAsync()
         => await Page.WaitForSelectorAsync(Selectors.OwnerList);
 
-    public sealed class OwnerItem
+    public sealed class OwnerItem : Item
     {
-        internal OwnerItem(IElementHandle item)
+        internal OwnerItem(IElementHandle handle)
+            : base(handle)
         {
-            Item = item;
         }
-
-        private IElementHandle Item { get; }
 
         public async Task<ConfigureRepositoriesModal> ConfigureAsync()
         {
-            var button = await Item.QuerySelectorAsync(Selectors.ConfigureButton);
+            var button = await Handle.QuerySelectorAsync(Selectors.ConfigureButton);
             button.ShouldNotBeNull();
 
             await button.ClickAsync();
 
-            var frame = await Item.OwnerFrameAsync();
-            frame.ShouldNotBeNull();
+            var page = await GetPageAsync();
 
-            var modal = await frame.Page.QuerySelectorAsync(Selectors.RepositoriesModal);
+            var modal = await page.QuerySelectorAsync(Selectors.RepositoriesModal);
             modal.ShouldNotBeNull();
 
             return new ConfigureRepositoriesModal(modal);
@@ -48,37 +45,34 @@ public class ConfigurePage : AppPage
 
         public async Task<string> NameAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.OwnerName);
+            var element = await Handle.QuerySelectorAsync(Selectors.OwnerName);
             element.ShouldNotBeNull();
             return await element.InnerTextAsync();
         }
     }
 
-    public sealed class ConfigureRepositoriesModal
+    public sealed class ConfigureRepositoriesModal : Item
     {
-        internal ConfigureRepositoriesModal(IElementHandle item)
+        internal ConfigureRepositoriesModal(IElementHandle handle)
+            : base(handle)
         {
-            Item = item;
         }
-
-        private IElementHandle Item { get; }
 
         public async Task<ConfigurePage> CloseAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.CancelChanges);
+            var element = await Handle.QuerySelectorAsync(Selectors.CancelChanges);
             element.ShouldNotBeNull();
 
             await element.ClickAsync();
 
-            var frame = await Item.OwnerFrameAsync();
-            frame.ShouldNotBeNull();
+            var page = await GetPageAsync();
 
-            return new(frame.Page);
+            return new(page);
         }
 
         public async Task<IReadOnlyList<RepositoryItem>> GetRepositoriesAsync()
         {
-            var elements = await Item.QuerySelectorAllAsync(Selectors.RepositoryItem);
+            var elements = await Handle.QuerySelectorAllAsync(Selectors.RepositoryItem);
 
             var repositories = new List<RepositoryItem>(elements.Count);
 
@@ -97,61 +91,58 @@ public class ConfigurePage : AppPage
 
         public async Task<ConfigurePage> SaveChangesAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.SaveChanges);
+            var element = await Handle.QuerySelectorAsync(Selectors.SaveChanges);
             element.ShouldNotBeNull();
 
             await element.ClickAsync();
 
-            var frame = await Item.OwnerFrameAsync();
-            frame.ShouldNotBeNull();
+            var page = await GetPageAsync();
 
-            return new(frame.Page);
+            return new(page);
         }
 
         public async Task WaitForRepositoryListAsync()
-            => await Item.WaitForSelectorAsync(Selectors.RepositoryList);
+            => await Handle.WaitForSelectorAsync(Selectors.RepositoryList);
     }
 
-    public sealed class RepositoryItem
+    public sealed class RepositoryItem : Item
     {
-        internal RepositoryItem(IElementHandle item)
+        internal RepositoryItem(IElementHandle handle)
+            : base(handle)
         {
-            Item = item;
         }
-
-        private IElementHandle Item { get; }
 
         public async Task<bool> IsForkAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.ForkIcon);
+            var element = await Handle.QuerySelectorAsync(Selectors.ForkIcon);
             element.ShouldNotBeNull();
             return await element.IsVisibleAsync();
         }
 
         public async Task<bool> IsPrivateAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.PrivateIcon);
+            var element = await Handle.QuerySelectorAsync(Selectors.PrivateIcon);
             element.ShouldNotBeNull();
             return await element.IsVisibleAsync();
         }
 
         public async Task<bool> IsSelectedAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.RepositorySelect);
+            var element = await Handle.QuerySelectorAsync(Selectors.RepositorySelect);
             element.ShouldNotBeNull();
             return await element.IsCheckedAsync();
         }
 
         public async Task<string> NameAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.RepositoryName);
+            var element = await Handle.QuerySelectorAsync(Selectors.RepositoryName);
             element.ShouldNotBeNull();
             return await element.InnerTextAsync();
         }
 
         public async Task<RepositoryItem> ToggleAsync()
         {
-            var element = await Item.QuerySelectorAsync(Selectors.RepositorySelect);
+            var element = await Handle.QuerySelectorAsync(Selectors.RepositorySelect);
             element.ShouldNotBeNull();
 
             await element.ClickAsync();
