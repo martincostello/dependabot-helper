@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using System.Net;
 using JustEat.HttpClientInterception;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
@@ -48,6 +50,40 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         builder.WithResponseHeader("x-ratelimit-limit", "5000")
                .WithResponseHeader("x-ratelimit-remaining", "4999")
                .WithResponseHeader("x-ratelimit-reset", oneHourFromNowEpoch);
+    }
+
+    protected async Task<HttpClient> CreateAuthenticatedClientAsync(bool setAntiforgeryTokenHeader = true)
+    {
+        AntiforgeryTokens anonymousTokens = await Fixture.GetAntiforgeryTokensAsync();
+
+        var redirectHandler = new RedirectHandler(Fixture.ClientOptions.MaxAutomaticRedirections);
+
+        var anonymousCookieHandler = new CookieContainerHandler();
+        anonymousCookieHandler.Container.Add(
+            Fixture.Server.BaseAddress,
+            new Cookie(anonymousTokens.CookieName, anonymousTokens.CookieValue));
+
+        using var anonymousClient = Fixture.CreateDefaultClient(redirectHandler, anonymousCookieHandler);
+        anonymousClient.DefaultRequestHeaders.Add(anonymousTokens.HeaderName, anonymousTokens.RequestToken);
+
+        var parameters = Array.Empty<KeyValuePair<string?, string?>>();
+        using var content = new FormUrlEncodedContent(parameters);
+
+        using var response = await anonymousClient.PostAsync("/sign-in", content);
+        response.IsSuccessStatusCode.ShouldBeTrue();
+
+        var authenticatedTokens = await Fixture.GetAntiforgeryTokensAsync(() => anonymousClient);
+
+        var authenticatedCookieHandler = new CookieContainerHandler(anonymousCookieHandler.Container);
+
+        var authenticatedClient = Fixture.CreateDefaultClient(authenticatedCookieHandler);
+
+        if (setAntiforgeryTokenHeader)
+        {
+            authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
+        }
+
+        return authenticatedClient;
     }
 
     protected void RegisterGetDependabotContent(

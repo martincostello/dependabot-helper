@@ -8,7 +8,6 @@ using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
@@ -1098,39 +1097,5 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
         return options;
-    }
-
-    private async Task<HttpClient> CreateAuthenticatedClientAsync(bool setAntiforgeryTokenHeader = true)
-    {
-        AntiforgeryTokens anonymousTokens = await Fixture.GetAntiforgeryTokensAsync();
-
-        var redirectHandler = new RedirectHandler(Fixture.ClientOptions.MaxAutomaticRedirections);
-
-        var anonymousCookieHandler = new CookieContainerHandler();
-        anonymousCookieHandler.Container.Add(
-            Fixture.Server.BaseAddress,
-            new Cookie(anonymousTokens.CookieName, anonymousTokens.CookieValue));
-
-        using var anonymousClient = Fixture.CreateDefaultClient(redirectHandler, anonymousCookieHandler);
-        anonymousClient.DefaultRequestHeaders.Add(anonymousTokens.HeaderName, anonymousTokens.RequestToken);
-
-        var parameters = Array.Empty<KeyValuePair<string?, string?>>();
-        using var content = new FormUrlEncodedContent(parameters);
-
-        using var response = await anonymousClient.PostAsync("/sign-in", content);
-        response.IsSuccessStatusCode.ShouldBeTrue();
-
-        var authenticatedTokens = await Fixture.GetAntiforgeryTokensAsync(() => anonymousClient);
-
-        var authenticatedCookieHandler = new CookieContainerHandler(anonymousCookieHandler.Container);
-
-        var authenticatedClient = Fixture.CreateDefaultClient(authenticatedCookieHandler);
-
-        if (setAntiforgeryTokenHeader)
-        {
-            authenticatedClient.DefaultRequestHeaders.Add(authenticatedTokens.HeaderName, authenticatedTokens.RequestToken);
-        }
-
-        return authenticatedClient;
     }
 }

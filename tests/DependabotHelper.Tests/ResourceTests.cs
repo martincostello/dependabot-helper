@@ -25,7 +25,7 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     [InlineData("/humans.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/manifest.webmanifest", "application/manifest+json")]
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
-    public async Task Can_Load_Resource(string requestUri, string contentType)
+    public async Task Can_Get_Resource_Unauthenticated(string requestUri, string contentType)
     {
         // Arrange
         using var client = Fixture.CreateClient();
@@ -41,9 +41,33 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
+    [InlineData("/", MediaTypeNames.Text.Html)]
+    [InlineData("/css/site.css", "text/css")]
+    [InlineData("/static/js/main.js", "application/javascript")]
+    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
+    [InlineData("/favicon.png", "image/png")]
+    [InlineData("/humans.txt", MediaTypeNames.Text.Plain)]
+    [InlineData("/manifest.webmanifest", "application/manifest+json")]
+    [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
+    public async Task Can_Get_Resource_Authenticated(string requestUri, string contentType)
+    {
+        // Arrange
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        using var response = await client.GetAsync(requestUri);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, $"Failed to get {requestUri}. {await response.Content!.ReadAsStringAsync()}");
+        response.Content.Headers.ContentType?.MediaType.ShouldBe(contentType);
+        response.Content.Headers.ContentLength.ShouldNotBeNull();
+        response.Content.Headers.ContentLength.ShouldNotBe(0);
+    }
+
+    [Theory]
     [InlineData("/")]
     [InlineData("/configure")]
-    public async Task Cannot_Load_Resource_Unauthenticated(string requestUri)
+    public async Task Cannot_Get_Resource_Unauthenticated(string requestUri)
     {
         // Arrange
         using var client = Fixture.CreateClient();
@@ -53,7 +77,39 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-        response.Headers.Location?.PathAndQuery.ShouldBe($"/sign-in?ReturnUrl={Uri.EscapeDataString(requestUri)}");
+        response.Headers.Location.ShouldNotBeNull();
+        response.Headers.Location.PathAndQuery.ShouldBe($"/sign-in?ReturnUrl={Uri.EscapeDataString(requestUri)}");
+    }
+
+    [Fact]
+    public async Task Sign_In_Redirects_If_Authenticated()
+    {
+        // Arrange
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        using var response = await client.GetAsync("/sign-in");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        response.Headers.Location.ShouldNotBeNull();
+        response.Headers.Location.OriginalString.ShouldBe("/");
+    }
+
+    [Theory]
+    [InlineData("/sign-in")]
+    [InlineData("/sign-out")]
+    public async Task Cannot_Post_Resource_Without_Antiforgery_Tokens(string requestUri)
+    {
+        // Arrange
+        using var client = await CreateAuthenticatedClientAsync(setAntiforgeryTokenHeader: false);
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>());
+
+        // Act
+        using var response = await client.PostAsync(requestUri, content);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
     }
 
     [Fact]
@@ -94,6 +150,9 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
 
         // Assert
         response.StatusCode.ShouldBe(expected);
-        response.Content!.Headers.ContentType?.MediaType.ShouldBe("text/html");
+        response.Content.ShouldNotBeNull();
+        response.Content.Headers.ShouldNotBeNull();
+        response.Content.Headers.ContentType.ShouldNotBeNull();
+        response.Content.Headers.ContentType.MediaType.ShouldBe("text/html");
     }
 }
