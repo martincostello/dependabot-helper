@@ -2,22 +2,17 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using Microsoft.Playwright;
+using static MartinCostello.DependabotHelper.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
 [Collection(HttpServerCollection.Name)]
-public class UITests : IAsyncLifetime
+public class UITests : IntegrationTests<HttpServerFixture>
 {
     public UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper)
+        : base(fixture, outputHelper)
     {
-        Fixture = fixture;
-        OutputHelper = outputHelper;
-        Fixture.SetOutputHelper(OutputHelper);
     }
-
-    private HttpServerFixture Fixture { get; }
-
-    private ITestOutputHelper OutputHelper { get; }
 
     public static IEnumerable<object?[]> Browsers()
     {
@@ -39,7 +34,7 @@ public class UITests : IAsyncLifetime
 
     [Theory]
     [MemberData(nameof(Browsers))]
-    public async Task Can_Sign_In_And_Manage_Updates(string browserType, string? browserChannel)
+    public async Task Can_Sign_In_And_Out(string browserType, string? browserChannel)
     {
         // Arrange
         var options = new BrowserFixtureOptions()
@@ -55,7 +50,7 @@ public class UITests : IAsyncLifetime
             await page.GotoAsync(Fixture.ServerAddress);
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
 
-            var app = new AppPage(page);
+            var app = new ManagePage(page);
 
             // Act - Sign in
             await app.SignInAsync();
@@ -75,13 +70,52 @@ public class UITests : IAsyncLifetime
         });
     }
 
-    public Task InitializeAsync()
+    [Theory]
+    [MemberData(nameof(Browsers))]
+    public async Task Can_Manage_Updates(string browserType, string? browserChannel)
     {
-        InstallPlaywright();
-        return Task.CompletedTask;
+        // Arrange
+        RegisterGetUserOrganizations(() => new[]
+        {
+            CreateUser("dotnet", id: 9011267),
+            CreateUser("github", id: 67483024),
+        });
+
+        var options = new BrowserFixtureOptions()
+        {
+            BrowserType = browserType,
+            BrowserChannel = browserChannel,
+        };
+
+        var browser = new BrowserFixture(options, OutputHelper);
+        await browser.WithPageAsync(async page =>
+        {
+            // Load the application
+            await page.GotoAsync(Fixture.ServerAddress);
+            await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
+            var managePage = new ManagePage(page);
+
+            // Act - Sign in
+            await managePage.SignInAsync();
+
+            // Assert
+            await managePage.WaitForSignedInAsync();
+
+            // Arrange - Wait for the page to be ready
+            await managePage.WaitForNoRepositoriesAsync();
+
+            var configurePage = await managePage.ConfigureAsync();
+
+            await configurePage.WaitForOwnerListAsync();
+        });
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public override async Task InitializeAsync()
+    {
+        InstallPlaywright();
+        await base.InitializeAsync();
+    }
 
     private static void InstallPlaywright()
     {

@@ -5,14 +5,26 @@ using Microsoft.Playwright;
 
 namespace MartinCostello.DependabotHelper;
 
-public class AppPage
+public abstract class AppPage
 {
-    public AppPage(IPage page)
+    protected AppPage(IPage page)
     {
         Page = page;
     }
 
-    private IPage Page { get; }
+    protected IPage Page { get; }
+
+    public async Task<ConfigurePage> ConfigureAsync()
+    {
+        await Page.ClickAsync(Selectors.ConfigureLink);
+        return new(Page);
+    }
+
+    public async Task<ManagePage> ManageAsync()
+    {
+        await Page.ClickAsync(Selectors.ManageLink);
+        return new(Page);
+    }
 
     public async Task SignInAsync()
         => await Page.ClickAsync(Selectors.SignIn);
@@ -23,9 +35,6 @@ public class AppPage
     public async Task<string> UserNameAsync()
         => await Page.InnerTextAsync(Selectors.UserName);
 
-    public async Task WaitForNoRepositoriesAsync()
-        => await Page.WaitForSelectorAsync(Selectors.NoRepositories);
-
     public async Task WaitForSignedInAsync()
         => await Page.WaitForSelectorAsync(Selectors.UserName);
 
@@ -34,7 +43,8 @@ public class AppPage
 
     private sealed class Selectors
     {
-        internal const string NoRepositories = "id=not-configured";
+        internal const string ConfigureLink = "id=configure-link";
+        internal const string ManageLink = "id=manage-link";
         internal const string SignIn = "id=sign-in";
         internal const string SignOut = "id=sign-out";
         internal const string UserName = "id=user-name";

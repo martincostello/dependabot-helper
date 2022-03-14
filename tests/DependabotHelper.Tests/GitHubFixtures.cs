@@ -148,10 +148,15 @@ updates:
 
     public static object CreateUser(
         string login,
-        string userType = "user")
+        string userType = "user",
+        int? id = null)
     {
+        id ??= RandomNumber();
+
         return new
         {
+            avatar_url = $"https://avatars.githubusercontent.com/u/{id}?v=4",
+            id,
             login,
             type = userType,
         };
