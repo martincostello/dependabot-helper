@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright;
-using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
+using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -250,7 +250,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
         var failedPullRequest = CreatePullRequest(owner, name1, failedNumber, commitSha: failedCommit, title: failedTitle);
 
-        RegisterGetCheckSuites(owner, name1, failedCommit, () => CreateCheckSuites(new[] { CreateCheckSuite("completed", "failure") }));
+        RegisterGetCheckSuites(owner, name1, failedCommit, () => CreateCheckSuites(CreateCheckSuite("completed", "failure")));
         RegisterGetPullRequest(owner, name1, failedNumber, response: () => failedPullRequest);
         RegisterGetReviews(owner, name1, failedNumber);
         RegisterGetStatuses(owner, name1, failedCommit);
@@ -266,7 +266,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
         var pendingPullRequest = CreatePullRequest(owner, name2, pendingNumber, commitSha: pendingCommit, title: pendingTitle);
 
-        RegisterGetCheckSuites(owner, name2, pendingCommit, () => CreateCheckSuites(new[] { CreateCheckSuite("in_progress", null) }));
+        RegisterGetCheckSuites(owner, name2, pendingCommit, () => CreateCheckSuites(CreateCheckSuite("in_progress", null)));
         RegisterGetPullRequest(owner, name2, pendingNumber, response: () => pendingPullRequest);
         RegisterGetStatuses(owner, name2, pendingCommit);
 
@@ -276,7 +276,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
         var successPullRequest = CreatePullRequest(owner, name2, successNumber, commitSha: successCommit, title: successTitle);
 
-        RegisterGetCheckSuites(owner, name2, successCommit, () => CreateCheckSuites(new[] { CreateCheckSuite("completed", "success") }));
+        RegisterGetCheckSuites(owner, name2, successCommit, () => CreateCheckSuites(CreateCheckSuite("completed", "success")));
         RegisterGetPullRequest(owner, name2, successNumber, response: () => successPullRequest);
         RegisterGetStatuses(owner, name2, successCommit);
 
