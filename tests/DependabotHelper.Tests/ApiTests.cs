@@ -64,13 +64,14 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_For_Self()
     {
         // Arrange
+        int ownerId = 1;
         string owner = "john-smith";
         string name = RandomString();
-        int id = RandomNumber();
+        int repositoryId = RandomNumber();
 
-        RegisterGetUser(owner);
+        RegisterGetUser(owner, id: ownerId);
         RegisterGetRepositoriesForCurrentUser(
-            response: () => new[] { CreateRepository(owner, name, id, visibility: "internal") });
+            response: () => new[] { CreateRepository(owner, name, repositoryId, visibility: "internal") });
 
         using var client = await CreateAuthenticatedClientAsync();
 
@@ -84,7 +85,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var repository = actual[0];
 
         repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
-        repository.Id.ShouldBe(id);
+        repository.Id.ShouldBe(repositoryId);
         repository.IsFork.ShouldBeFalse();
         repository.IsPrivate.ShouldBeTrue();
         repository.Name.ShouldBe(name);

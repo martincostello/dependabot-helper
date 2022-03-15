@@ -98,6 +98,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
     public async Task Can_Configure_Repositories(string browserType, string? browserChannel)
     {
         // Arrange
+        int currentUserId = 1;
         string currentUser = "john-smith";
         string organization1 = "dotnet";
         string organization2 = "github";
@@ -108,7 +109,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
             CreateUser(organization2, id: 67483024),
         });
 
-        RegisterGetUser(currentUser);
+        RegisterGetUser(currentUser, id: currentUserId);
 
         RegisterGetRepositoriesForCurrentUser(response: () => new[]
         {
@@ -225,6 +226,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
     public async Task Can_Manage_Updates(string browserType, string? browserChannel)
     {
         // Arrange
+        int ownerId = 1;
         string owner = "john-smith";
         string name1 = "a-" + RandomString();
         string name2 = "z-" + RandomString();
@@ -239,7 +241,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
         RegisterGetRepository(owner, name1);
         RegisterGetRepository(owner, name2);
         RegisterGetRepositoriesForCurrentUser(response: () => new[] { repository1, repository2 });
-        RegisterGetUser(owner);
+        RegisterGetUser(owner, id: ownerId);
         RegisterGetUserOrganizations();
 
         int failedNumber = RandomNumber();
