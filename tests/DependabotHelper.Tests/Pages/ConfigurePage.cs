@@ -101,6 +101,14 @@ public class ConfigurePage : AppPage
             return new(page);
         }
 
+        public async Task WaitForRepositoriesAsync()
+        {
+            var loader = await Handle.QuerySelectorAsync(Selectors.RepositoriesLoader);
+            loader.ShouldNotBeNull();
+
+            await loader.WaitForElementStateAsync(ElementState.Hidden);
+        }
+
         public async Task WaitForRepositoryListAsync()
             => await Handle.WaitForSelectorAsync(Selectors.RepositoryList);
     }
@@ -164,6 +172,7 @@ public class ConfigurePage : AppPage
         internal const string RepositoryList = "id=repository-list";
         internal const string RepositoryName = "[class*='repo-name']";
         internal const string RepositorySelect = "[class*='repo-enable']";
+        internal const string RepositoriesLoader = "[class*='table-loader']";
         internal const string RepositoriesModal = "id=repo-search-modal";
         internal const string SaveChanges = "id=repo-save";
     }
