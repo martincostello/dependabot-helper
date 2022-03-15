@@ -146,7 +146,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .ForPath($"/repos/{owner}/{name}/issues")
             .ForQuery($"creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
             .Responds()
-            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .WithSystemTextJsonContent(response().Build())
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -175,7 +175,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/orgs/{login}/repos")
             .Responds()
-            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .WithSystemTextJsonContent(response().Build())
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -187,7 +187,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath("/user/orgs")
             .Responds()
-            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .WithSystemTextJsonContent(response().Build())
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -199,7 +199,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/users/{login}/repos")
             .Responds()
-            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .WithSystemTextJsonContent(response().Build())
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -212,7 +212,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .ForPath("/user/repos")
             .ForQuery("type=owner")
             .Responds()
-            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .WithSystemTextJsonContent(response().Build())
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -291,7 +291,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/repos/{owner}/{name}/pulls/{number}/reviews")
             .Responds()
-            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .WithSystemTextJsonContent(response().Build())
             .RegisterWith(Fixture.Interceptor);
     }
 

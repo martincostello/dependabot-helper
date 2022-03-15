@@ -11,7 +11,7 @@ public sealed class CheckSuitesResponseBuilder : ResponseBuilder
     {
         return new
         {
-            check_suites = CheckSuites.Select((p) => p.Build()).ToArray(),
+            check_suites = CheckSuites.Build(),
             total_count = CheckSuites.Count,
         };
     }
