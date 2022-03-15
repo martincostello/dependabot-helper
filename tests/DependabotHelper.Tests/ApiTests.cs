@@ -1096,10 +1096,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData("in_progress", null)]
-    [InlineData("queued", null)]
-    [InlineData("completed", "skipped")]
-    public async Task Can_Get_Pull_Requests_When_Check_Suite_Pending(string status, string? conclusion)
+    [InlineData("in_progress", null, false)]
+    [InlineData("in_progress", null, true)]
+    [InlineData("queued", null, true)]
+    [InlineData("completed", "skipped", false)]
+    [InlineData("completed", "skipped", true)]
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Pending(
+        string status,
+        string? conclusion,
+        bool hasCheckRun)
     {
         // Arrange
         int number = RandomNumber();
@@ -1123,11 +1128,20 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             "app/github-actions",
             () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
 
+        int suiteId = RandomNumber();
+        var checkSuite = CreateCheckSuite(status, conclusion, id: suiteId);
+
         RegisterGetCheckSuites(
             owner,
             name,
             commit,
-            () => CreateCheckSuites(new[] { CreateCheckSuite(status, conclusion) }));
+            () => CreateCheckSuites(new[] { checkSuite }));
+
+        RegisterGetCheckRuns(
+            owner,
+            name,
+            suiteId,
+            hasCheckRun ? () => CreateCheckRuns(new[] { CreateCheckRun(status, conclusion) }) : null);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1282,17 +1296,22 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData(new[] { "completed", "success" }, new[] { "completed", "success" }, ChecksStatus.Success)]
-    [InlineData(new[] { "in_progress", null }, new[] { "completed", "success" }, ChecksStatus.Pending)]
-    [InlineData(new[] { "in_progress", null }, new[] { "in_progress", null }, ChecksStatus.Pending)]
-    [InlineData(new[] { "queued", null }, new[] { "in_progress", null }, ChecksStatus.Pending)]
-    [InlineData(new[] { "queued", null }, new[] { "queued", null }, ChecksStatus.Pending)]
-    [InlineData(new[] { "queued", null }, new[] { "completed", "failure" }, ChecksStatus.Error)]
-    [InlineData(new[] { "queued", null }, new[] { "completed", "success" }, ChecksStatus.Success)]
-    [InlineData(new[] { "completed", "success" }, new[] { "completed", "failure" }, ChecksStatus.Error)]
+    [InlineData(new[] { "completed", "success" }, true, new[] { "completed", "failure" }, true, ChecksStatus.Error)]
+    [InlineData(new[] { "completed", "success" }, true, new[] { "completed", "success" }, true, ChecksStatus.Success)]
+    [InlineData(new[] { "in_progress", null }, true, new[] { "completed", "success" }, true, ChecksStatus.Pending)]
+    [InlineData(new[] { "in_progress", null }, true, new[] { "in_progress", null }, true, ChecksStatus.Pending)]
+    [InlineData(new[] { "queued", null }, false, new[] { "completed", "failure" }, true, ChecksStatus.Error)]
+    [InlineData(new[] { "queued", null }, false, new[] { "completed", "success" }, false, ChecksStatus.Success)]
+    [InlineData(new[] { "queued", null }, true, new[] { "completed", "success" }, true, ChecksStatus.Pending)]
+    [InlineData(new[] { "queued", null }, false, new[] { "in_progress", null }, true, ChecksStatus.Pending)]
+    [InlineData(new[] { "queued", null }, true, new[] { "in_progress", null }, true, ChecksStatus.Pending)]
+    [InlineData(new[] { "queued", null }, false, new[] { "queued", null }, false, ChecksStatus.Success)]
+    [InlineData(new[] { "queued", null }, true, new[] { "queued", null }, true, ChecksStatus.Pending)]
     public async Task Can_Get_Pull_Requests_With_Multiple_Check_Suites(
         string?[] first,
+        bool firstHasCheckRun,
         string?[] second,
+        bool secondHasCheckRun,
         ChecksStatus expected)
     {
         // Arrange
@@ -1317,8 +1336,17 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             "app/github-actions",
             () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
 
-        var firstSuite = CreateCheckSuite(first[0]!, first[1]);
-        var secondSuite = CreateCheckSuite(second[0]!, second[1]);
+        int firstSuiteId = RandomNumber();
+        int secondSuiteId = RandomNumber();
+
+        var firstSuite = CreateCheckSuite(first[0]!, first[1], firstSuiteId);
+        var secondSuite = CreateCheckSuite(second[0]!, second[1], secondSuiteId);
+
+        Func<object>? firstCheckRun = firstHasCheckRun ? () => CreateCheckRuns(new[] { CreateCheckRun(first[0]!) }) : null;
+        Func<object>? secondCheckRun = secondHasCheckRun ? () => CreateCheckRuns(new[] { CreateCheckRun(second[0]!) }) : null;
+
+        RegisterGetCheckRuns(owner, name, firstSuiteId, firstCheckRun);
+        RegisterGetCheckRuns(owner, name, secondSuiteId, secondCheckRun);
 
         RegisterGetCheckSuites(
             owner,

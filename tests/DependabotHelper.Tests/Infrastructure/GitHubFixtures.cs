@@ -7,10 +7,42 @@ namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public static class GitHubFixtures
 {
-    public static object CreateCheckSuite(string status, string? conclusion = null, string? appName = "GitHub Actions")
+    public static object CreateCheckRun(
+        string status,
+        string? conclusion = null,
+        int? id = null,
+        string? appName = "GitHub Actions")
     {
         return new
         {
+            id = id ?? RandomNumber(),
+            conclusion,
+            status,
+            app = new
+            {
+                name = appName,
+            },
+        };
+    }
+
+    public static object CreateCheckRuns(object[]? checkRuns = null)
+    {
+        return new
+        {
+            check_runs = checkRuns ?? Array.Empty<object>(),
+            total_count = checkRuns?.Length ?? 0,
+        };
+    }
+
+    public static object CreateCheckSuite(
+        string status,
+        string? conclusion = null,
+        int? id = null,
+        string? appName = "GitHub Actions")
+    {
+        return new
+        {
+            id = id ?? RandomNumber(),
             conclusion,
             status,
             app = new
