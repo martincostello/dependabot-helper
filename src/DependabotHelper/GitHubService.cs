@@ -145,7 +145,7 @@ public sealed class GitHubService
             {
                 var current = await _client.User.Current();
 
-                if (current.Login == ownerUser.Login)
+                if (current.Id == ownerUser.Id)
                 {
                     repos = await _client.Repository.GetAllForCurrent();
                 }
