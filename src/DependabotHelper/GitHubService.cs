@@ -497,7 +497,8 @@ public sealed class GitHubService
                    suite.Conclusion == CheckConclusion.Success ||
                    suite.Conclusion == CheckConclusion.Neutral;
 
-            if (checkSuitesResponse.CheckSuites.All(IsSuccess))
+            if (checkSuitesResponse.CheckSuites.All(IsSuccess) &&
+                !checkSuitesResponse.CheckSuites.All((p) => p.Status == CheckStatus.Queued))
             {
                 // Success can only be reported if there are no existing
                 // commit statuses or there are no pending commit statuses.
