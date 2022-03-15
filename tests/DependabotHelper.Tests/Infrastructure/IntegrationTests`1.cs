@@ -89,13 +89,12 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
     }
 
     protected void RegisterGetDependabotContent(
-        string owner,
-        string name,
+        RepositoryBuilder repository,
         int statusCode = StatusCodes.Status200OK)
     {
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}/contents/.github/dependabot.yml")
+            .ForPath($"/repos/{repository.Owner.Login}/{repository.Name}/contents/.github/dependabot.yml")
             .Responds()
             .WithStatus(statusCode)
             .WithContent(CreateDependabotYaml)
@@ -103,28 +102,16 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
     }
 
     protected void RegisterGetRepository(
-        string owner,
-        string name,
-        int? id = null,
-        bool allowMergeCommit = true,
-        bool allowRebaseMerge = true,
+        RepositoryBuilder repository,
         int statusCode = StatusCodes.Status200OK,
-        Func<RepositoryBuilder>? response = null,
         Action<HttpRequestInterceptionBuilder>? configure = null)
     {
-        response ??= () => CreateRepository(
-            owner,
-            name,
-            id,
-            allowMergeCommit: allowMergeCommit,
-            allowRebaseMerge: allowRebaseMerge);
-
         var builder = CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}")
+            .ForPath($"/repos/{repository.Owner.Login}/{repository.Name}")
             .Responds()
             .WithStatus(statusCode)
-            .WithJsonContent(response());
+            .WithJsonContent(repository);
 
         configure?.Invoke(builder);
 
@@ -132,131 +119,104 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
     }
 
     protected void RegisterGetIssues(
-        string owner,
-        string name,
+        RepositoryBuilder repository,
         string creator,
-        Func<IssueBuilder[]>? response = null)
+        params IssueBuilder[] response)
     {
-        response ??= Array.Empty<IssueBuilder>;
-
         string encodedCreator = Uri.EscapeDataString(creator);
 
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}/issues")
+            .ForPath($"/repos/{repository.Owner.Login}/{repository.Name}/issues")
             .ForQuery($"creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
-            .Responds()
-            .WithSystemTextJsonContent(response().Build())
-            .RegisterWith(Fixture.Interceptor);
-    }
-
-    protected void RegisterGetPullRequest(
-        string owner,
-        string name,
-        int number,
-        bool isDraft = false,
-        Func<PullRequestBuilder>? response = null)
-    {
-        response ??= () => CreatePullRequest(owner, name, number, isDraft);
-
-        CreateDefaultBuilder()
-            .Requests()
-            .ForPath($"/repos/{owner}/{name}/pulls/{number}")
             .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetOrganizationRepositories(string login, Func<RepositoryBuilder[]>? response = null)
+    protected void RegisterGetPullRequest(PullRequestBuilder pullRequest)
     {
-        response ??= Array.Empty<RepositoryBuilder>;
-
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/orgs/{login}/repos")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/pulls/{pullRequest.Number}")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(pullRequest)
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetUserOrganizations(Func<UserBuilder[]>? response = null)
+    protected void RegisterGetOrganizationRepositories(UserBuilder user, params RepositoryBuilder[] response)
     {
-        response ??= Array.Empty<UserBuilder>;
+        CreateDefaultBuilder()
+            .Requests()
+            .ForPath($"/orgs/{user.Login}/repos")
+            .Responds()
+            .WithJsonContent(response)
+            .RegisterWith(Fixture.Interceptor);
+    }
 
+    protected void RegisterGetUserOrganizations(params UserBuilder[] organizations)
+    {
         CreateDefaultBuilder()
             .Requests()
             .ForPath("/user/orgs")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(organizations)
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetUserRepositories(string login, Func<RepositoryBuilder[]>? response = null)
+    protected void RegisterGetUserRepositories(UserBuilder user, params RepositoryBuilder[] response)
     {
-        response ??= Array.Empty<RepositoryBuilder>;
-
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/users/{login}/repos")
+            .ForPath($"/users/{user.Login}/repos")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetRepositoriesForCurrentUser(Func<RepositoryBuilder[]>? response = null)
+    protected void RegisterGetRepositoriesForCurrentUser(params RepositoryBuilder[] response)
     {
-        response ??= Array.Empty<RepositoryBuilder>;
-
         CreateDefaultBuilder()
             .Requests()
             .ForPath("/user/repos")
             .ForQuery("type=owner")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
-            .RegisterWith(Fixture.Interceptor);
-    }
-
-    protected void RegisterGetUser(
-        string login,
-        string userType = "user",
-        int? id = null,
-        Func<UserBuilder>? response = null)
-    {
-        response ??= () => CreateUser(login, userType, id);
-
-        CreateDefaultBuilder()
-            .Requests()
-            .ForPath($"/users/{login}")
-            .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetStatuses(
-        string owner,
-        string name,
-        string reference,
-        Func<CombinedCommitStatusBuilder>? response = null)
+    protected void RegisterGetUser(UserBuilder user)
     {
-        response ??= () => CreateStatuses("success");
+        CreateDefaultBuilder()
+            .Requests()
+            .ForPath($"/users/{user.Login}")
+            .Responds()
+            .WithJsonContent(user)
+            .RegisterWith(Fixture.Interceptor);
+    }
+
+    protected void RegisterGetStatuses(
+        PullRequestBuilder pullRequest,
+        CombinedCommitStatusBuilder? response = null)
+    {
+        response ??= CreateStatuses("success");
 
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}/commits/{reference}/status")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/commits/{pullRequest.Sha}/status")
             .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetCheckRuns(
-        string owner,
-        string name,
+        RepositoryBuilder repository,
         int id,
         params CheckRunBuilder[] checkRuns)
     {
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}/check-suites/{id}/check-runs")
+            .ForPath($"/repos/{repository.Owner.Login}/{repository.Name}/check-suites/{id}/check-runs")
             .ForQuery("filter=latest")
             .Responds()
             .WithJsonContent(CreateCheckRuns(checkRuns))
@@ -264,55 +224,49 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
     }
 
     protected void RegisterGetCheckSuites(
-        string owner,
-        string name,
-        string reference,
-        Func<CheckSuitesResponseBuilder>? response = null)
+        PullRequestBuilder pullRequest,
+        CheckSuitesResponseBuilder? response = null)
     {
-        response ??= () => CreateCheckSuites();
+        response ??= CreateCheckSuites();
 
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}/commits/{reference}/check-suites")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/commits/{pullRequest.Sha}/check-suites")
             .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetReviews(
-        string owner,
-        string name,
-        int number,
-        Func<PullRequestReviewBuilder[]>? response = null)
+        PullRequestBuilder pullRequest,
+        params PullRequestReviewBuilder[] response)
     {
-        response ??= Array.Empty<PullRequestReviewBuilder>;
-
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{owner}/{name}/pulls/{number}/reviews")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/pulls/{pullRequest.Number}/reviews")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterPostReview(string owner, string name, int number)
+    protected void RegisterPostReview(PullRequestBuilder pullRequest)
     {
         CreateDefaultBuilder()
             .Requests()
             .ForPost()
-            .ForPath($"/repos/{owner}/{name}/pulls/{number}/reviews")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/pulls/{pullRequest.Number}/reviews")
             .Responds()
             .WithStatus(StatusCodes.Status201Created)
             .WithSystemTextJsonContent(new { })
             .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterPutPullRequestMerge(string owner, string name, int number, bool mergeable = true)
+    protected void RegisterPutPullRequestMerge(PullRequestBuilder pullRequest, bool mergeable = true)
     {
         CreateDefaultBuilder()
             .Requests()
             .ForPut()
-            .ForPath($"/repos/{owner}/{name}/pulls/{number}/merge")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/pulls/{pullRequest.Number}/merge")
             .Responds()
             .WithStatus(mergeable ? StatusCodes.Status200OK : StatusCodes.Status405MethodNotAllowed)
             .WithSystemTextJsonContent(new { })
@@ -328,7 +282,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .ForRequestHeader("Authorization", AuthorizationHeader)
             .ForGet()
             .Responds()
-            .WithStatus(HttpStatusCode.OK);
+            .WithStatus(StatusCodes.Status200OK);
 
         return ConfigureRateLimit(builder);
     }

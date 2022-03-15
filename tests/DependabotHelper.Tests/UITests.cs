@@ -98,26 +98,21 @@ public class UITests : IntegrationTests<HttpServerFixture>
     public async Task Can_Configure_Repositories(string browserType, string? browserChannel)
     {
         // Arrange
-        int currentUserId = 1;
-        string currentUser = "john-smith";
+        var currentUser = CreateUser("john-smith", id: 1);
         string organization1 = "dotnet";
         string organization2 = "github";
 
-        RegisterGetUserOrganizations(() => new[]
-        {
+        RegisterGetUserOrganizations(
             CreateUser(organization1, id: 9011267),
-            CreateUser(organization2, id: 67483024),
-        });
+            CreateUser(organization2, id: 67483024));
 
-        RegisterGetUser(currentUser, id: currentUserId);
+        RegisterGetUser(currentUser);
 
-        RegisterGetRepositoriesForCurrentUser(response: () => new[]
-        {
-            CreateRepository(currentUser, "website"),
-            CreateRepository(currentUser, "awesome-project", isPrivate: true),
-            CreateRepository(currentUser, "blog"),
-            CreateRepository(currentUser, "aspnetcore", isFork: true),
-        });
+        RegisterGetRepositoriesForCurrentUser(
+            currentUser.CreateRepository("website"),
+            currentUser.CreateRepository("awesome-project", isPrivate: true),
+            currentUser.CreateRepository("blog"),
+            currentUser.CreateRepository("aspnetcore", isFork: true));
 
         var options = new BrowserFixtureOptions()
         {
@@ -151,7 +146,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
             var owners = await configurePage.GetOwnersAsync();
             owners.Count.ShouldBe(3);
 
-            await owners[0].NameAsync().ShouldBe(currentUser);
+            await owners[0].NameAsync().ShouldBe(currentUser.Login);
             await owners[1].NameAsync().ShouldBe(organization1);
             await owners[2].NameAsync().ShouldBe(organization2);
 
@@ -226,76 +221,55 @@ public class UITests : IntegrationTests<HttpServerFixture>
     public async Task Can_Manage_Updates(string browserType, string? browserChannel)
     {
         // Arrange
-        int ownerId = 1;
-        string owner = "john-smith";
-        string name1 = "a-" + RandomString();
-        string name2 = "z-" + RandomString();
+        var owner = CreateUser("john-smith", id: 1);
 
-        var repository1 = CreateRepository(owner, name1);
-        var repository2 = CreateRepository(owner, name2);
+        var repository1 = owner.CreateRepository();
+        repository1.Name = "a-" + repository1.Name;
 
-        RegisterGetDependabotContent(owner, name1);
-        RegisterGetDependabotContent(owner, name2, StatusCodes.Status404NotFound);
-        RegisterGetIssues(owner, name1, "app/github-actions");
-        RegisterGetIssues(owner, name2, "app/github-actions");
-        RegisterGetRepository(owner, name1);
-        RegisterGetRepository(owner, name2);
-        RegisterGetRepositoriesForCurrentUser(response: () => new[] { repository1, repository2 });
-        RegisterGetUser(owner, id: ownerId);
+        var repository2 = owner.CreateRepository();
+        repository2.Name = "z-" + repository1.Name;
+
+        RegisterGetDependabotContent(repository1);
+        RegisterGetDependabotContent(repository2, StatusCodes.Status404NotFound);
+        RegisterGetIssues(repository1, "app/github-actions");
+        RegisterGetIssues(repository2, "app/github-actions");
+        RegisterGetRepository(repository1);
+        RegisterGetRepository(repository2);
+        RegisterGetRepositoriesForCurrentUser(repository1, repository2);
+        RegisterGetUser(owner);
         RegisterGetUserOrganizations();
 
-        int failedNumber = RandomNumber();
-        string failedCommit = RandomString();
-        string failedTitle = RandomString();
+        var failedPullRequest = repository1.CreatePullRequest();
 
-        var failedPullRequest = CreatePullRequest(owner, name1, failedNumber, commitSha: failedCommit, title: failedTitle);
-
-        RegisterGetCheckSuites(owner, name1, failedCommit, () => CreateCheckSuites(CreateCheckSuite("completed", "failure")));
-        RegisterGetPullRequest(owner, name1, failedNumber, response: () => failedPullRequest);
-        RegisterGetReviews(owner, name1, failedNumber);
-        RegisterGetStatuses(owner, name1, failedCommit);
+        RegisterGetCheckSuites(failedPullRequest, CreateCheckSuites(CreateCheckSuite("completed", "failure")));
+        RegisterGetPullRequest(failedPullRequest);
+        RegisterGetReviews(failedPullRequest);
+        RegisterGetStatuses(failedPullRequest);
         RegisterGetIssues(
-            owner,
-            name1,
+            repository1,
             "app/dependabot",
-            () => new[] { CreateIssue(owner, name1, failedNumber, failedPullRequest, title: failedTitle) });
+            failedPullRequest.CreateIssue());
 
-        int pendingNumber = RandomNumber();
-        string pendingCommit = RandomString();
-        string pendingTitle = RandomString();
+        var pendingPullRequest = repository2.CreatePullRequest();
 
-        var pendingPullRequest = CreatePullRequest(owner, name2, pendingNumber, commitSha: pendingCommit, title: pendingTitle);
+        RegisterGetCheckSuites(pendingPullRequest, CreateCheckSuites(CreateCheckSuite("in_progress", null)));
+        RegisterGetPullRequest(pendingPullRequest);
+        RegisterGetStatuses(pendingPullRequest);
 
-        RegisterGetCheckSuites(owner, name2, pendingCommit, () => CreateCheckSuites(CreateCheckSuite("in_progress", null)));
-        RegisterGetPullRequest(owner, name2, pendingNumber, response: () => pendingPullRequest);
-        RegisterGetStatuses(owner, name2, pendingCommit);
+        var successPullRequest = repository2.CreatePullRequest();
 
-        int successNumber = RandomNumber();
-        string successCommit = RandomString();
-        string successTitle = RandomString();
-
-        var successPullRequest = CreatePullRequest(owner, name2, successNumber, commitSha: successCommit, title: successTitle);
-
-        RegisterGetCheckSuites(owner, name2, successCommit, () => CreateCheckSuites(CreateCheckSuite("completed", "success")));
-        RegisterGetPullRequest(owner, name2, successNumber, response: () => successPullRequest);
-        RegisterGetStatuses(owner, name2, successCommit);
+        RegisterGetCheckSuites(successPullRequest, CreateCheckSuites(CreateCheckSuite("completed", "success")));
+        RegisterGetPullRequest(successPullRequest);
+        RegisterGetStatuses(successPullRequest);
 
         RegisterGetIssues(
-            owner,
-            name2,
+            repository2,
             "app/dependabot",
-            () => new[]
-            {
-                CreateIssue(owner, name2, pendingNumber, pendingPullRequest, title: pendingTitle),
-                CreateIssue(owner, name2, successNumber, successPullRequest, title: successTitle),
-            });
+            pendingPullRequest.CreateIssue(),
+            successPullRequest.CreateIssue());
 
-        RegisterGetReviews(owner, name2, pendingNumber);
-        RegisterGetReviews(
-            owner,
-            name2,
-            successNumber,
-            () => new[] { CreateReview("octocat", "APPROVED") });
+        RegisterGetReviews(pendingPullRequest);
+        RegisterGetReviews(successPullRequest, CreateReview("octocat", "APPROVED"));
 
         var options = new BrowserFixtureOptions()
         {
@@ -348,14 +322,14 @@ public class UITests : IntegrationTests<HttpServerFixture>
             ownerRepos.ShouldNotBeNull();
             ownerRepos.Count.ShouldBe(2);
 
-            await ownerRepos[0].NameAsync().ShouldBe(name1);
+            await ownerRepos[0].NameAsync().ShouldBe(repository1.Name);
             await ownerRepos[0].IsDependabotEnabledAsync().ShouldBeTrue();
             await ownerRepos[0].ApprovedCountAsync().ShouldBe(0);
             await ownerRepos[0].ErrorCountAsync().ShouldBe(1);
             await ownerRepos[0].PendingCountAsync().ShouldBe(0);
             await ownerRepos[0].SuccessCountAsync().ShouldBe(0);
 
-            await ownerRepos[1].NameAsync().ShouldBe(name2);
+            await ownerRepos[1].NameAsync().ShouldBe(repository2.Name);
             await ownerRepos[1].IsDependabotEnabledAsync().ShouldBeFalse();
             await ownerRepos[1].ApprovedCountAsync().ShouldBe(1);
             await ownerRepos[1].ErrorCountAsync().ShouldBe(0);

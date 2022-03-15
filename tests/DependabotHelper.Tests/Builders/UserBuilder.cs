@@ -18,7 +18,14 @@ public sealed class UserBuilder : ResponseBuilder
 
     public string UserType { get; set; } = "user";
 
-    public RepositoryBuilder CreateRepository() => new(this);
+    public RepositoryBuilder CreateRepository(string? name = null, bool isFork = false, bool isPrivate = false)
+    {
+        return new(this, name)
+        {
+            IsFork = isFork,
+            IsPrivate = isPrivate,
+        };
+    }
 
     public override object Build()
     {

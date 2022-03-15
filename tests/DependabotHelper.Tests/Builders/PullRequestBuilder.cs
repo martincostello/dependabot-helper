@@ -22,7 +22,12 @@ public sealed class PullRequestBuilder : ResponseBuilder
 
     public string Title { get; set; } = RandomString();
 
-    public IssueBuilder CreateIssue() => new(Repository) { PullRequest = this };
+    public IssueBuilder CreateIssue() => new(Repository)
+    {
+        Number = Number,
+        PullRequest = this,
+        Title = Title,
+    };
 
     public override object Build()
     {
