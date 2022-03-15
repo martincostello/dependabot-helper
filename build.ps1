@@ -6,6 +6,7 @@
 param(
     [Parameter(Mandatory = $false)][string] $Configuration = "Release",
     [Parameter(Mandatory = $false)][string] $OutputPath = "",
+    [Parameter(Mandatory = $false)][string] $Runtime = "",
     [Parameter(Mandatory = $false)][switch] $SkipTests
 )
 
@@ -121,8 +122,17 @@ function DotNetTest {
 function DotNetPublish {
     param([string]$Project)
 
+    $additionalArgs = @()
+
+    if (![string]::IsNullOrEmpty($Runtime)) {
+        $additionalArgs += "--self-contained"
+        $additionalArgs += "--runtime"
+        $additionalArgs += $Runtime
+    }
+
     $publishPath = Join-Path $OutputPath "publish"
-    & $dotnet publish $Project --output $publishPath --configuration $Configuration
+
+    & $dotnet publish $Project --output $publishPath --configuration $Configuration $additionalArgs
 
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet publish failed with exit code $LASTEXITCODE"
