@@ -189,7 +189,9 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
             // Assert - Check the selected repositories are enabled
             modal = await owners[0].ConfigureAsync();
+
             await modal.WaitForRepositoryListAsync();
+            await modal.WaitForRepositoriesAsync();
 
             repositories = await modal.GetRepositoriesAsync();
             repositories.Count.ShouldBe(4);
