@@ -1,11 +1,23 @@
 @using Humanizer;
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject Octokit.IGitHubClient GitHubClient
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SiteOptions> Options
 @{
     string author = "Martin Costello";
-    string description = "An application that helps manage dependabot updates across multiple GitHub repositories.";
+    string description = Options.Value.Description;
+    string domain = Options.Value.Domain;
     string name = "Dependabot Helper";
     string title = $"{ViewData["Title"]} - {name}";
+    string twitter = Options.Value.Twitter;
+
+    string imageUrl = string.Empty;
+    string siteUrl = string.Empty;
+
+    if (!string.IsNullOrEmpty(domain))
+    {
+        siteUrl = $"https://{domain}/";
+        imageUrl = $"https://{domain}/favicon.png";
+    }
 }
 <!DOCTYPE html>
 <html>
@@ -28,21 +40,21 @@
     <meta name="theme-color" content="#ffffff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta property="og:description" content="@description" />
-    <meta property="og:image" content="@Url.Content("~/favicon.png")" />
+    <meta property="og:image" content="@imageUrl" />
     <meta property="og:locale" content="en_GB" />
     <meta property="og:site_name" content="@name" />
     <meta property="og:title" content="@title" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://dependabot.martincostello.com/" />
+    <meta property="og:url" content="@siteUrl" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:creator" content="@@martin_costello" />
+    <meta name="twitter:creator" content="@twitter" />
     <meta name="twitter:description" content="@description" />
-    <meta name="twitter:domain" content="dependabot.martincostello.com" />
-    <meta name="twitter:image" content="https://dependabot.martincostello.com/favicon.png" />
+    <meta name="twitter:domain" content="@domain" />
+    <meta name="twitter:image" content="@imageUrl" />
     <meta name="twitter:image:alt" content="@name" />
-    <meta name="twitter:site" content="@@martin_costello" />
+    <meta name="twitter:site" content="@twitter" />
     <meta name="twitter:title" content="@title" />
-    <meta name="twitter:url" content="https://dependabot.martincostello.com/" />
+    <meta name="twitter:url" content="@siteUrl" />
     <meta name="twitter:label1" content="Created by" />
     <meta name="twitter:data1" content="@author" />
     <link rel="manifest" href="@Url.Content("~/manifest.webmanifest")" asp-append-version="true" />

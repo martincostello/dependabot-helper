@@ -15,6 +15,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddOptions();
 builder.Services.Configure<DependabotOptions>(builder.Configuration.GetSection("Dependabot"));
+builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection("Site"));
 
 builder.Services.Configure<JsonOptions>((options) =>
 {
