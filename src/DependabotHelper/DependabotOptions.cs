@@ -5,6 +5,8 @@ namespace MartinCostello.DependabotHelper;
 
 public sealed class DependabotOptions
 {
+    public TimeSpan CacheLifetime { get; set; } = TimeSpan.FromMinutes(10);
+
     public bool DisableCaching { get; set; }
 
     public bool IncludeForks { get; set; }

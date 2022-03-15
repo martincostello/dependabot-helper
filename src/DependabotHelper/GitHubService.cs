@@ -12,8 +12,6 @@ namespace MartinCostello.DependabotHelper;
 
 public sealed class GitHubService
 {
-    private static readonly TimeSpan CacheLifetime = TimeSpan.FromMinutes(10);
-
     private readonly IMemoryCache _cache;
     private readonly IGitHubClient _client;
     private readonly ILogger _logger;
@@ -554,7 +552,7 @@ public sealed class GitHubService
 
     private async Task<T> CacheGetOrCreateAsync<T>(ClaimsPrincipal user, string key, Func<Task<T>> factory)
     {
-        if (_options.DisableCaching)
+        if (_options.DisableCaching || _options.CacheLifetime < TimeSpan.FromMinutes(1))
         {
             return await factory();
         }
@@ -562,7 +560,7 @@ public sealed class GitHubService
         string prefix = user.GetUserId();
         return await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
         {
-            entry.AbsoluteExpirationRelativeToNow = CacheLifetime;
+            entry.AbsoluteExpirationRelativeToNow = _options.CacheLifetime;
             return await factory();
         });
     }
