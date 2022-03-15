@@ -468,17 +468,30 @@ public sealed class GitHubService
         // No need to query the check suites if we already know the status is failed
         if (checkSuitesResponse.TotalCount > 0 && status != ChecksStatus.Error)
         {
-            if (_logger.IsEnabled(LogLevel.Trace))
+            // Split the check suites into their possible statuses
+            var queuedSuites = checkSuitesResponse.CheckSuites.Where((p) => p.Status == CheckStatus.Queued);
+            var runningSuites = checkSuitesResponse.CheckSuites.Where((p) => p.Status == CheckStatus.InProgress);
+            var completedSuites = checkSuitesResponse.CheckSuites.Where((p) => p.Status == CheckStatus.Completed);
+
+            // Running and completed suites always affect the overally status
+            var candidateSuites = runningSuites.Concat(completedSuites);
+
+            // Queued suites only count if they contain at least one check run.
+            // Otherwise they're likely just some old integration no longer in use.
+            foreach (var checkSuite in queuedSuites)
             {
-                foreach (var checkSuite in checkSuitesResponse.CheckSuites)
+                var checkRuns = await _client.Check.Run.GetAllForCheckSuite(owner, name, checkSuite.Id, new CheckRunRequest()
                 {
-                    _logger.LogTrace(
-                        "Check suite {Name}: Status: {Status}; Conclusion: {Conclusion}",
-                        checkSuite.App.Name,
-                        checkSuite.Status,
-                        checkSuite.Conclusion);
+                    Filter = CheckRunCompletedAtFilter.Latest,
+                });
+
+                if (checkRuns.TotalCount > 0)
+                {
+                    candidateSuites = candidateSuites.Append(checkSuite);
                 }
             }
+
+            var applicableSuites = candidateSuites.ToList();
 
             static bool IsError(CheckSuite suite)
                 => suite.Conclusion == CheckConclusion.ActionRequired ||
@@ -493,12 +506,10 @@ public sealed class GitHubService
             // might not be required to run at all (e.g. an old installation)
             // as it would otherwise block the Pull Request from being successful.
             static bool IsSuccess(CheckSuite suite)
-                => (suite.Conclusion is null && suite.Status != CheckStatus.InProgress) ||
-                   suite.Conclusion == CheckConclusion.Success ||
+                => suite.Conclusion == CheckConclusion.Success ||
                    suite.Conclusion == CheckConclusion.Neutral;
 
-            if (checkSuitesResponse.CheckSuites.All(IsSuccess) &&
-                !checkSuitesResponse.CheckSuites.All((p) => p.Status == CheckStatus.Queued))
+            if (applicableSuites.All(IsSuccess))
             {
                 // Success can only be reported if there are no existing
                 // commit statuses or there are no pending commit statuses.
@@ -509,11 +520,11 @@ public sealed class GitHubService
                     _ => ChecksStatus.Success,
                 };
             }
-            else if (checkSuitesResponse.CheckSuites.Any(IsError))
+            else if (applicableSuites.Any(IsError))
             {
                 status = ChecksStatus.Error;
             }
-            else if (checkSuitesResponse.CheckSuites.Any(IsPending))
+            else if (applicableSuites.Any(IsPending))
             {
                 status = ChecksStatus.Pending;
             }

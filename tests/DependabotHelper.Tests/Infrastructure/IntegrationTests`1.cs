@@ -300,6 +300,28 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         builder.RegisterWith(Fixture.Interceptor);
     }
 
+    protected void RegisterGetCheckRuns(
+        string owner,
+        string name,
+        int id,
+        Func<object>? response = null)
+    {
+        response ??= () => CreateCheckRuns();
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForGet()
+            .ForUrl($"https://api.github.com/repos/{owner}/{name}/check-suites/{id}/check-runs?filter=latest")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .Responds()
+            .WithStatus(StatusCodes.Status200OK)
+            .WithSystemTextJsonContent(response());
+
+        ConfigureRateLimit(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
     protected void RegisterGetCheckSuites(
         string owner,
         string name,
