@@ -3,6 +3,7 @@
 
 using System.Net;
 using JustEat.HttpClientInterception;
+using MartinCostello.DependabotHelper.Builders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
@@ -40,16 +41,17 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    protected static void ConfigureRateLimit(HttpRequestInterceptionBuilder builder)
+    protected static HttpRequestInterceptionBuilder ConfigureRateLimit(HttpRequestInterceptionBuilder builder)
     {
         string oneHourFromNowEpoch = DateTimeOffset.UtcNow
             .AddHours(1)
             .ToUnixTimeSeconds()
             .ToString(CultureInfo.InvariantCulture);
 
-        builder.WithResponseHeader("x-ratelimit-limit", "5000")
-               .WithResponseHeader("x-ratelimit-remaining", "4999")
-               .WithResponseHeader("x-ratelimit-reset", oneHourFromNowEpoch);
+        return builder
+            .WithResponseHeader("x-ratelimit-limit", "5000")
+            .WithResponseHeader("x-ratelimit-remaining", "4999")
+            .WithResponseHeader("x-ratelimit-reset", oneHourFromNowEpoch);
     }
 
     protected async Task<HttpClient> CreateAuthenticatedClientAsync(bool setAntiforgeryTokenHeader = true)
@@ -89,23 +91,15 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
     protected void RegisterGetDependabotContent(
         string owner,
         string name,
-        int statusCode = StatusCodes.Status200OK,
-        Func<byte[]>? response = null)
+        int statusCode = StatusCodes.Status200OK)
     {
-        response ??= CreateDependabotYaml;
-
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/contents/.github/dependabot.yml")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/contents/.github/dependabot.yml")
             .Responds()
             .WithStatus(statusCode)
-            .WithContent(response);
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithContent(CreateDependabotYaml)
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetRepository(
@@ -115,7 +109,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         bool allowMergeCommit = true,
         bool allowRebaseMerge = true,
         int statusCode = StatusCodes.Status200OK,
-        Func<object>? response = null,
+        Func<RepositoryBuilder>? response = null,
         Action<HttpRequestInterceptionBuilder>? configure = null)
     {
         response ??= () => CreateRepository(
@@ -125,16 +119,12 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             allowMergeCommit: allowMergeCommit,
             allowRebaseMerge: allowRebaseMerge);
 
-        var builder = new HttpRequestInterceptionBuilder()
+        var builder = CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}")
             .Responds()
             .WithStatus(statusCode)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
+            .WithSystemTextJsonContent(response().Build());
 
         configure?.Invoke(builder);
 
@@ -145,24 +135,19 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         string owner,
         string name,
         string creator,
-        Func<object[]>? response = null)
+        Func<IssueBuilder[]>? response = null)
     {
-        response ??= Array.Empty<object>;
+        response ??= Array.Empty<IssueBuilder>;
 
         string encodedCreator = Uri.EscapeDataString(creator);
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/issues?creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/issues")
+            .ForQuery($"creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetPullRequest(
@@ -170,235 +155,181 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         string name,
         int number,
         bool isDraft = false,
-        Func<Builders.PullRequestBuilder>? response = null)
+        Func<PullRequestBuilder>? response = null)
     {
         response ??= () => CreatePullRequest(owner, name, number, isDraft);
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/pulls/{number}")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response().Build());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Build())
+            .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetOrganizationRepositories(string login, Func<object[]>? response = null)
+    protected void RegisterGetOrganizationRepositories(string login, Func<RepositoryBuilder[]>? response = null)
     {
-        response ??= Array.Empty<object>;
+        response ??= Array.Empty<RepositoryBuilder>;
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/orgs/{login}/repos")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/orgs/{login}/repos")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetUserOrganizations(Func<object[]>? response = null)
+    protected void RegisterGetUserOrganizations(Func<UserBuilder[]>? response = null)
     {
-        response ??= Array.Empty<object>;
+        response ??= Array.Empty<UserBuilder>;
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/user/orgs")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath("/user/orgs")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetUserRepositories(string login, Func<object[]>? response = null)
+    protected void RegisterGetUserRepositories(string login, Func<RepositoryBuilder[]>? response = null)
     {
-        response ??= Array.Empty<object>;
+        response ??= Array.Empty<RepositoryBuilder>;
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/users/{login}/repos")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/users/{login}/repos")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetRepositoriesForCurrentUser(Func<object[]>? response = null)
+    protected void RegisterGetRepositoriesForCurrentUser(Func<RepositoryBuilder[]>? response = null)
     {
-        response ??= Array.Empty<object>;
+        response ??= Array.Empty<RepositoryBuilder>;
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl("https://api.github.com/user/repos?type=owner")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath("/user/repos")
+            .ForQuery("type=owner")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetUser(
         string login,
         string userType = "user",
         int? id = null,
-        Func<object>? response = null)
+        Func<UserBuilder>? response = null)
     {
         response ??= () => CreateUser(login, userType, id);
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/users/{login}")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/users/{login}")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Build())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetStatuses(
         string owner,
         string name,
         string reference,
-        Func<object>? response = null)
+        Func<CombinedCommitStatusBuilder>? response = null)
     {
         response ??= () => CreateStatuses("success");
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/commits/{reference}/status")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/commits/{reference}/status")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Build())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetCheckRuns(
         string owner,
         string name,
         int id,
-        Func<object>? response = null)
+        params CheckRunBuilder[] checkRuns)
     {
-        response ??= () => CreateCheckRuns();
-
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/check-suites/{id}/check-runs?filter=latest")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/check-suites/{id}/check-runs")
+            .ForQuery("filter=latest")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(CreateCheckRuns(checkRuns).Build())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetCheckSuites(
         string owner,
         string name,
         string reference,
-        Func<object>? response = null)
+        Func<CheckSuitesResponseBuilder>? response = null)
     {
         response ??= () => CreateCheckSuites();
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/commits/{reference}/check-suites")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/commits/{reference}/check-suites")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Build())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterGetReviews(
         string owner,
         string name,
         int number,
-        Func<object[]>? response = null)
+        Func<PullRequestReviewBuilder[]>? response = null)
     {
-        response ??= Array.Empty<object>;
+        response ??= Array.Empty<PullRequestReviewBuilder>;
 
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
-            .ForGet()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/reviews")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/pulls/{number}/reviews")
             .Responds()
-            .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(response().Select((p) => p.Build()).ToArray())
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterPostReview(string owner, string name, int number)
     {
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
             .ForPost()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/reviews")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/pulls/{number}/reviews")
             .Responds()
             .WithStatus(StatusCodes.Status201Created)
-            .WithSystemTextJsonContent(new { });
-
-        ConfigureRateLimit(builder);
-
-        builder.RegisterWith(Fixture.Interceptor);
+            .WithSystemTextJsonContent(new { })
+            .RegisterWith(Fixture.Interceptor);
     }
 
     protected void RegisterPutPullRequestMerge(string owner, string name, int number, bool mergeable = true)
     {
-        var builder = new HttpRequestInterceptionBuilder()
+        CreateDefaultBuilder()
             .Requests()
             .ForPut()
-            .ForUrl($"https://api.github.com/repos/{owner}/{name}/pulls/{number}/merge")
-            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForPath($"/repos/{owner}/{name}/pulls/{number}/merge")
             .Responds()
             .WithStatus(mergeable ? StatusCodes.Status200OK : StatusCodes.Status405MethodNotAllowed)
-            .WithSystemTextJsonContent(new { });
+            .WithSystemTextJsonContent(new { })
+            .RegisterWith(Fixture.Interceptor);
+    }
 
-        ConfigureRateLimit(builder);
+    private static HttpRequestInterceptionBuilder CreateDefaultBuilder()
+    {
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForHttps()
+            .ForHost("api.github.com")
+            .ForRequestHeader("Authorization", AuthorizationHeader)
+            .ForGet()
+            .Responds()
+            .WithStatus(HttpStatusCode.OK);
 
-        builder.RegisterWith(Fixture.Interceptor);
+        return ConfigureRateLimit(builder);
     }
 }

@@ -22,7 +22,7 @@ public static class GitHubFixtures
         return builder;
     }
 
-    public static object CreateCheckRuns(params CheckRunBuilder[] checkRuns)
+    public static CheckRunsResponseBuilder CreateCheckRuns(params CheckRunBuilder[] checkRuns)
     {
         var builder = new CheckRunsResponseBuilder();
 
@@ -31,7 +31,7 @@ public static class GitHubFixtures
             builder.CheckRuns.Add(item);
         }
 
-        return builder.Build();
+        return builder;
     }
 
     public static CheckSuiteBuilder CreateCheckSuite(
@@ -55,7 +55,7 @@ public static class GitHubFixtures
         return builder;
     }
 
-    public static object CreateCheckSuites(params CheckSuiteBuilder[] checkSuites)
+    public static CheckSuitesResponseBuilder CreateCheckSuites(params CheckSuiteBuilder[] checkSuites)
     {
         var builder = new CheckSuitesResponseBuilder();
 
@@ -64,7 +64,7 @@ public static class GitHubFixtures
             builder.CheckSuites.Add(item);
         }
 
-        return builder.Build();
+        return builder;
     }
 
     public static byte[] CreateDependabotYaml()
@@ -83,7 +83,7 @@ updates:
         return System.Text.Encoding.UTF8.GetBytes(Yaml);
     }
 
-    public static object CreateIssue(
+    public static IssueBuilder CreateIssue(
         string owner,
         string name,
         int number,
@@ -104,7 +104,7 @@ updates:
             builder.Title = title;
         }
 
-        return builder.Build();
+        return builder;
     }
 
     public static PullRequestBuilder CreatePullRequest(
@@ -143,7 +143,7 @@ updates:
         return builder;
     }
 
-    public static object CreateRepository(
+    public static RepositoryBuilder CreateRepository(
         string owner,
         string name,
         int? id = null,
@@ -169,10 +169,10 @@ updates:
             builder.Id = identifier;
         }
 
-        return builder.Build();
+        return builder;
     }
 
-    public static object CreateReview(
+    public static PullRequestReviewBuilder CreateReview(
         string login,
         string state,
         string? authorAssociation = null,
@@ -191,12 +191,12 @@ updates:
             builder.SubmittedAt = timestamp;
         }
 
-        return builder.Build();
+        return builder;
     }
 
     public static CommitStatusBuilder CreateStatus(string state) => new(state);
 
-    public static object CreateStatuses(
+    public static CombinedCommitStatusBuilder CreateStatuses(
         string state,
         params CommitStatusBuilder[] statuses)
     {
@@ -207,10 +207,10 @@ updates:
             builder.Statuses.Add(item);
         }
 
-        return builder.Build();
+        return builder;
     }
 
-    public static object CreateUser(
+    public static UserBuilder CreateUser(
         string login,
         string? userType = null,
         int? id = null)
@@ -227,7 +227,7 @@ updates:
             builder.UserType = userType;
         }
 
-        return builder.Build();
+        return builder;
     }
 
     public static int RandomNumber() => RandomNumberGenerator.GetInt32(int.MaxValue);
