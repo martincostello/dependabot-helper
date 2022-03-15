@@ -147,7 +147,10 @@ public sealed class GitHubService
 
                 if (current.Id == ownerUser.Id)
                 {
-                    repos = await _client.Repository.GetAllForCurrent();
+                    repos = await _client.Repository.GetAllForCurrent(new RepositoryRequest()
+                    {
+                        Type = RepositoryType.Owner,
+                    });
                 }
                 else
                 {

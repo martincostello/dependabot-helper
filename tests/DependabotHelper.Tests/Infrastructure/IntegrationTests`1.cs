@@ -249,7 +249,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl($"https://api.github.com/user/repos")
+            .ForUrl($"https://api.github.com/users/john-smith/repos")
             .ForRequestHeader("Authorization", AuthorizationHeader)
             .Responds()
             .WithStatus(StatusCodes.Status200OK)
