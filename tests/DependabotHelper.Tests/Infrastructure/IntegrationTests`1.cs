@@ -124,7 +124,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .ForPath($"/repos/{owner}/{name}")
             .Responds()
             .WithStatus(statusCode)
-            .WithSystemTextJsonContent(response().Build());
+            .WithJsonContent(response());
 
         configure?.Invoke(builder);
 
@@ -163,7 +163,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/repos/{owner}/{name}/pulls/{number}")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -228,7 +228,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/users/{login}")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -244,7 +244,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/repos/{owner}/{name}/commits/{reference}/status")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -259,7 +259,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .ForPath($"/repos/{owner}/{name}/check-suites/{id}/check-runs")
             .ForQuery("filter=latest")
             .Responds()
-            .WithSystemTextJsonContent(CreateCheckRuns(checkRuns).Build())
+            .WithJsonContent(CreateCheckRuns(checkRuns))
             .RegisterWith(Fixture.Interceptor);
     }
 
@@ -275,7 +275,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Requests()
             .ForPath($"/repos/{owner}/{name}/commits/{reference}/check-suites")
             .Responds()
-            .WithSystemTextJsonContent(response().Build())
+            .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
