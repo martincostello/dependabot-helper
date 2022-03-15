@@ -28,16 +28,7 @@ public static class GitHubExtensions
 
         services.AddScoped<IConnection>((provider) =>
         {
-            var baseAddress = GitHubClient.GitHubApiUrl;
-
-            var configuration = provider.GetRequiredService<IConfiguration>();
-
-            if (configuration["GitHub:EnterpriseDomain"] is string enterpriseUri &&
-                !string.IsNullOrWhiteSpace(enterpriseUri))
-            {
-                baseAddress = new(enterpriseUri, UriKind.Absolute);
-            }
-
+            var baseAddress = GetGitHubUri(provider);
             var credentialStore = provider.GetRequiredService<ICredentialStore>();
             var httpClient = provider.GetRequiredService<IHttpClient>();
             var serializer = provider.GetRequiredService<IJsonSerializer>();
@@ -47,14 +38,7 @@ public static class GitHubExtensions
 
         services.AddScoped<IGitHubClient>((provider) =>
         {
-            var baseAddress = GitHubClient.GitHubApiUrl;
-            var configuration = provider.GetRequiredService<IConfiguration>();
-
-            if (configuration["GitHub:EnterpriseDomain"] is string enterpriseUri &&
-                !string.IsNullOrWhiteSpace(enterpriseUri))
-            {
-                baseAddress = new(enterpriseUri, UriKind.Absolute);
-            }
+            var baseAddress = GetGitHubUri(provider);
 
             if (baseAddress == GitHubClient.GitHubApiUrl)
             {
@@ -77,5 +61,20 @@ public static class GitHubExtensions
     {
         string productVersion = typeof(GitHubExtensions).Assembly.GetName().Version!.ToString(3);
         return new ProductHeaderValue("DependabotHelper", productVersion);
+    }
+
+    private static Uri GetGitHubUri(IServiceProvider provider)
+    {
+        var baseAddress = GitHubClient.GitHubApiUrl;
+
+        var configuration = provider.GetRequiredService<IConfiguration>();
+
+        if (configuration["GitHub:EnterpriseDomain"] is string enterpriseUri &&
+            !string.IsNullOrWhiteSpace(enterpriseUri))
+        {
+            baseAddress = new(enterpriseUri, UriKind.Absolute);
+        }
+
+        return baseAddress;
     }
 }
