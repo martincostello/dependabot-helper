@@ -1097,6 +1097,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
     [Theory]
     [InlineData("in_progress", null)]
+    [InlineData("queued", null)]
     [InlineData("completed", "skipped")]
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Pending(string status, string? conclusion)
     {
@@ -1220,7 +1221,6 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData("queued", null)]
     [InlineData("completed", "neutral")]
     [InlineData("completed", "success")]
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Success(string status, string? conclusion)
@@ -1283,12 +1283,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
     [Theory]
     [InlineData(new[] { "completed", "success" }, new[] { "completed", "success" }, ChecksStatus.Success)]
-    [InlineData(new[] { "queued", null }, new[] { "completed", "success" }, ChecksStatus.Success)]
     [InlineData(new[] { "in_progress", null }, new[] { "completed", "success" }, ChecksStatus.Pending)]
     [InlineData(new[] { "in_progress", null }, new[] { "in_progress", null }, ChecksStatus.Pending)]
     [InlineData(new[] { "queued", null }, new[] { "in_progress", null }, ChecksStatus.Pending)]
-    [InlineData(new[] { "queued", null }, new[] { "queued", null }, ChecksStatus.Success)]
+    [InlineData(new[] { "queued", null }, new[] { "queued", null }, ChecksStatus.Pending)]
     [InlineData(new[] { "queued", null }, new[] { "completed", "failure" }, ChecksStatus.Error)]
+    [InlineData(new[] { "queued", null }, new[] { "completed", "success" }, ChecksStatus.Success)]
     [InlineData(new[] { "completed", "success" }, new[] { "completed", "failure" }, ChecksStatus.Error)]
     public async Task Can_Get_Pull_Requests_With_Multiple_Check_Suites(
         string?[] first,
