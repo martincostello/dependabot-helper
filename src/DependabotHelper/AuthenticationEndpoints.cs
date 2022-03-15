@@ -6,6 +6,7 @@ using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -41,17 +42,19 @@ public static class AuthenticationEndpoints
             .AddGitHub()
             .Services
             .AddOptions<GitHubAuthenticationOptions>(GitHubAuthenticationDefaults.AuthenticationScheme)
-            .Configure<IConfiguration>((options, configuration) =>
+            .Configure<IOptions<GitHubOptions>>((options, configuration) =>
             {
                 options.AccessDeniedPath = DeniedPath;
                 options.CallbackPath = SignInPath + "-github";
-                options.ClientId = configuration["GitHub:ClientId"];
-                options.ClientSecret = configuration["GitHub:ClientSecret"];
-                options.EnterpriseDomain = configuration["GitHub:EnterpriseDomain"];
+                options.ClientId = configuration.Value.ClientId;
+                options.ClientSecret = configuration.Value.ClientSecret;
+                options.EnterpriseDomain = configuration.Value.EnterpriseDomain;
                 options.SaveTokens = true;
 
-                options.Scope.Add("repo");
-                options.Scope.Add("user:email");
+                foreach (string scope in configuration.Value.Scopes)
+                {
+                    options.Scope.Add(scope);
+                }
 
                 options.ClaimActions.MapJsonKey(GitHubProfileClaim, "html_url");
 
