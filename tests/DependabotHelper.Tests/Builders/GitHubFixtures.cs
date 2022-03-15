@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-using System.Security.Cryptography;
-
 namespace MartinCostello.DependabotHelper.Builders;
 
 public static class GitHubFixtures
@@ -83,95 +81,6 @@ updates:
         return System.Text.Encoding.UTF8.GetBytes(Yaml);
     }
 
-    public static IssueBuilder CreateIssue(
-        string owner,
-        string name,
-        int number,
-        PullRequestBuilder? pullRequest = null,
-        string? title = null)
-    {
-        var user = new UserBuilder(owner);
-        var repository = new RepositoryBuilder(user, name);
-
-        var builder = new IssueBuilder(repository)
-        {
-            Number = number,
-            PullRequest = pullRequest,
-        };
-
-        if (title is not null)
-        {
-            builder.Title = title;
-        }
-
-        return builder;
-    }
-
-    public static PullRequestBuilder CreatePullRequest(
-        string owner,
-        string name,
-        int number,
-        bool isDraft = false,
-        bool? isMergeable = null,
-        string? commitSha = null,
-        string? title = null)
-    {
-        var user = new UserBuilder(owner);
-        var repository = new RepositoryBuilder(user, name);
-
-        var builder = new PullRequestBuilder(repository)
-        {
-            IsDraft = isDraft,
-            Number = number,
-        };
-
-        if (isMergeable is { } mergeable)
-        {
-            builder.IsMergeable = mergeable;
-        }
-
-        if (commitSha is not null)
-        {
-            builder.Sha = commitSha;
-        }
-
-        if (title is not null)
-        {
-            builder.Title = title;
-        }
-
-        return builder;
-    }
-
-    public static RepositoryBuilder CreateRepository(
-        string owner,
-        string name,
-        int? id = null,
-        bool isFork = false,
-        bool isPrivate = false,
-        string? visibility = null,
-        bool allowMergeCommit = true,
-        bool allowRebaseMerge = true)
-    {
-        var user = new UserBuilder(owner);
-
-        var builder = new RepositoryBuilder(user, name)
-        {
-            AllowMergeCommit = allowMergeCommit,
-            AllowRebaseMerge = allowRebaseMerge,
-            IsFork = isFork,
-            IsPrivate = isPrivate,
-            Visibility = visibility,
-        };
-
-        if (id is { } identifier)
-        {
-            builder.Id = identifier;
-        }
-
-        return builder;
-    }
-
     public static PullRequestReviewBuilder CreateReview(
         string login,
         string state,
@@ -211,11 +120,11 @@ updates:
     }
 
     public static UserBuilder CreateUser(
-        string login,
+        string? login = null,
         string? userType = null,
         int? id = null)
     {
-        var builder = new UserBuilder(login);
+        UserBuilder builder = login is null ? new() : new(login);
 
         if (id is { } identifier)
         {
@@ -229,8 +138,4 @@ updates:
 
         return builder;
     }
-
-    public static int RandomNumber() => RandomNumberGenerator.GetInt32(int.MaxValue);
-
-    public static string RandomString() => Guid.NewGuid().ToString();
 }

@@ -25,17 +25,17 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Approve_Pull_Request()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
-        int number = RandomNumber();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        RegisterPostReview(owner, name, number);
+        RegisterPostReview(pullRequest);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            $"/github/repos/{owner}/{name}/pulls/{number}/approve",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls/{pullRequest.Number}/approve",
             new { });
 
         // Assert
@@ -46,7 +46,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_If_No_Repositories()
     {
         // Arrange
-        string owner = RandomString();
+        var owner = CreateUser();
 
         RegisterGetUser(owner);
         RegisterGetUserRepositories(owner);
@@ -54,7 +54,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -65,93 +65,86 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_For_Self()
     {
         // Arrange
-        int ownerId = 1;
-        string owner = "john-smith";
-        string name = RandomString();
-        int repositoryId = RandomNumber();
+        var owner = CreateUser("john-smith", id: 1);
+        var repository = owner.CreateRepository();
+        repository.Visibility = "internal";
 
-        RegisterGetUser(owner, id: ownerId);
-        RegisterGetRepositoriesForCurrentUser(
-            response: () => new[] { CreateRepository(owner, name, repositoryId, visibility: "internal") });
+        RegisterGetUser(owner);
+        RegisterGetRepositoriesForCurrentUser(repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
         actual.Count.ShouldBe(1);
 
-        var repository = actual[0];
+        var actualRepository = actual[0];
 
-        repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
-        repository.Id.ShouldBe(repositoryId);
-        repository.IsFork.ShouldBeFalse();
-        repository.IsPrivate.ShouldBeTrue();
-        repository.Name.ShouldBe(name);
+        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+        actualRepository.Id.ShouldBe(repository.Id);
+        actualRepository.IsFork.ShouldBeFalse();
+        actualRepository.IsPrivate.ShouldBeTrue();
+        actualRepository.Name.ShouldBe(repository.Name);
     }
 
     [Fact]
     public async Task Can_Get_Repositories_If_Organization_Has_Repositories()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
-        int id = RandomNumber();
+        var owner = CreateUser(userType: "organization");
+        var repository = owner.CreateRepository();
+        repository.IsPrivate = true;
 
-        RegisterGetUser(owner, userType: "organization");
-        RegisterGetOrganizationRepositories(
-            owner,
-            response: () => new[] { CreateRepository(owner, name, id, isPrivate: true) });
+        RegisterGetUser(owner);
+        RegisterGetOrganizationRepositories(owner, repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
         actual.Count.ShouldBe(1);
 
-        var repository = actual[0];
+        var actualRepository = actual[0];
 
-        repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
-        repository.Id.ShouldBe(id);
-        repository.IsFork.ShouldBeFalse();
-        repository.IsPrivate.ShouldBeTrue();
-        repository.Name.ShouldBe(name);
+        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+        actualRepository.Id.ShouldBe(repository.Id);
+        actualRepository.IsFork.ShouldBeFalse();
+        actualRepository.IsPrivate.ShouldBeTrue();
+        actualRepository.Name.ShouldBe(repository.Name);
     }
 
     [Fact]
     public async Task Can_Get_Repositories_If_User_Has_Repositories()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
-        int id = RandomNumber();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
         RegisterGetUser(owner);
-        RegisterGetUserRepositories(
-            owner,
-            response: () => new[] { CreateRepository(owner, name, id) });
+        RegisterGetUserRepositories(owner, repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
         actual.Count.ShouldBe(1);
 
-        var repository = actual[0];
+        var actualRepository = actual[0];
 
-        repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
-        repository.Id.ShouldBe(id);
-        repository.IsFork.ShouldBeFalse();
-        repository.IsPrivate.ShouldBeFalse();
-        repository.Name.ShouldBe(name);
+        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+        actualRepository.Id.ShouldBe(repository.Id);
+        actualRepository.IsFork.ShouldBeFalse();
+        actualRepository.IsPrivate.ShouldBeFalse();
+        actualRepository.Name.ShouldBe(repository.Name);
     }
 
     [Theory]
@@ -169,19 +162,17 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             "Dependabot:IncludeForks",
             includeForks.ToString(CultureInfo.InvariantCulture));
 
-        string owner = RandomString();
-        string name = RandomString();
-        int id = RandomNumber();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        repository.IsFork = isFork;
 
         RegisterGetUser(owner);
-        RegisterGetUserRepositories(
-            owner,
-            response: () => new[] { CreateRepository(owner, name, id, isFork: isFork) });
+        RegisterGetUserRepositories(owner, repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -189,13 +180,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         if (expectedCount > 0)
         {
-            var repository = actual[0];
+            var actualRepository = actual[0];
 
-            repository.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}");
-            repository.Id.ShouldBe(id);
-            repository.IsFork.ShouldBe(isFork);
-            repository.IsPrivate.ShouldBeFalse();
-            repository.Name.ShouldBe(name);
+            actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+            actualRepository.Id.ShouldBe(repository.Id);
+            actualRepository.IsFork.ShouldBe(isFork);
+            actualRepository.IsPrivate.ShouldBeFalse();
+            actualRepository.Name.ShouldBe(repository.Name);
         }
     }
 
@@ -207,49 +198,50 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Merge_Pull_Requests(bool allowMergeCommit, bool allowRebaseMerge)
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
 
-        int pullRequest1 = RandomNumber();
-        int pullRequest2 = RandomNumber();
-        int pullRequest3 = RandomNumber();
-        int pullRequest4 = RandomNumber();
-        int pullRequest5 = RandomNumber();
+        var repository = owner.CreateRepository();
+        repository.AllowMergeCommit = allowMergeCommit;
+        repository.AllowRebaseMerge = allowRebaseMerge;
 
-        RegisterGetRepository(owner, name, allowMergeCommit: allowMergeCommit, allowRebaseMerge: allowRebaseMerge);
-        RegisterGetPullRequest(owner, name, pullRequest1);
-        RegisterGetPullRequest(owner, name, pullRequest2, isDraft: true);
-        RegisterGetPullRequest(owner, name, pullRequest4, response: () => CreatePullRequest(owner, name, pullRequest4, isMergeable: false));
-        RegisterGetPullRequest(owner, name, pullRequest5);
-        RegisterPutPullRequestMerge(owner, name, pullRequest1, mergeable: true);
-        RegisterPutPullRequestMerge(owner, name, pullRequest5, mergeable: false);
+        var pullRequest1 = repository.CreatePullRequest();
+
+        var pullRequest2 = repository.CreatePullRequest();
+        pullRequest2.IsDraft = true;
+
+        var pullRequest3 = repository.CreatePullRequest();
+
+        var pullRequest4 = repository.CreatePullRequest();
+        pullRequest4.IsMergeable = false;
+
+        var pullRequest5 = repository.CreatePullRequest();
+
+        RegisterGetRepository(repository);
+        RegisterGetPullRequest(pullRequest1);
+        RegisterGetPullRequest(pullRequest2);
+        RegisterGetPullRequest(pullRequest4);
+        RegisterGetPullRequest(pullRequest5);
+        RegisterPutPullRequestMerge(pullRequest1, mergeable: true);
+        RegisterPutPullRequestMerge(pullRequest5, mergeable: false);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/dependabot",
-            () => new[]
-            {
-                CreateIssue(owner, name, pullRequest1, CreatePullRequest(owner, name, pullRequest1, isDraft: false)),
-                CreateIssue(owner, name, pullRequest2, CreatePullRequest(owner, name, pullRequest2, isDraft: true)),
-            });
+            pullRequest1.CreateIssue(),
+            pullRequest2.CreateIssue());
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[]
-            {
-                CreateIssue(owner, name, pullRequest3, pullRequest: null),
-                CreateIssue(owner, name, pullRequest4, CreatePullRequest(owner, name, pullRequest4, isMergeable: false)),
-                CreateIssue(owner, name, pullRequest5, CreatePullRequest(owner, name, pullRequest5)),
-            });
+            repository.CreateIssue(),
+            pullRequest4.CreateIssue(),
+            pullRequest5.CreateIssue());
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            $"/github/repos/{owner}/{name}/pulls/merge",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls/merge",
             new { });
 
         // Assert
@@ -260,15 +252,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Cannot_Get_Repository_That_Does_Not_Exist()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
-        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status404NotFound);
+        RegisterGetRepository(repository, statusCode: StatusCodes.Status404NotFound);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -287,15 +279,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Api_Returns_Http_401_If_Token_Invalid()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
-        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status401Unauthorized);
+        RegisterGetRepository(repository, statusCode: StatusCodes.Status401Unauthorized);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -314,15 +306,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Api_Returns_Http_403_If_Token_Forbidden()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
-        RegisterGetRepository(owner, name, statusCode: StatusCodes.Status403Forbidden);
+        RegisterGetRepository(repository, statusCode: StatusCodes.Status403Forbidden);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -341,12 +333,11 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Api_Returns_Http_429_If_Api_Rate_Limits_Exceeded()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
         RegisterGetRepository(
-            owner,
-            name,
+            repository,
             statusCode: StatusCodes.Status403Forbidden,
             configure: (builder) =>
             {
@@ -359,7 +350,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner}/{name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe((HttpStatusCode)StatusCodes.Status429TooManyRequests);
@@ -431,28 +422,28 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_None_Open()
     {
         // Arrange
-        int id = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
-        RegisterGetRepository(owner, name, id);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetIssues(owner, name, "app/github-actions");
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetIssues(repository, "app/github-actions");
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>($"/github/repos/{owner}/{name}/pulls");
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         actual.ShouldNotBeNull();
-        actual.DependabotHtmlUrl.ShouldBe($"https://github.com/{owner}/{name}/network/updates");
-        actual.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}/pulls");
-        actual.Id.ShouldBe(id);
+        actual.DependabotHtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}/network/updates");
+        actual.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}/pulls");
+        actual.Id.ShouldBe(repository.Id);
         actual.IsFork.ShouldBeFalse();
         actual.IsPrivate.ShouldBeFalse();
-        actual.Name.ShouldBe(name);
+        actual.Name.ShouldBe(repository.Name);
 
         actual.All.ShouldNotBeNull();
         actual.All.ShouldBeEmpty();
@@ -468,18 +459,19 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Dependabot_Not_Enabled()
     {
         // Arrange
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
-        RegisterGetRepository(owner, name);
-        RegisterGetDependabotContent(owner, name, statusCode: StatusCodes.Status404NotFound);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetIssues(owner, name, "app/github-actions");
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository, statusCode: StatusCodes.Status404NotFound);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetIssues(repository, "app/github-actions");
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>($"/github/repos/{owner}/{name}/pulls");
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -490,25 +482,27 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Draft()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
 
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, isDraft: true);
+        var pullRequest = repository.CreatePullRequest();
+        pullRequest.IsDraft = true;
+
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetRepository(repository);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, CreatePullRequest(owner, name, number)) });
+            pullRequest.CreateIssue());
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>($"/github/repos/{owner}/{name}/pulls");
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -526,40 +520,33 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Approved()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[] { CreateReview("octocat", "APPROVED") });
+            pullRequest,
+            CreateReview("octocat", "APPROVED"));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -575,52 +562,43 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
 
         actualPullRequest.ShouldNotBeNull();
-        actualPullRequest.HtmlUrl.ShouldBe($"https://github.com/{owner}/{name}/pull/{number}");
+        actualPullRequest.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}/pull/{pullRequest.Number}");
         actualPullRequest.IsApproved.ShouldBeTrue();
-        actualPullRequest.Number.ShouldBe(number);
-        actualPullRequest.RepositoryName.ShouldBe(name);
-        actualPullRequest.RepositoryOwner.ShouldBe(owner);
+        actualPullRequest.Number.ShouldBe(pullRequest.Number);
+        actualPullRequest.RepositoryName.ShouldBe(repository.Name);
+        actualPullRequest.RepositoryOwner.ShouldBe(owner.Login);
         actualPullRequest.Status.ShouldBe(ChecksStatus.Pending);
-        actualPullRequest.Title.ShouldBe(title);
+        actualPullRequest.Title.ShouldBe(pullRequest.Title);
     }
 
     [Fact]
     public async Task Can_Get_Pull_Requests_No_Approvals()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
-        RegisterGetReviews(
-            owner,
-            name,
-            number);
-
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -640,40 +618,33 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Not_Approved(string state)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[] { CreateReview("octocat", state) });
+            pullRequest,
+            CreateReview("octocat", state));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -691,44 +662,34 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Approved_And_Commented()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[]
-            {
-                CreateReview("octocat", "APPROVED"),
-                CreateReview("octodog", "COMMENTED"),
-            });
+            pullRequest,
+            CreateReview("octocat", "APPROVED"),
+            CreateReview("octodog", "COMMENTED"));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -746,44 +707,34 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Approved_And_Changes_Requested()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[]
-            {
-                CreateReview("octocat", "APPROVED"),
-                CreateReview("octodog", "CHANGES_REQUESTED"),
-            });
+            pullRequest,
+            CreateReview("octocat", "APPROVED"),
+            CreateReview("octodog", "CHANGES_REQUESTED"));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -811,46 +762,36 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         bool expected)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         var submittedAt = DateTimeOffset.UtcNow;
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[]
-            {
-                CreateReview("octocat", firstState, submittedAt: submittedAt),
-                CreateReview("octocat", secondState, submittedAt: submittedAt.AddMinutes(5)),
-            });
+            pullRequest,
+            CreateReview("octocat", firstState, submittedAt: submittedAt),
+            CreateReview("octocat", secondState, submittedAt: submittedAt.AddMinutes(5)));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -871,42 +812,33 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_Project_Member_Can_Approve(string authorAssociation)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
-
-        var submittedAt = DateTimeOffset.UtcNow;
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[] { CreateReview("octocat", "APPROVED", authorAssociation) });
+            pullRequest,
+            CreateReview("octocat", "APPROVED", authorAssociation));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -927,45 +859,33 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_Project_Member_Can_Request_Changes(string authorAssociation)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
-
-        var submittedAt = DateTimeOffset.UtcNow;
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[]
-            {
-                CreateReview("octocat", "CHANGES_REQUESTED", authorAssociation),
-            });
+            pullRequest,
+            CreateReview("octocat", "CHANGES_REQUESTED", authorAssociation));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -987,42 +907,33 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_External_Reviewer_Cannot_Approve(string authorAssociation)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
-
-        var submittedAt = DateTimeOffset.UtcNow;
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[] { CreateReview("notoctocat", "APPROVED", authorAssociation) });
+            pullRequest,
+            CreateReview("notoctocat", "APPROVED", authorAssociation));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1044,46 +955,34 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_External_Reviewer_Cannot_Request_Changes(string authorAssociation)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
-
-        var submittedAt = DateTimeOffset.UtcNow;
+            pullRequest.CreateIssue());
 
         RegisterGetReviews(
-            owner,
-            name,
-            number,
-            () => new[]
-            {
-                CreateReview("octocat", "APPROVED"),
-                CreateReview("notoctocat", "CHANGES_REQUESTED", authorAssociation),
-            });
+            pullRequest,
+            CreateReview("octocat", "APPROVED"),
+            CreateReview("notoctocat", "CHANGES_REQUESTED", authorAssociation));
 
-        RegisterGetStatuses(owner, name, commit);
-        RegisterGetCheckSuites(owner, name, commit);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1109,43 +1008,35 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         bool hasCheckRun)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
-        RegisterGetStatuses(owner, name, commit);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
-        int suiteId = RandomNumber();
-        var checkSuite = CreateCheckSuite(status, conclusion, id: suiteId);
+        var checkSuite = CreateCheckSuite(status, conclusion);
 
         RegisterGetCheckSuites(
-            owner,
-            name,
-            commit,
-            () => CreateCheckSuites(checkSuite));
+            pullRequest,
+            CreateCheckSuites(checkSuite));
 
         if (hasCheckRun)
         {
-            RegisterGetCheckRuns(owner, name, suiteId, CreateCheckRun(status, conclusion));
+            RegisterGetCheckRuns(repository, checkSuite.Id, CreateCheckRun(status, conclusion));
         }
         else
         {
-            RegisterGetCheckRuns(owner, name, suiteId);
+            RegisterGetCheckRuns(repository, checkSuite.Id);
         }
 
         var options = CreateSerializerOptions();
@@ -1153,7 +1044,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1184,39 +1075,32 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Failure(string conclusion)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
-        RegisterGetStatuses(owner, name, commit);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
-            owner,
-            name,
-            commit,
-            () => CreateCheckSuites(CreateCheckSuite("completed", conclusion)));
+            pullRequest,
+            CreateCheckSuites(CreateCheckSuite("completed", conclusion)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1245,39 +1129,32 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Success(string status, string? conclusion)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
-        RegisterGetStatuses(owner, name, commit);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
-            owner,
-            name,
-            commit,
-            () => CreateCheckSuites(CreateCheckSuite(status, conclusion)));
+            pullRequest,
+            CreateCheckSuites(CreateCheckSuite(status, conclusion)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1320,63 +1197,53 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         ChecksStatus expected)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
-        RegisterGetStatuses(owner, name, commit);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
-        int firstSuiteId = RandomNumber();
-        int secondSuiteId = RandomNumber();
-
-        var firstSuite = CreateCheckSuite(first[0]!, first[1], firstSuiteId);
-        var secondSuite = CreateCheckSuite(second[0]!, second[1], secondSuiteId);
+        var firstSuite = CreateCheckSuite(first[0]!, first[1]);
+        var secondSuite = CreateCheckSuite(second[0]!, second[1]);
 
         if (firstHasCheckRun)
         {
-            RegisterGetCheckRuns(owner, name, firstSuiteId, CreateCheckRun(first[0]!));
+            RegisterGetCheckRuns(repository, firstSuite.Id, CreateCheckRun(first[0]!));
         }
         else
         {
-            RegisterGetCheckRuns(owner, name, firstSuiteId);
+            RegisterGetCheckRuns(repository, firstSuite.Id);
         }
 
         if (secondHasCheckRun)
         {
-            RegisterGetCheckRuns(owner, name, secondSuiteId, CreateCheckRun(second[0]!));
+            RegisterGetCheckRuns(repository, secondSuite.Id, CreateCheckRun(second[0]!));
         }
         else
         {
-            RegisterGetCheckRuns(owner, name, secondSuiteId);
+            RegisterGetCheckRuns(repository, secondSuite.Id);
         }
 
         RegisterGetCheckSuites(
-            owner,
-            name,
-            commit,
-            () => CreateCheckSuites(firstSuite, secondSuite));
+            pullRequest,
+            CreateCheckSuites(firstSuite, secondSuite));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1394,39 +1261,32 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Status_Pending()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetCheckSuites(owner, name, commit);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetStatuses(
-            owner,
-            name,
-            commit,
-            () => CreateStatuses("pending", CreateStatus("pending")));
+            pullRequest,
+            CreateStatuses("pending", CreateStatus("pending")));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1455,39 +1315,32 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Status_Failure(string state)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetCheckSuites(owner, name, commit);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetStatuses(
-            owner,
-            name,
-            commit,
-            () => CreateStatuses(state, CreateStatus(state)));
+            pullRequest,
+            CreateStatuses(state, CreateStatus(state)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1514,39 +1367,32 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Status_Success()
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetCheckSuites(owner, name, commit);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetStatuses(
-            owner,
-            name,
-            commit,
-            () => CreateStatuses("success", CreateStatus("success")));
+            pullRequest,
+            CreateStatuses("success", CreateStatus("success")));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1582,42 +1428,35 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         ChecksStatus expected)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetCheckSuites(owner, name, commit);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         var firstStatus = CreateStatus(firstState);
         var secondStatus = CreateStatus(secondState);
 
         RegisterGetStatuses(
-            owner,
-            name,
-            commit,
-            () => CreateStatuses(overallState, firstStatus, secondStatus));
+            pullRequest,
+            CreateStatuses(overallState, firstStatus, secondStatus));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1648,44 +1487,35 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         ChecksStatus expected)
     {
         // Arrange
-        int number = RandomNumber();
-        string owner = RandomString();
-        string name = RandomString();
-        string commit = RandomString();
-        string title = RandomString();
+        var owner = CreateUser();
+        var repository = owner.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
 
-        var pullRequest = CreatePullRequest(owner, name, number, commitSha: commit, title: title);
-
-        RegisterGetRepository(owner, name, number);
-        RegisterGetDependabotContent(owner, name);
-        RegisterGetIssues(owner, name, "app/dependabot");
-        RegisterGetPullRequest(owner, name, number, response: () => pullRequest);
-        RegisterGetReviews(owner, name, number);
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetReviews(pullRequest);
 
         RegisterGetIssues(
-            owner,
-            name,
+            repository,
             "app/github-actions",
-            () => new[] { CreateIssue(owner, name, number, pullRequest, title: title) });
+            pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
-            owner,
-            name,
-            commit,
-            () => CreateCheckSuites(CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion)));
+            pullRequest,
+            CreateCheckSuites(CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion)));
 
         RegisterGetStatuses(
-            owner,
-            name,
-            commit,
-            () => CreateStatuses(state, CreateStatus(state)));
+            pullRequest,
+            CreateStatuses(state, CreateStatus(state)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner}/{name}/pulls",
+            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
             options);
 
         // Assert

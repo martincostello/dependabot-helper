@@ -25,6 +25,8 @@ public sealed class RepositoryBuilder : ResponseBuilder
 
     public string? Visibility { get; set; }
 
+    public IssueBuilder CreateIssue() => new(this);
+
     public PullRequestBuilder CreatePullRequest() => new(this);
 
     public override object Build()
