@@ -1,12 +1,50 @@
 @using Humanizer;
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject Octokit.IGitHubClient GitHubClient
+@{
+    string author = "Martin Costello";
+    string description = "An application that helps manage dependabot updates across multiple GitHub repositories.";
+    string name = "Dependabot Helper";
+    string title = $"{ViewData["Title"]} - {name}";
+}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Dependabot Helper</title>
+    <title>@title</title>
+    <meta http-equiv="cache-control" content="no-cache, no-store" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="application-name" content="@name" />
+    <meta name="author" content="@author" />
+    <meta name="copyright" content="&copy; @author @DateTimeOffset.UtcNow.Date.Year" />
+    <meta name="description" content="@description" />
+    <meta name="language" content="en" />
+    <meta name="keywords" content="dependabot,github" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <meta name="robots" content="NOINDEX" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta property="og:description" content="@description" />
+    <meta property="og:image" content="@Url.Content("~/favicon.png")" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:site_name" content="@name" />
+    <meta property="og:title" content="@title" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dependabot.martincostello.com/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@@martin_costello" />
+    <meta name="twitter:description" content="@description" />
+    <meta name="twitter:domain" content="dependabot.martincostello.com" />
+    <meta name="twitter:image" content="https://dependabot.martincostello.com/favicon.png" />
+    <meta name="twitter:image:alt" content="@name" />
+    <meta name="twitter:site" content="@@martin_costello" />
+    <meta name="twitter:title" content="@title" />
+    <meta name="twitter:url" content="https://dependabot.martincostello.com/" />
+    <meta name="twitter:label1" content="Created by" />
+    <meta name="twitter:data1" content="@author" />
     <link rel="manifest" href="@Url.Content("~/manifest.webmanifest")" asp-append-version="true" />
     <link rel="shortcut icon" type="image/x-icon" href="~/favicon.png" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
