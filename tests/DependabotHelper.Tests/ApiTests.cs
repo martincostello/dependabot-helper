@@ -8,7 +8,7 @@ using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
+using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -1136,13 +1136,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateCheckSuites(new[] { checkSuite }));
+            () => CreateCheckSuites(checkSuite));
 
         RegisterGetCheckRuns(
             owner,
             name,
             suiteId,
-            hasCheckRun ? () => CreateCheckRuns(new[] { CreateCheckRun(status, conclusion) }) : null);
+            hasCheckRun ? () => CreateCheckRuns(CreateCheckRun(status, conclusion)) : null);
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1205,7 +1205,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateCheckSuites(new[] { CreateCheckSuite("completed", conclusion) }));
+            () => CreateCheckSuites(CreateCheckSuite("completed", conclusion)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1266,7 +1266,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateCheckSuites(new[] { CreateCheckSuite(status, conclusion) }));
+            () => CreateCheckSuites(CreateCheckSuite(status, conclusion)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1343,8 +1343,8 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var firstSuite = CreateCheckSuite(first[0]!, first[1], firstSuiteId);
         var secondSuite = CreateCheckSuite(second[0]!, second[1], secondSuiteId);
 
-        Func<object>? firstCheckRun = firstHasCheckRun ? () => CreateCheckRuns(new[] { CreateCheckRun(first[0]!) }) : null;
-        Func<object>? secondCheckRun = secondHasCheckRun ? () => CreateCheckRuns(new[] { CreateCheckRun(second[0]!) }) : null;
+        Func<object>? firstCheckRun = firstHasCheckRun ? () => CreateCheckRuns(CreateCheckRun(first[0]!)) : null;
+        Func<object>? secondCheckRun = secondHasCheckRun ? () => CreateCheckRuns(CreateCheckRun(second[0]!)) : null;
 
         RegisterGetCheckRuns(owner, name, firstSuiteId, firstCheckRun);
         RegisterGetCheckRuns(owner, name, secondSuiteId, secondCheckRun);
@@ -1353,7 +1353,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateCheckSuites(new[] { firstSuite, secondSuite }));
+            () => CreateCheckSuites(firstSuite, secondSuite));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1403,7 +1403,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateStatuses("pending", new[] { CreateStatus("pending") }));
+            () => CreateStatuses("pending", CreateStatus("pending")));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1464,7 +1464,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateStatuses(state, new[] { CreateStatus(state) }));
+            () => CreateStatuses(state, CreateStatus(state)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1523,7 +1523,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateStatuses("success", new[] { CreateStatus("success") }));
+            () => CreateStatuses("success", CreateStatus("success")));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1594,7 +1594,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateStatuses(overallState, new[] { firstStatus, secondStatus }));
+            () => CreateStatuses(overallState, firstStatus, secondStatus));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1656,13 +1656,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             commit,
-            () => CreateCheckSuites(new[] { CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion) }));
+            () => CreateCheckSuites(CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion)));
 
         RegisterGetStatuses(
             owner,
             name,
             commit,
-            () => CreateStatuses(state, new[] { CreateStatus(state) }));
+            () => CreateStatuses(state, CreateStatus(state)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();

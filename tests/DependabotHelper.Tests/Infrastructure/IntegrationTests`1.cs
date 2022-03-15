@@ -5,7 +5,7 @@ using System.Net;
 using JustEat.HttpClientInterception;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
-using static MartinCostello.DependabotHelper.Infrastructure.GitHubFixtures;
+using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
 
@@ -170,7 +170,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         string name,
         int number,
         bool isDraft = false,
-        Func<object>? response = null)
+        Func<Builders.PullRequestBuilder>? response = null)
     {
         response ??= () => CreatePullRequest(owner, name, number, isDraft);
 
@@ -181,7 +181,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .ForRequestHeader("Authorization", AuthorizationHeader)
             .Responds()
             .WithStatus(StatusCodes.Status200OK)
-            .WithSystemTextJsonContent(response());
+            .WithSystemTextJsonContent(response().Build());
 
         ConfigureRateLimit(builder);
 
