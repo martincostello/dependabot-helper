@@ -249,7 +249,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
             .ForGet()
-            .ForUrl($"https://api.github.com/users/john-smith/repos")
+            .ForUrl("https://api.github.com/user/repos?type=owner")
             .ForRequestHeader("Authorization", AuthorizationHeader)
             .Responds()
             .WithStatus(StatusCodes.Status200OK)
@@ -260,9 +260,13 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         builder.RegisterWith(Fixture.Interceptor);
     }
 
-    protected void RegisterGetUser(string login, string userType = "user", Func<object>? response = null)
+    protected void RegisterGetUser(
+        string login,
+        string userType = "user",
+        int? id = null,
+        Func<object>? response = null)
     {
-        response ??= () => CreateUser(login, userType);
+        response ??= () => CreateUser(login, userType, id);
 
         var builder = new HttpRequestInterceptionBuilder()
             .Requests()
