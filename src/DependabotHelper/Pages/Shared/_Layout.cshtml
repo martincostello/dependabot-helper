@@ -75,6 +75,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="~/configure" title="Configure Repositories" id="configure-link">Configure</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/martincostello/dependabot-helper" target="_blank" title="View Dependabot Helper on GitHub.com">
+                            GitHub
+                            <span class="fa-brands fa-github" aria-hidden="true"></span>
+                        </a>
+                    </li>
                 </ul>
                 @if (User.Identity!.IsAuthenticated)
                 {
@@ -97,7 +103,7 @@
                             <li>
                                 <button type="submit" class="btn btn-link navbar-btn nav-link" title="Sign out" id="sign-out">
                                     Sign out
-                                    <i class="fa fa-sign-out" aria-hidden="true"></i>
+                                    <span class="fa fa-sign-out" aria-hidden="true"></span>
                                 </button>
                             </li>
                         </ul>
