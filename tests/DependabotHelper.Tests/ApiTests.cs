@@ -4,6 +4,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using JustEat.HttpClientInterception;
 using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
@@ -347,10 +348,10 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             owner,
             name,
             statusCode: StatusCodes.Status403Forbidden,
-            response: () => new { message = "API rate limit exceeded" },
             configure: (builder) =>
             {
-                builder.WithResponseHeader("x-ratelimit-limit", "60")
+                builder.WithSystemTextJsonContent(new { message = "API rate limit exceeded" })
+                       .WithResponseHeader("x-ratelimit-limit", "60")
                        .WithResponseHeader("x-ratelimit-remaining", "0")
                        .WithResponseHeader("x-ratelimit-reset", "1377013266");
             });
@@ -471,7 +472,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         string name = RandomString();
 
         RegisterGetRepository(owner, name);
-        RegisterGetDependabotContent(owner, name, statusCode: StatusCodes.Status404NotFound, Array.Empty<byte>);
+        RegisterGetDependabotContent(owner, name, statusCode: StatusCodes.Status404NotFound);
         RegisterGetIssues(owner, name, "app/dependabot");
         RegisterGetIssues(owner, name, "app/github-actions");
 
@@ -1138,11 +1139,14 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             commit,
             () => CreateCheckSuites(checkSuite));
 
-        RegisterGetCheckRuns(
-            owner,
-            name,
-            suiteId,
-            hasCheckRun ? () => CreateCheckRuns(CreateCheckRun(status, conclusion)) : null);
+        if (hasCheckRun)
+        {
+            RegisterGetCheckRuns(owner, name, suiteId, CreateCheckRun(status, conclusion));
+        }
+        else
+        {
+            RegisterGetCheckRuns(owner, name, suiteId);
+        }
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1343,11 +1347,23 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var firstSuite = CreateCheckSuite(first[0]!, first[1], firstSuiteId);
         var secondSuite = CreateCheckSuite(second[0]!, second[1], secondSuiteId);
 
-        Func<object>? firstCheckRun = firstHasCheckRun ? () => CreateCheckRuns(CreateCheckRun(first[0]!)) : null;
-        Func<object>? secondCheckRun = secondHasCheckRun ? () => CreateCheckRuns(CreateCheckRun(second[0]!)) : null;
+        if (firstHasCheckRun)
+        {
+            RegisterGetCheckRuns(owner, name, firstSuiteId, CreateCheckRun(first[0]!));
+        }
+        else
+        {
+            RegisterGetCheckRuns(owner, name, firstSuiteId);
+        }
 
-        RegisterGetCheckRuns(owner, name, firstSuiteId, firstCheckRun);
-        RegisterGetCheckRuns(owner, name, secondSuiteId, secondCheckRun);
+        if (secondHasCheckRun)
+        {
+            RegisterGetCheckRuns(owner, name, secondSuiteId, CreateCheckRun(second[0]!));
+        }
+        else
+        {
+            RegisterGetCheckRuns(owner, name, secondSuiteId);
+        }
 
         RegisterGetCheckSuites(
             owner,
