@@ -11,7 +11,7 @@ public sealed class CheckRunsResponseBuilder : ResponseBuilder
     {
         return new
         {
-            check_runs = CheckRuns.Select((p) => p.Build()).ToArray(),
+            check_runs = CheckRuns.Build(),
             total_count = CheckRuns.Count,
         };
     }

@@ -19,7 +19,7 @@ public sealed class CombinedCommitStatusBuilder : ResponseBuilder
         return new
         {
             state = State,
-            statuses = Statuses.Select((p) => p.Build()).ToArray(),
+            statuses = Statuses.Build(),
             total_count = Statuses.Count,
         };
     }
