@@ -63,6 +63,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ISSUE_TEMPLATE", "ISSUE_TEM
 		.github\ISSUE_TEMPLATE\feature_request.md = .github\ISSUE_TEMPLATE\feature_request.md
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependabotHelper.EndToEndTests", "tests\DependabotHelper.EndToEndTests\DependabotHelper.EndToEndTests.csproj", "{D3A273BE-65C1-45EA-A1F3-BBCC2E6F0282}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{43392602-CB9C-4CF1-95E2-8A3404B5F40E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43392602-CB9C-4CF1-95E2-8A3404B5F40E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43392602-CB9C-4CF1-95E2-8A3404B5F40E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3A273BE-65C1-45EA-A1F3-BBCC2E6F0282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3A273BE-65C1-45EA-A1F3-BBCC2E6F0282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3A273BE-65C1-45EA-A1F3-BBCC2E6F0282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3A273BE-65C1-45EA-A1F3-BBCC2E6F0282}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,6 +94,7 @@ Global
 		{420A66E9-DD98-499A-8675-A1F1248C8D50} = {6BE67078-7233-42C0-80F9-CE4BFD2DCD6D}
 		{DCA9533A-97AA-45FB-8BED-6F81CE1962EC} = {2808D3E0-7B58-4A2A-95BE-8027C4ED9918}
 		{870BF5AC-0761-458C-B3DB-572420BC562B} = {6BE67078-7233-42C0-80F9-CE4BFD2DCD6D}
+		{D3A273BE-65C1-45EA-A1F3-BBCC2E6F0282} = {FD791692-13A5-47D7-ACEB-4B0B336B359D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2F443F99-DDBC-4E35-A6A9-E790CA137404}
