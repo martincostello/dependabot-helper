@@ -17,14 +17,17 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData("/sign-in", MediaTypeNames.Text.Html)]
+    [InlineData("/bad-request.html", MediaTypeNames.Text.Html)]
     [InlineData("/css/site.css", "text/css")]
-    [InlineData("/static/js/main.js", "application/javascript")]
-    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
+    [InlineData("/error.html", MediaTypeNames.Text.Html)]
     [InlineData("/favicon.png", "image/png")]
     [InlineData("/humans.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/manifest.webmanifest", "application/manifest+json")]
+    [InlineData("/not-found.html", MediaTypeNames.Text.Html)]
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
+    [InlineData("/sign-in", MediaTypeNames.Text.Html)]
+    [InlineData("/static/js/main.js", "application/javascript")]
+    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Get_Resource_Unauthenticated(string requestUri, string contentType)
     {
         // Arrange
@@ -42,13 +45,16 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
 
     [Theory]
     [InlineData("/", MediaTypeNames.Text.Html)]
+    [InlineData("/bad-request.html", MediaTypeNames.Text.Html)]
     [InlineData("/css/site.css", "text/css")]
-    [InlineData("/static/js/main.js", "application/javascript")]
-    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
+    [InlineData("/error.html", MediaTypeNames.Text.Html)]
     [InlineData("/favicon.png", "image/png")]
     [InlineData("/humans.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/manifest.webmanifest", "application/manifest+json")]
+    [InlineData("/not-found.html", MediaTypeNames.Text.Html)]
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
+    [InlineData("/static/js/main.js", "application/javascript")]
+    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Get_Resource_Authenticated(string requestUri, string contentType)
     {
         // Arrange
@@ -154,5 +160,57 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
         response.Content.Headers.ShouldNotBeNull();
         response.Content.Headers.ContentType.ShouldNotBeNull();
         response.Content.Headers.ContentType.MediaType.ShouldBe("text/html");
+    }
+
+    [Fact]
+    public async Task Response_Headers_Contains_Expected_Headers()
+    {
+        // Arrange
+        string[] expectedHeaders =
+        {
+            "Content-Security-Policy",
+            "Expect-CT",
+            "Feature-Policy",
+            "Permissions-Policy",
+            "Referrer-Policy",
+            "X-Content-Type-Options",
+            "X-Download-Options",
+            "X-Frame-Options",
+            "X-Request-Id",
+            "X-XSS-Protection",
+        };
+
+        using var client = Fixture.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("/");
+
+        // Assert
+        foreach (string expected in expectedHeaders)
+        {
+            response.Headers.Contains(expected).ShouldBeTrue($"The '{expected}' response header was not found.");
+        }
+    }
+
+    [Fact]
+    public async Task Response_Headers_Does_Not_Contain_Unexpected_Headers()
+    {
+        // Arrange
+        string[] expectedHeaders =
+        {
+            "Server",
+            "X-Powered-By",
+        };
+
+        using var client = Fixture.CreateClient();
+
+        // Act
+        using var response = await client.GetAsync("/");
+
+        // Assert
+        foreach (string expected in expectedHeaders)
+        {
+            response.Headers.Contains(expected).ShouldBeFalse($"The '{expected}' response header was found.");
+        }
     }
 }
