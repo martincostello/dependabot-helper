@@ -68,6 +68,10 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     border-color: #2c974b;
 }
 
+.btn-manage-action {
+    min-width: 46px;
+}
+
 .btn-pr,
 .btn-pr:disabled {
     background-color: #8250df;
