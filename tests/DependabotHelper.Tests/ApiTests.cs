@@ -216,10 +216,6 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         pullRequest4.IsMergeable = false;
 
         RegisterGetRepository(repository);
-        RegisterGetPullRequest(pullRequest1);
-        RegisterGetPullRequest(pullRequest2);
-        RegisterGetPullRequest(pullRequest4);
-        RegisterGetPullRequest(pullRequest5);
         RegisterPutPullRequestMerge(pullRequest1, mergeable: true);
         RegisterPutPullRequestMerge(pullRequest5, mergeable: false);
 
@@ -236,6 +232,11 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest4.CreateIssue(),
             pullRequest5.CreateIssue());
 
+        RegisterGetPullRequest(pullRequest1);
+        RegisterGetPullRequest(pullRequest2);
+        RegisterGetPullRequest(pullRequest4);
+        RegisterGetPullRequest(pullRequest5);
+
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
@@ -244,7 +245,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             new { });
 
         // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var actual = await response.Content.ReadFromJsonAsync<MergePullRequestsResponse>();
+
+        actual.ShouldNotBeNull();
+        actual.Numbers.ShouldNotBeNull();
+        actual.Numbers.ToArray().ShouldBe(new[] { pullRequest1.Number });
     }
 
     [Fact]

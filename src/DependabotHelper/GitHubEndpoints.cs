@@ -67,8 +67,7 @@ public static class GitHubEndpoints
 
             try
             {
-                await service.MergePullRequestsAsync(user, owner, name);
-                return Results.NoContent();
+                return Results.Json(await service.MergePullRequestsAsync(user, owner, name));
             }
             catch (Exception ex)
             {
