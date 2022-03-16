@@ -39,23 +39,20 @@ public abstract class AppPage
         => await Page.WaitForSelectorAsync(Selectors.UserName);
 
     public async Task WaitForSignedOutAsync()
-        => await Assertions.Expect(Page.Locator(Selectors.SignIn)).ToBeVisibleAsync();
+        => await Assertions.Expect(Page.Locator(Selectors.SignIn))
+                           .ToBeVisibleAsync();
 
     public abstract class Item
     {
-        protected Item(IElementHandle handle)
+        protected Item(IElementHandle handle, IPage page)
         {
             Handle = handle;
+            Page = page;
         }
 
         protected IElementHandle Handle { get; }
 
-        protected async Task<IPage> GetPageAsync()
-        {
-            var frame = await Handle.OwnerFrameAsync();
-            frame.ShouldNotBeNull();
-            return frame.Page;
-        }
+        protected IPage Page { get; }
     }
 
     private sealed class Selectors

@@ -22,7 +22,7 @@ public class ManagePage : AppPage
         {
             if (await element.IsVisibleAsync())
             {
-                owners.Add(new(element));
+                owners.Add(new(element, Page));
             }
         }
 
@@ -39,15 +39,14 @@ public class ManagePage : AppPage
 
     public sealed class OwnerItem : Item
     {
-        internal OwnerItem(IElementHandle handle)
-            : base(handle)
+        internal OwnerItem(IElementHandle handle, IPage page)
+            : base(handle, page)
         {
         }
 
         public async Task<IReadOnlyList<RepositoryItem>> GetRepsitoriesAsync()
         {
-            var page = await GetPageAsync();
-            var elements = await page.QuerySelectorAllAsync(Selectors.RepositoryItem);
+            var elements = await Page.QuerySelectorAllAsync(Selectors.RepositoryItem);
 
             var repositories = new List<RepositoryItem>(elements.Count);
 
@@ -55,7 +54,7 @@ public class ManagePage : AppPage
             {
                 if (await element.IsVisibleAsync())
                 {
-                    repositories.Add(new(element));
+                    repositories.Add(new(element, Page));
                 }
             }
 
@@ -71,16 +70,17 @@ public class ManagePage : AppPage
             return await element.InnerTextAsync();
         }
 
-        public async Task WaitForRepositoryListAsync()
+        public async Task WaitForRepositoryCountAsync(int count)
         {
-            await Handle.WaitForSelectorAsync(Selectors.RepositoryList);
+            await Assertions.Expect(Page.Locator(Selectors.RepositoryItem))
+                            .ToHaveCountAsync(count);
         }
     }
 
     public sealed class RepositoryItem : Item
     {
-        internal RepositoryItem(IElementHandle handle)
-            : base(handle)
+        internal RepositoryItem(IElementHandle handle, IPage page)
+            : base(handle, page)
         {
         }
 
@@ -157,7 +157,7 @@ public class ManagePage : AppPage
         internal const string RepositoryCountError = "[class*='repo-count-error']";
         internal const string RepositoryCountPending = "[class*='repo-count-pending']";
         internal const string RepositoryCountSuccess = "[class*='repo-count-success']";
-        internal const string RepositoryItem = "[class*='repo-item']";
+        internal const string RepositoryItem = "[class*='repo-item']:not([class*='item-template'])";
         internal const string RepositoryList = "[class*='repo-list']";
         internal const string RepositoryName = "[class*='repo-name']";
     }

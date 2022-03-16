@@ -142,7 +142,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
             // Act - Navigate to the configure page
             var configurePage = await managePage.ConfigureAsync();
-            await configurePage.WaitForOwnerListAsync();
+            await configurePage.WaitForOwnerCountAsync(3);
 
             // Assert
             var owners = await configurePage.GetOwnersAsync();
@@ -154,7 +154,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
             // Act
             var modal = await owners[0].ConfigureAsync();
-            await modal.WaitForRepositoryListAsync();
+            await modal.WaitForRepositoryCountAsync(4);
 
             // Assert
             var repositories = await modal.GetRepositoriesAsync();
@@ -187,9 +187,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
 
             // Assert - Check the selected repositories are enabled
             modal = await owners[0].ConfigureAsync();
-
-            await modal.WaitForRepositoryListAsync();
-            await modal.WaitForRepositoriesAsync();
+            await modal.WaitForRepositoryCountAsync(4);
 
             repositories = await modal.GetRepositoriesAsync();
             repositories.Count.ShouldBe(4);
@@ -202,11 +200,12 @@ public class UITests : IntegrationTests<HttpServerFixture>
             // Act - Change the selection and dismiss the modal
             await repositories[1].ToggleAsync();
             await repositories[3].ToggleAsync();
+
             configurePage = await modal.CloseAsync();
 
             // Assert - The selected repositories remains the same
             modal = await owners[0].ConfigureAsync();
-            await modal.WaitForRepositoryListAsync();
+            await modal.WaitForRepositoryCountAsync(4);
 
             repositories = await modal.GetRepositoriesAsync();
             repositories.Count.ShouldBe(4);
@@ -288,13 +287,13 @@ public class UITests : IntegrationTests<HttpServerFixture>
             await managePage.WaitForNoOwners();
 
             var configurePage = await managePage.ConfigureAsync();
-            await configurePage.WaitForOwnerListAsync();
+            await configurePage.WaitForOwnerCountAsync(1);
 
             var owners = await configurePage.GetOwnersAsync();
             owners.Count.ShouldBe(1);
 
             var modal = await owners[0].ConfigureAsync();
-            await modal.WaitForRepositoryListAsync();
+            await modal.WaitForRepositoryCountAsync(2);
 
             var repositories = await modal.GetRepositoriesAsync();
             repositories.Count.ShouldBe(2);
@@ -314,7 +313,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
             repoOwners.ShouldNotBeNull();
 
             var repoOwner = repoOwners.ShouldHaveSingleItem();
-            await repoOwner.WaitForRepositoryListAsync();
+            await repoOwner.WaitForRepositoryCountAsync(2);
 
             var ownerRepos = await repoOwner.GetRepsitoriesAsync();
 

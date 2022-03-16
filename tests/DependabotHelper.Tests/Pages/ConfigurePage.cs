@@ -15,16 +15,19 @@ public class ConfigurePage : AppPage
     public async Task<IReadOnlyList<OwnerItem>> GetOwnersAsync()
     {
         var elements = await Page.QuerySelectorAllAsync(Selectors.OwnerItem);
-        return elements.Select((p) => new OwnerItem(p)).ToArray();
+        return elements.Select((p) => new OwnerItem(p, Page)).ToArray();
     }
 
-    public async Task WaitForOwnerListAsync()
-        => await Page.WaitForSelectorAsync(Selectors.OwnerList);
+    public async Task WaitForOwnerCountAsync(int count)
+    {
+        await Assertions.Expect(Page.Locator(Selectors.OwnerItem))
+                        .ToHaveCountAsync(count);
+    }
 
     public sealed class OwnerItem : Item
     {
-        internal OwnerItem(IElementHandle handle)
-            : base(handle)
+        internal OwnerItem(IElementHandle handle, IPage page)
+            : base(handle, page)
         {
         }
 
@@ -35,12 +38,13 @@ public class ConfigurePage : AppPage
 
             await button.ClickAsync();
 
-            var page = await GetPageAsync();
+            await Assertions.Expect(Page.Locator(Selectors.RepositoriesModal))
+                            .ToBeVisibleAsync();
 
-            var modal = await page.QuerySelectorAsync(Selectors.RepositoriesModal);
+            var modal = await Page.QuerySelectorAsync(Selectors.RepositoriesModal);
             modal.ShouldNotBeNull();
 
-            return new ConfigureRepositoriesModal(modal);
+            return new ConfigureRepositoriesModal(modal, Page);
         }
 
         public async Task<string> NameAsync()
@@ -53,8 +57,8 @@ public class ConfigurePage : AppPage
 
     public sealed class ConfigureRepositoriesModal : Item
     {
-        internal ConfigureRepositoriesModal(IElementHandle handle)
-            : base(handle)
+        internal ConfigureRepositoriesModal(IElementHandle handle, IPage page)
+            : base(handle, page)
         {
         }
 
@@ -65,9 +69,11 @@ public class ConfigurePage : AppPage
 
             await element.ClickAsync();
 
-            var page = await GetPageAsync();
+            await Assertions.Expect(Page.Locator(Selectors.RepositoriesModal))
+                            .Not
+                            .ToBeVisibleAsync();
 
-            return new(page);
+            return new(Page);
         }
 
         public async Task<IReadOnlyList<RepositoryItem>> GetRepositoriesAsync()
@@ -80,7 +86,7 @@ public class ConfigurePage : AppPage
             {
                 if (await element.IsVisibleAsync())
                 {
-                    repositories.Add(new(element));
+                    repositories.Add(new(element, Page));
                 }
             }
 
@@ -94,29 +100,25 @@ public class ConfigurePage : AppPage
             var element = await Handle.QuerySelectorAsync(Selectors.SaveChanges);
             element.ShouldNotBeNull();
 
+            await element.ScrollIntoViewIfNeededAsync();
             await element.ClickAsync();
 
-            var page = await GetPageAsync();
-
-            return new(page);
+            return new(Page);
         }
 
-        public async Task WaitForRepositoriesAsync()
+        public async Task WaitForRepositoryCountAsync(int count)
         {
-            var loader = await Handle.QuerySelectorAsync(Selectors.RepositoriesLoader);
-            loader.ShouldNotBeNull();
+            await Assertions.Expect(Page.Locator(Selectors.RepositoryItem))
+                            .ToHaveCountAsync(count);
 
-            await loader.WaitForElementStateAsync(ElementState.Hidden);
+            await Assertions.Expect(Page.Locator(Selectors.RepositoriesLoader)).ToBeHiddenAsync();
         }
-
-        public async Task WaitForRepositoryListAsync()
-            => await Handle.WaitForSelectorAsync(Selectors.RepositoryList);
     }
 
     public sealed class RepositoryItem : Item
     {
-        internal RepositoryItem(IElementHandle handle)
-            : base(handle)
+        internal RepositoryItem(IElementHandle handle, IPage page)
+            : base(handle, page)
         {
         }
 
@@ -168,7 +170,7 @@ public class ConfigurePage : AppPage
         internal const string OwnerName = "[class*='owner-name']";
         internal const string OwnerList = "id=repository-owner-list";
         internal const string PrivateIcon = "[class*='repo-is-private']";
-        internal const string RepositoryItem = "[class*='repository-item']";
+        internal const string RepositoryItem = "[class*='repository-item']:not([class*='check-template'])";
         internal const string RepositoryList = "id=repository-list";
         internal const string RepositoryName = "[class*='repo-name']";
         internal const string RepositorySelect = "[class*='repo-enable']";
