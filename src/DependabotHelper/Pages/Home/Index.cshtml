@@ -11,63 +11,78 @@
         Configure which repositories you wish to manage Dependabot updates for <a href="~/configure">here</a>.
     </p>
 </div>
-<div id="owner-list">
+<div id="owner-list" data-refresh-period="@(Model.RefreshPeriod?.TotalMilliseconds)">
     <div class="d-none owner-item owner-template">
         <h2 class="owner-name"></h2>
-        <table class="table">
+        <table class="table table-responsive">
             <caption class="owner-caption"></caption>
             <thead>
                 <tr>
                     <th scope="col" aria-label="The name of the repository">Repository</th>
-                    <th scope="col" class="col-1" aria-label="The number of pending checks">Pending</th>
-                    <th scope="col" class="col-1" aria-label="The number of failed checks">Failed</th>
-                    <th scope="col" class="col-1" aria-label="The number of successful checks">Successful</th>
-                    <th scope="col" class="col-1" aria-label="The number of approved pull requests">Approved</th>
-                    <th scope="col" class="col-3"></th>
+                    <th scope="col" class="col-lg-3" aria-label="The pull request status checks and approvals">Statuses and Approvals</th>
+                    <th scope="col" class="col-lg-3">Actions</th>
                 </tr>
             </thead>
             <tbody class="repo-list">
                 <tr class="d-none item-template repo-item">
-                    <td>
+                    <td class="align-middle">
                         <span class="loader spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         <a class="repo-name" href="#" target="_blank"></a>
                     </td>
                     <td>
-                        <span class="repo-count-pending" aria-label="The number of pending checks">&hellip;</span>
-                        <span class="fa-solid fa-spinner repo-status text-warning" data-count="0" aria-hidden="true"></span>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                    <span class="repo-count-pending" aria-label="The number of pending checks">&hellip;</span>
+                                    <span class="fa-solid fa-spinner repo-status text-warning" data-count="0" aria-hidden="true"></span>
+                                </div>
+                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                    <span class="repo-count-error loading-count" aria-label="The number of failed checks">&hellip;</span>
+                                    <span class="fa-solid fa-xmark repo-status text-danger" data-count="0" aria-hidden="true"></span>
+                                </div>
+                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                    <span class="repo-count-success loading-count" aria-label="The number of successful checks">&hellip;</span>
+                                    <span class="fa-solid fa-check repo-status text-success" data-count="0" aria-hidden="true"></span>
+                                </div>
+                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                    <span class="repo-count-approved loading-count" aria-label="The number of approvals">&hellip;</span>
+                                    <span class="fa-solid fa-thumbs-up repo-status text-primary" data-count="0" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                     <td>
-                        <span class="repo-count-error loading-count" aria-label="The number of failed checks">&hellip;</span>
-                        <span class="fa-solid fa-xmark repo-status text-danger" data-count="0" aria-hidden="true"></span>
-                    </td>
-                    <td>
-                        <span class="repo-count-success loading-count" aria-label="The number of successful checks">&hellip;</span>
-                        <span class="fa-solid fa-check repo-status text-success" data-count="0" aria-hidden="true"></span>
-                    </td>
-                    <td>
-                        <span class="repo-count-approved loading-count" aria-label="The number of approvals">&hellip;</span>
-                        <span class="fa-solid fa-thumbs-up repo-status text-primary" data-count="0" aria-hidden="true"></span>
-                    </td>
-                    <td>
-                        <div class="float-right">
-                            <button class="btn btn-secondary repo-refresh" title="Refresh" type="button" disabled>
-                                <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
-                                <span class="loader spinner-border spinner-border-sm d-none" role="status">
-                                    <span class="sr-only">Refreshing...</span>
-                                </span>
-                            </button>
-                            <a class="btn btn-primary repo-configure disabled" href="#" role="button" target="_blank" title="View the Dependabot configuration">
-                                <span class="fa-solid fa-robot" aria-hidden="true"></span>
-                            </a>
-                            <button class="btn btn-pr repo-pull-requests" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
-                                <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
-                            </button>
-                            <button class="btn btn-success btn-merge repo-merge" title="Attempt to merge all mergeable pull requests" type="button" disabled>
-                                <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
-                                <span class="loader spinner-border spinner-border-sm d-none" role="status">
-                                    <span class="sr-only">Merging...</span>
-                                </span>
-                            </button>
+                        <div class="text-right">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12 col-lg-3 mt-1">
+                                        <button class="btn btn-secondary repo-refresh" title="Refresh" type="button" disabled>
+                                            <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
+                                            <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                                <span class="sr-only">Refreshing...</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                    <div class="col-12 col-lg-3 mt-1">
+                                        <a class="btn btn-primary repo-configure disabled" href="#" role="button" target="_blank" title="View the Dependabot configuration">
+                                            <span class="fa-solid fa-robot" aria-hidden="true"></span>
+                                        </a>
+                                    </div>
+                                    <div class="col-12 col-lg-3 mt-1">
+                                        <button class="btn btn-pr repo-pull-requests" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
+                                            <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                    <div class="col-12 col-lg-3 mt-1">
+                                        <button class="btn btn-success btn-merge repo-merge" title="Attempt to merge all mergeable pull requests" type="button" disabled>
+                                            <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
+                                            <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                                <span class="sr-only">Merging...</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -83,7 +98,7 @@
      aria-labelledby="pr-label"
      aria-hidden="true"
      data-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="pr-label">Dependabot pull requests</h5>
@@ -97,8 +112,8 @@
                     <thead>
                         <tr>
                             <th scope="col">Title</th>
-                            <th class="col-1 text-center" scope="col">Status</th>
-                            <th class="col-3 text-center" scope="col">Approved?</th>
+                            <th class="col-lg-1 text-center" scope="col">Status</th>
+                            <th class="col-lg-3 text-center" scope="col">Approved?</th>
                         </tr>
                     </thead>
                     <tbody>

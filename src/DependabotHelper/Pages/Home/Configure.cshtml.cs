@@ -25,5 +25,9 @@ public sealed class ConfigureModel : PageModel
         {
             await HttpContext.ReauthenticateAsync();
         }
+        catch (Octokit.RateLimitExceededException)
+        {
+            // Ignore and let the page load
+        }
     }
 }

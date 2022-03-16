@@ -126,14 +126,26 @@
         </div>
     </nav>
     <main class="container body-content">
+        @{
+            var rateLimits = GitHubClient.GetLastApiInfo()?.RateLimit;
+            bool hasRateLimit = rateLimits?.Limit is not null;
+        }
+        @if (rateLimits?.Remaining is { } value && value < 1)
+        {
+            <div class="alert alert-warning" role="alert">
+              <p>
+                  You have exhausted your GitHub API rate limit.
+              </p>
+              <p>
+                  The rate limit will reset <strong>@rateLimits.Reset.Humanize()</strong>.
+              </p>
+            </div>
+        }
         @RenderBody()
         <hr />
         <footer>
             <p>
                 &copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello
-                @{
-                    var rateLimits = GitHubClient.GetLastApiInfo()?.RateLimit;
-                }
                 <small class="float-right @(rateLimits?.Limit is null ? "d-none" : string.Empty)">
                     GitHub API Limits:
                     <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
