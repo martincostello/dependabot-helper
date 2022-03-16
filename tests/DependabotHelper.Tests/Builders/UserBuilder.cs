@@ -5,16 +5,12 @@ namespace MartinCostello.DependabotHelper.Builders;
 
 public sealed class UserBuilder : ResponseBuilder
 {
-    public UserBuilder()
+    public UserBuilder(string? login)
     {
+        Login = login ?? RandomString();
     }
 
-    public UserBuilder(string login)
-    {
-        Login = login;
-    }
-
-    public string Login { get; set; } = RandomString();
+    public string Login { get; set; }
 
     public string UserType { get; set; } = "user";
 

@@ -8,12 +8,6 @@ namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public static class HttpRequestInterceptionBuilderExtensions
 {
-    public static HttpRequestInterceptionBuilder WithJsonContent<T>(this HttpRequestInterceptionBuilder builder, Func<T> response)
-        where T : ResponseBuilder
-    {
-        return builder.WithJsonContent(response());
-    }
-
     public static HttpRequestInterceptionBuilder WithJsonContent<T>(this HttpRequestInterceptionBuilder builder, T response)
         where T : ResponseBuilder
     {

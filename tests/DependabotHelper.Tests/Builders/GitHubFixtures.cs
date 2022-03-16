@@ -134,7 +134,7 @@ updates:
         int? id = null,
         string? userType = null)
     {
-        UserBuilder builder = login is null ? new() : new(login);
+        UserBuilder builder = new(login);
 
         if (id is { } identifier)
         {

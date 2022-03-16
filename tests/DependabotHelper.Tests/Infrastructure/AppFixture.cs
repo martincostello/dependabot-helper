@@ -83,6 +83,7 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
                 KeyValuePair.Create("GitHub:ClientId", "github-id"),
                 KeyValuePair.Create("GitHub:ClientSecret", "github-secret"),
                 KeyValuePair.Create("GitHub:EnterpriseDomain", string.Empty),
+                KeyValuePair.Create("Site:Domain", "dependabot.local"),
             };
 
             configBuilder.AddInMemoryCollection(config);
@@ -91,7 +92,10 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
 
         builder.ConfigureAntiforgeryTokenResource();
 
-        builder.ConfigureLogging((loggingBuilder) => loggingBuilder.ClearProviders().AddXUnit(this).SetMinimumLevel(LogLevel.Trace));
+        builder.ConfigureLogging(
+            (loggingBuilder) => loggingBuilder.ClearProviders().AddXUnit(this).SetMinimumLevel(LogLevel.Trace));
+
+        builder.UseEnvironment(Environments.Production);
 
         builder.UseSolutionRelativeContentRoot(Path.Combine("src", "DependabotHelper"));
 

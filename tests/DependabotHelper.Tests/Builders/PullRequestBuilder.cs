@@ -12,7 +12,7 @@ public sealed class PullRequestBuilder : ResponseBuilder
 
     public bool IsDraft { get; set; }
 
-    public bool IsMergeable { get; set; }
+    public bool? IsMergeable { get; set; }
 
     public int Number { get; set; } = RandomNumber();
 

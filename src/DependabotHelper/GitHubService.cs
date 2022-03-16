@@ -181,7 +181,10 @@ public sealed class GitHubService
             .ToList();
     }
 
-    public async Task MergePullRequestsAsync(ClaimsPrincipal user, string owner, string name)
+    public async Task<MergePullRequestsResponse> MergePullRequestsAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name)
     {
         var mergeRequest = new MergePullRequest()
         {
@@ -204,11 +207,13 @@ public sealed class GitHubService
             name,
             fetchStatuses: false);
 
+        var result = new MergePullRequestsResponse();
+
         if (mergeCandidates.Count > 0)
         {
             var policy = CreateMergePolicy();
 
-            foreach (var pr in mergeCandidates)
+            foreach (var pr in mergeCandidates.OrderBy((p) => p.Number))
             {
                 try
                 {
@@ -226,6 +231,8 @@ public sealed class GitHubService
                         owner,
                         name,
                         pr.Number);
+
+                    result.Numbers.Add(pr.Number);
                 }
                 catch (PullRequestNotMergeableException ex)
                 {
@@ -247,6 +254,8 @@ public sealed class GitHubService
                 }
             }
         }
+
+        return result;
     }
 
     public async Task VerifyCredentialsAsync()
