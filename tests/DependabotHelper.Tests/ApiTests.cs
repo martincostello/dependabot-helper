@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using JustEat.HttpClientInterception;
+using MartinCostello.DependabotHelper.Builders;
 using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
@@ -25,8 +26,8 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Approve_Pull_Request()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterPostReview(pullRequest);
@@ -35,7 +36,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls/{pullRequest.Number}/approve",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls/{pullRequest.Number}/approve",
             new { });
 
         // Assert
@@ -46,15 +47,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_If_No_Repositories()
     {
         // Arrange
-        var owner = CreateUser();
+        var user = CreateUser();
 
-        RegisterGetUser(owner);
-        RegisterGetUserRepositories(owner);
+        RegisterGetUser(user);
+        RegisterGetUserRepositories(user);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -65,17 +66,17 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_For_Self()
     {
         // Arrange
-        var owner = CreateUser("john-smith", id: 1);
-        var repository = owner.CreateRepository();
+        var user = CreateUser(CurrentUserLogin, CurrentUserId);
+        var repository = user.CreateRepository();
         repository.Visibility = "internal";
 
-        RegisterGetUser(owner);
+        RegisterGetUser(user);
         RegisterGetRepositoriesForCurrentUser(repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -83,7 +84,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         var actualRepository = actual[0];
 
-        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}");
         actualRepository.Id.ShouldBe(repository.Id);
         actualRepository.IsFork.ShouldBeFalse();
         actualRepository.IsPrivate.ShouldBeTrue();
@@ -94,17 +95,17 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_If_Organization_Has_Repositories()
     {
         // Arrange
-        var owner = CreateUser(userType: "organization");
-        var repository = owner.CreateRepository();
+        var organization = CreateUser(userType: "organization");
+        var repository = organization.CreateRepository();
         repository.IsPrivate = true;
 
-        RegisterGetUser(owner);
-        RegisterGetOrganizationRepositories(owner, repository);
+        RegisterGetUser(organization);
+        RegisterGetOrganizationRepositories(organization, repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{organization.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -112,7 +113,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         var actualRepository = actual[0];
 
-        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{organization.Login}/{repository.Name}");
         actualRepository.Id.ShouldBe(repository.Id);
         actualRepository.IsFork.ShouldBeFalse();
         actualRepository.IsPrivate.ShouldBeTrue();
@@ -123,16 +124,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Repositories_If_User_Has_Repositories()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
-        RegisterGetUser(owner);
-        RegisterGetUserRepositories(owner, repository);
+        RegisterGetUser(user);
+        RegisterGetUserRepositories(user, repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -140,7 +141,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         var actualRepository = actual[0];
 
-        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+        actualRepository.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}");
         actualRepository.Id.ShouldBe(repository.Id);
         actualRepository.IsFork.ShouldBeFalse();
         actualRepository.IsPrivate.ShouldBeFalse();
@@ -162,17 +163,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             "Dependabot:IncludeForks",
             includeForks.ToString(CultureInfo.InvariantCulture));
 
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+
+        var repository = user.CreateRepository();
         repository.IsFork = isFork;
 
-        RegisterGetUser(owner);
-        RegisterGetUserRepositories(owner, repository);
+        RegisterGetUser(user);
+        RegisterGetUserRepositories(user, repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{owner.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -182,7 +184,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         {
             var actualRepository = actual[0];
 
-            actualRepository.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}");
+            actualRepository.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}");
             actualRepository.Id.ShouldBe(repository.Id);
             actualRepository.IsFork.ShouldBe(isFork);
             actualRepository.IsPrivate.ShouldBeFalse();
@@ -198,23 +200,20 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Merge_Pull_Requests(bool allowMergeCommit, bool allowRebaseMerge)
     {
         // Arrange
-        var owner = CreateUser();
+        var user = CreateUser();
 
-        var repository = owner.CreateRepository();
+        var repository = user.CreateRepository();
         repository.AllowMergeCommit = allowMergeCommit;
         repository.AllowRebaseMerge = allowRebaseMerge;
 
         var pullRequest1 = repository.CreatePullRequest();
-
         var pullRequest2 = repository.CreatePullRequest();
-        pullRequest2.IsDraft = true;
-
         var pullRequest3 = repository.CreatePullRequest();
-
         var pullRequest4 = repository.CreatePullRequest();
-        pullRequest4.IsMergeable = false;
-
         var pullRequest5 = repository.CreatePullRequest();
+
+        pullRequest2.IsDraft = true;
+        pullRequest4.IsMergeable = false;
 
         RegisterGetRepository(repository);
         RegisterGetPullRequest(pullRequest1);
@@ -226,13 +225,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         RegisterGetIssues(
             repository,
-            "app/dependabot",
+            DependabotBotName,
             pullRequest1.CreateIssue(),
             pullRequest2.CreateIssue());
 
         RegisterGetIssues(
             repository,
-            "app/github-actions",
+            GitHubActionsBotName,
             repository.CreateIssue(),
             pullRequest4.CreateIssue(),
             pullRequest5.CreateIssue());
@@ -241,7 +240,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         using var response = await client.PostAsJsonAsync(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls/merge",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls/merge",
             new { });
 
         // Assert
@@ -252,15 +251,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Cannot_Get_Repository_That_Does_Not_Exist()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         RegisterGetRepository(repository, statusCode: StatusCodes.Status404NotFound);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -279,15 +278,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Api_Returns_Http_401_If_Token_Invalid()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         RegisterGetRepository(repository, statusCode: StatusCodes.Status401Unauthorized);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -306,15 +305,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Api_Returns_Http_403_If_Token_Forbidden()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         RegisterGetRepository(repository, statusCode: StatusCodes.Status403Forbidden);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
@@ -333,8 +332,8 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Api_Returns_Http_429_If_Api_Rate_Limits_Exceeded()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         RegisterGetRepository(
             repository,
@@ -350,7 +349,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{owner.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         response.StatusCode.ShouldBe((HttpStatusCode)StatusCodes.Status429TooManyRequests);
@@ -422,24 +421,24 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_None_Open()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
-        RegisterGetIssues(repository, "app/github-actions");
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls");
+            $"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         actual.ShouldNotBeNull();
-        actual.DependabotHtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}/network/updates");
-        actual.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}/pulls");
+        actual.DependabotHtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}/network/updates");
+        actual.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}/pulls");
         actual.Id.ShouldBe(repository.Id);
         actual.IsFork.ShouldBeFalse();
         actual.IsPrivate.ShouldBeFalse();
@@ -459,19 +458,19 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Dependabot_Not_Enabled()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository, statusCode: StatusCodes.Status404NotFound);
-        RegisterGetIssues(repository, "app/dependabot");
-        RegisterGetIssues(repository, "app/github-actions");
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName);
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls");
+            $"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -482,27 +481,24 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Draft()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
 
         var pullRequest = repository.CreatePullRequest();
         pullRequest.IsDraft = true;
 
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetRepository(repository);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls");
+            $"/github/repos/{user.Login}/{repository.Name}/pulls");
 
         // Assert
         actual.ShouldNotBeNull();
@@ -520,19 +516,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Approved()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -546,7 +539,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -562,11 +555,11 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
 
         actualPullRequest.ShouldNotBeNull();
-        actualPullRequest.HtmlUrl.ShouldBe($"https://github.com/{owner.Login}/{repository.Name}/pull/{pullRequest.Number}");
+        actualPullRequest.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}/pull/{pullRequest.Number}");
         actualPullRequest.IsApproved.ShouldBeTrue();
         actualPullRequest.Number.ShouldBe(pullRequest.Number);
         actualPullRequest.RepositoryName.ShouldBe(repository.Name);
-        actualPullRequest.RepositoryOwner.ShouldBe(owner.Login);
+        actualPullRequest.RepositoryOwner.ShouldBe(user.Login);
         actualPullRequest.Status.ShouldBe(ChecksStatus.Pending);
         actualPullRequest.Title.ShouldBe(pullRequest.Title);
     }
@@ -575,19 +568,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_No_Approvals()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
@@ -598,7 +588,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -618,19 +608,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Not_Approved(string state)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -644,7 +631,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -662,19 +649,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Approved_And_Commented()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -689,7 +673,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -707,19 +691,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Approved_And_Changes_Requested()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -734,7 +715,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -762,19 +743,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         bool expected)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var submittedAt = DateTimeOffset.UtcNow;
 
@@ -791,7 +769,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -812,19 +790,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_Project_Member_Can_Approve(string authorAssociation)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -838,7 +813,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -859,19 +834,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_Project_Member_Can_Request_Changes(string authorAssociation)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -885,7 +857,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -907,19 +879,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_External_Reviewer_Cannot_Approve(string authorAssociation)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -933,7 +902,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -955,19 +924,16 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_External_Reviewer_Cannot_Request_Changes(string authorAssociation)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
             pullRequest,
@@ -982,7 +948,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1008,21 +974,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         bool hasCheckRun)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var checkSuite = CreateCheckSuite(status, conclusion);
 
@@ -1030,21 +993,17 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateCheckSuites(checkSuite));
 
-        if (hasCheckRun)
-        {
-            RegisterGetCheckRuns(repository, checkSuite.Id, CreateCheckRun(status, conclusion));
-        }
-        else
-        {
-            RegisterGetCheckRuns(repository, checkSuite.Id);
-        }
+        RegisterGetCheckRuns(
+            repository,
+            checkSuite.Id,
+            hasCheckRun ? new[] { CreateCheckRun(status, conclusion) } : Array.Empty<CheckRunBuilder>());
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1075,21 +1034,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Failure(string conclusion)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
             pullRequest,
@@ -1100,7 +1056,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1129,21 +1085,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Success(string status, string? conclusion)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
             pullRequest,
@@ -1154,7 +1107,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1197,42 +1150,34 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         ChecksStatus expected)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
+        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
 
         RegisterGetIssues(
             repository,
-            "app/github-actions",
+            GitHubActionsBotName,
             pullRequest.CreateIssue());
 
         var firstSuite = CreateCheckSuite(first[0]!, first[1]);
         var secondSuite = CreateCheckSuite(second[0]!, second[1]);
 
-        if (firstHasCheckRun)
-        {
-            RegisterGetCheckRuns(repository, firstSuite.Id, CreateCheckRun(first[0]!));
-        }
-        else
-        {
-            RegisterGetCheckRuns(repository, firstSuite.Id);
-        }
+        RegisterGetCheckRuns(
+            repository,
+            firstSuite.Id,
+            firstHasCheckRun ? new[] { CreateCheckRun(first[0]!) } : Array.Empty<CheckRunBuilder>());
 
-        if (secondHasCheckRun)
-        {
-            RegisterGetCheckRuns(repository, secondSuite.Id, CreateCheckRun(second[0]!));
-        }
-        else
-        {
-            RegisterGetCheckRuns(repository, secondSuite.Id);
-        }
+        RegisterGetCheckRuns(
+            repository,
+            secondSuite.Id,
+            secondHasCheckRun ? new[] { CreateCheckRun(second[0]!) } : Array.Empty<CheckRunBuilder>());
 
         RegisterGetCheckSuites(
             pullRequest,
@@ -1243,7 +1188,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1261,21 +1206,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Status_Pending()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
             pullRequest,
@@ -1286,7 +1228,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1315,21 +1257,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Status_Failure(string state)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
             pullRequest,
@@ -1340,7 +1279,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1367,21 +1306,18 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     public async Task Can_Get_Pull_Requests_When_Status_Success()
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
             pullRequest,
@@ -1392,7 +1328,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1428,35 +1364,32 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         ChecksStatus expected)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
-
-        var firstStatus = CreateStatus(firstState);
-        var secondStatus = CreateStatus(secondState);
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
             pullRequest,
-            CreateStatuses(overallState, firstStatus, secondStatus));
+            CreateStatuses(
+                overallState,
+                CreateStatus(firstState),
+                CreateStatus(secondState)));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert
@@ -1487,24 +1420,22 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         ChecksStatus expected)
     {
         // Arrange
-        var owner = CreateUser();
-        var repository = owner.CreateRepository();
+        var user = CreateUser();
+        var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, "app/dependabot");
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
 
-        RegisterGetIssues(
-            repository,
-            "app/github-actions",
-            pullRequest.CreateIssue());
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
             pullRequest,
-            CreateCheckSuites(CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion)));
+            CreateCheckSuites(
+                CreateCheckSuite(checkSuiteStatus, checkSuiteConclusion)));
 
         RegisterGetStatuses(
             pullRequest,
@@ -1515,7 +1446,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{owner.Login}/{repository.Name}/pulls",
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
             options);
 
         // Assert

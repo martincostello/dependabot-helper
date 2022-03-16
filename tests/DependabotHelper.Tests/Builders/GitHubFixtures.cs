@@ -5,6 +5,16 @@ namespace MartinCostello.DependabotHelper.Builders;
 
 public static class GitHubFixtures
 {
+    public const string AuthorizationHeader = "Token gho_secret-access-token";
+
+    public const int CurrentUserId = 1;
+
+    public const string CurrentUserLogin = "john-smith";
+
+    public const string DependabotBotName = "app/dependabot";
+
+    public const string GitHubActionsBotName = "app/github-actions";
+
     public static CheckRunBuilder CreateCheckRun(
         string status,
         string? conclusion = null,
@@ -121,8 +131,8 @@ updates:
 
     public static UserBuilder CreateUser(
         string? login = null,
-        string? userType = null,
-        int? id = null)
+        int? id = null,
+        string? userType = null)
     {
         UserBuilder builder = login is null ? new() : new(login);
 
