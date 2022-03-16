@@ -39,7 +39,7 @@ public abstract class AppPage
         => await Page.WaitForSelectorAsync(Selectors.UserName);
 
     public async Task WaitForSignedOutAsync()
-        => await Page.WaitForSelectorAsync(Selectors.SignIn);
+        => await Assertions.Expect(Page.Locator(Selectors.SignIn)).ToBeVisibleAsync();
 
     public abstract class Item
     {
