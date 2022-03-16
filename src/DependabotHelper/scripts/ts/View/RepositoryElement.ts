@@ -141,10 +141,14 @@ export class RepositoryElement {
     }
 
     private hideLoader(element: Element): void {
-        Elements.hide(element.querySelector(this.loaderSelector));
+        const loader = element.querySelector(this.loaderSelector);
+        Elements.show(loader.previousElementSibling);
+        Elements.hide(loader);
     }
 
     private showLoader(element: Element): void {
-        Elements.show(element.querySelector(this.loaderSelector));
+        const loader = element.querySelector(this.loaderSelector);
+        Elements.hide(loader.previousElementSibling);
+        Elements.show(loader);
     }
 }

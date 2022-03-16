@@ -14,13 +14,13 @@
 <div id="owner-list" data-refresh-period="@(Model.RefreshPeriod?.TotalMilliseconds)">
     <div class="d-none owner-item owner-template">
         <h2 class="owner-name"></h2>
-        <table class="table table-responsive">
+        <table class="table">
             <caption class="owner-caption"></caption>
             <thead>
                 <tr>
                     <th scope="col" aria-label="The name of the repository">Repository</th>
                     <th scope="col" class="col-lg-3" aria-label="The pull request status checks and approvals">Statuses and Approvals</th>
-                    <th scope="col" class="col-lg-3">Actions</th>
+                    <th scope="col" class="col-lg-4">Actions</th>
                 </tr>
             </thead>
             <tbody class="repo-list">
@@ -32,55 +32,55 @@
                     <td>
                         <div class="container-fluid">
                             <div class="row">
-                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                <span class="col-12 col-lg-3 mt-2 mt-lg-0 mt-lg-2">
                                     <span class="repo-count-pending" aria-label="The number of pending checks">&hellip;</span>
                                     <span class="fa-solid fa-spinner repo-status text-warning" data-count="0" aria-hidden="true"></span>
-                                </div>
-                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                </span>
+                                <span class="col-12 col-lg-3 mt-4 mt-lg-0 mt-lg-2">
                                     <span class="repo-count-error loading-count" aria-label="The number of failed checks">&hellip;</span>
                                     <span class="fa-solid fa-xmark repo-status text-danger" data-count="0" aria-hidden="true"></span>
-                                </div>
-                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                </span>
+                                <span class="col-12 col-lg-3 mt-4 mb-3 mt-lg-0 mb-lg-0 mt-lg-2">
                                     <span class="repo-count-success loading-count" aria-label="The number of successful checks">&hellip;</span>
                                     <span class="fa-solid fa-check repo-status text-success" data-count="0" aria-hidden="true"></span>
-                                </div>
-                                <div class="col-12 col-lg-3 mt-3 mt-lg-2">
+                                </span>
+                                <span class="col-12 col-lg-3 mt-1 mt-lg-0 mt-lg-0 mt-lg-2">
                                     <span class="repo-count-approved loading-count" aria-label="The number of approvals">&hellip;</span>
                                     <span class="fa-solid fa-thumbs-up repo-status text-primary" data-count="0" aria-hidden="true"></span>
-                                </div>
+                                </span>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div class="text-right">
+                        <div class="float-right">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <div class="col-12 col-lg-3 mt-1">
+                                    <span class="m-1 my-lg-2">
                                         <button class="btn btn-manage-action btn-secondary repo-refresh" title="Refresh" type="button" disabled>
                                             <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
                                             <span class="loader spinner-border spinner-border-sm d-none" role="status">
                                                 <span class="sr-only">Refreshing...</span>
                                             </span>
                                         </button>
-                                    </div>
-                                    <div class="col-12 col-lg-3 mt-1">
+                                    </span>
+                                    <span class="m-1 my-lg-2">
                                         <a class="btn btn-manage-action btn-primary repo-configure disabled" href="#" role="button" target="_blank" title="View the Dependabot configuration">
                                             <span class="fa-solid fa-robot" aria-hidden="true"></span>
                                         </a>
-                                    </div>
-                                    <div class="col-12 col-lg-3 mt-1">
+                                    </span>
+                                    <span class="m-1 my-lg-2">
                                         <button class="btn btn-manage-action btn-pr repo-pull-requests" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
                                             <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
                                         </button>
-                                    </div>
-                                    <div class="col-12 col-lg-3 mt-1">
+                                    </span>
+                                    <span class="m-1 my-lg-2">
                                         <button class="btn btn-manage-action btn-success btn-merge repo-merge" title="Attempt to merge all mergeable pull requests" type="button" disabled>
                                             <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
                                             <span class="loader spinner-border spinner-border-sm d-none" role="status">
                                                 <span class="sr-only">Merging...</span>
                                             </span>
                                         </button>
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -112,7 +112,8 @@
                     <thead>
                         <tr>
                             <th scope="col">Title</th>
-                            <th class="col-lg-4" scope="col">Status and Approval</th>
+                            <th class="col-lg-2" scope="col">Status</th>
+                            <th class="col-lg-3" scope="col">Approved?</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,25 +123,26 @@
                                 <a href="" target="_blank" class="pr-title">Title</a>
                             </td>
                             <td class="text-center">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-lg-2 mt-2 mt-lg-1">
-                                            <span class="fa-solid fa-xmark text-danger pr-status-error d-none" data-count="0" aria-label="Error" title="Error"></span>
-                                            <span class="fa-solid fa-spinner text-warning pr-status-pending d-none" data-count="0" aria-label="Pending" title="Pending"></span>
-                                            <span class="fa-solid fa-check text-success pr-status-success d-none" data-count="0" aria-label="Success" title="Success"></span>
-                                        </div>
-                                        <div class="col-lg-10 mt-3 mt-lg-1">
-                                            <span class="fa-solid fa-thumbs-up text-primary pr-is-approved d-none" data-count="0" aria-label="Approved" title="Approved"></span>
-                                            <button class="btn btn-success btn-approve pr-approve d-none" type="button">
-                                                <span aria-label="Approve this pull request">Approve</span>
-                                                <span class="fa-solid fa-check" aria-hidden="true"></span>
-                                                <span class="loader spinner-border spinner-border-sm d-none" role="status">
-                                                    <span class="sr-only">Approving...</span>
-                                                </span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <span class="fa-solid fa-xmark text-danger pr-status-error d-none" data-count="0" aria-label="Error" title="Error"></span>
+                                <span class="fa-solid fa-spinner text-warning pr-status-pending d-none" data-count="0" aria-label="Pending" title="Pending"></span>
+                                <span class="fa-solid fa-check text-success pr-status-success d-none" data-count="0" aria-label="Success" title="Success"></span>
+                            </td>
+                            <td class="text-center mt-3 mt-lg-1">
+                                <span>
+                                    <span class="fa-solid fa-xmark text-danger pr-status-error d-none" data-count="0" aria-label="Error" title="Error"></span>
+                                    <span class="fa-solid fa-spinner text-warning pr-status-pending d-none" data-count="0" aria-label="Pending" title="Pending"></span>
+                                    <span class="fa-solid fa-check text-success pr-status-success d-none" data-count="0" aria-label="Success" title="Success"></span>
+                                </span>
+                                <span>
+                                    <span class="fa-solid fa-thumbs-up text-primary pr-is-approved d-none" data-count="0" aria-label="Approved" title="Approved"></span>
+                                    <button class="btn btn-success btn-approve pr-approve d-none" type="button" aria-label="Approve this pull request">
+                                        <span>Approve</span>
+                                        <span class="fa-solid fa-check d-none d-md-inline-block" aria-hidden="true"></span>
+                                        <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                            <span class="sr-only">Approving...</span>
+                                        </span>
+                                    </button>
+                                </span>
                             </td>
                         </tr>
                     </tbody>
