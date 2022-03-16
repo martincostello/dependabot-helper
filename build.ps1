@@ -144,7 +144,8 @@ $publishProjects = @(
 )
 
 $testProjects = @(
-    (Join-Path $solutionPath "tests" "DependabotHelper.Tests" "DependabotHelper.Tests.csproj")
+    (Join-Path $solutionPath "tests" "DependabotHelper.Tests" "DependabotHelper.Tests.csproj"),
+    (Join-Path $solutionPath "tests" "DependabotHelper.EndToEndTests" "DependabotHelper.EndToEndTests.csproj")
 )
 
 Write-Host "Publishing solution..." -ForegroundColor Green

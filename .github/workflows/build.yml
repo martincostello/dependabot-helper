@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
 
 env:
+  APPLICATION_URL_PROD: https://dependabot.martincostello.com
   AZURE_WEBAPP_NAME: dependabothelper
   AZURE_WEBAPP_PACKAGE_PATH: ./artifacts/publish
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -20,7 +21,6 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   NUGET_XMLDOC_MODE: skip
-  WEBSITE_URL_PROD: https://dependabot.martincostello.com
 
 jobs:
   build:
@@ -89,7 +89,7 @@ jobs:
     concurrency: production_environment
     environment:
       name: production
-      url: ${{ env.WEBSITE_URL_PROD }}
+      url: ${{ env.APPLICATION_URL_PROD }}
 
     steps:
 
@@ -104,3 +104,46 @@ jobs:
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }}
+
+  test:
+    name: test-production
+    needs: deploy-production
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v2
+
+    - name: Run end-to-end tests
+      shell: pwsh
+      run: dotnet test ./tests/DependabotHelper.EndToEndTests --configuration Release --output ./artifacts
+      env:
+        APPLICATION_URL: ${{ env.APPLICATION_URL_PROD }}
+
+    - name: Publish screenshots
+      uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: screenshots
+        path: ./artifacts/screenshots/*
+        if-no-files-found: ignore
+
+    - name: Publish traces
+      uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: traces
+        path: ./artifacts/traces/*
+        if-no-files-found: ignore
+
+    - name: Publish videos
+      uses: actions/upload-artifact@v2
+      if: ${{ always() }}
+      with:
+        name: videos
+        path: ./artifacts/videos/*
+        if-no-files-found: ignore
