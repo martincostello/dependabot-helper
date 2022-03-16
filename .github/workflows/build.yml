@@ -107,7 +107,7 @@ jobs:
 
   test:
     name: test-production
-    needs: deploy-production
+    needs: deploy
     runs-on: ubuntu-latest
 
     steps:
