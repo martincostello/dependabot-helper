@@ -13,8 +13,6 @@ namespace MartinCostello.DependabotHelper.Infrastructure;
 public abstract class IntegrationTests<T> : IAsyncLifetime
     where T : AppFixture
 {
-    private const string AuthorizationHeader = "Token gho_secret-access-token";
-
     private readonly IDisposable _scope;
 
     protected IntegrationTests(T fixture, ITestOutputHelper outputHelper)
