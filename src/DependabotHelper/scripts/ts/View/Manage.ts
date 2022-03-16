@@ -25,6 +25,8 @@ export class Manage extends Page {
         const repoElements: RepositoryElement[] = [];
         const owners = this.storage.getOwners();
 
+        const ownerList = Page.ownerList();
+
         for (const [owner, repositories] of owners) {
 
             if (repositories.length < 1) {
@@ -32,7 +34,6 @@ export class Manage extends Page {
             }
 
             // Create a new owner table and append to the list
-            const ownerList = Page.ownerList();
             const template = ownerList.querySelector('.' + this.ownerTemplateClass);
             const node = template.cloneNode(true);
             ownerList.appendChild(node);
@@ -61,6 +62,17 @@ export class Manage extends Page {
             }
         });
 
+        let refreshInterval: number = null;
+
+        const refreshIntervalString = ownerList.getAttribute('data-refresh-period');
+
+        if (refreshIntervalString) {
+            const interval = parseInt(refreshIntervalString, 10);
+            if (interval > 1000 * 30) {
+                refreshInterval = interval;
+            }
+        }
+
         // Sequentially load the Pull Requests for each repository listed
         for (const element of repoElements) {
 
@@ -80,14 +92,16 @@ export class Manage extends Page {
                 await this.updateRepository(element);
             });
 
-            // Automatically refresh the UI every 10 minutes
-            // plus a random jitter factor of 0-30 seconds.
-            const jitter = Math.floor(Math.random() * 30) * 1000;
-            const interval = (10 * 60 * 1000) + jitter;
+            // Automatically refresh the UI with a random
+            // jitter factor of 0-30 seconds, if configured.
+            if (refreshInterval) {
+                const jitter = Math.floor(Math.random() * 30) * 1000;
+                const interval = refreshInterval + jitter;
 
-            setInterval(async () => {
-                await this.updateRepository(element);
-            }, interval);
+                setInterval(async () => {
+                    await this.updateRepository(element);
+                }, interval);
+            }
         }
 
         if (repoElements.length < 1) {

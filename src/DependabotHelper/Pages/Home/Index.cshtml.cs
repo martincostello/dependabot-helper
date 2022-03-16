@@ -6,14 +6,21 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper.Pages;
 
 [Authorize]
 public sealed class IndexModel : PageModel
 {
-    public async Task OnGet([FromServices] GitHubService service)
+    public TimeSpan? RefreshPeriod { get; set; }
+
+    public async Task OnGet(
+        [FromServices] GitHubService service,
+        [FromServices] IOptionsSnapshot<DependabotOptions> options)
     {
+        RefreshPeriod = options.Value?.RefreshPeriod;
+
         try
         {
             await service.VerifyCredentialsAsync();
@@ -21,6 +28,10 @@ public sealed class IndexModel : PageModel
         catch (Octokit.AuthorizationException)
         {
             await HttpContext.ReauthenticateAsync();
+        }
+        catch (Octokit.RateLimitExceededException)
+        {
+            // Ignore and let the page load
         }
     }
 }
