@@ -193,6 +193,44 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
+    [InlineData(false, false, null, 1)]
+    [InlineData(false, false, "internal", 0)]
+    [InlineData(false, false, "public", 1)]
+    [InlineData(false, true, null, 0)]
+    [InlineData(true, false, null, 1)]
+    [InlineData(true, false, "internal", 1)]
+    [InlineData(true, true, null, 1)]
+    public async Task Can_Filter_Repositories_That_Are_Private(
+        bool includePrivate,
+        bool isPrivate,
+        string? visibility,
+        int expectedCount)
+    {
+        // Arrange
+        Fixture.OverrideConfiguration(
+            "Dependabot:IncludePrivate",
+            includePrivate.ToString(CultureInfo.InvariantCulture));
+
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+
+        repository.IsPrivate = isPrivate;
+        repository.Visibility = visibility;
+
+        RegisterGetUser(user);
+        RegisterGetUserRepositories(user, repository);
+
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.Count.ShouldBe(expectedCount);
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
