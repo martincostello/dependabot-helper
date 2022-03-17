@@ -11,6 +11,8 @@ public sealed class DependabotOptions
 
     public bool IncludeForks { get; set; }
 
+    public bool IncludePrivate { get; set; }
+
     public IList<string> Labels { get; set; } = new List<string>();
 
     public IList<TimeSpan> MergeRetryWaits { get; set; } = new List<TimeSpan>();

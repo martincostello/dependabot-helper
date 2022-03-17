@@ -166,6 +166,7 @@ public sealed class GitHubService
         return repositories
             .Where((p) => !p.Archived)
             .Where((p) => _options.IncludeForks || !p.Fork)
+            .Where((p) => _options.IncludePrivate || !p.IsPrivate())
             .Select((p) =>
             {
                 return new Models.Repository()
