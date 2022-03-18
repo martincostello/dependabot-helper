@@ -18,6 +18,11 @@
         siteUrl = $"https://{domain}/";
         imageUrl = $"https://{domain}/favicon.png";
     }
+
+    string repository = "https://github.com/martincostello/dependabot-helper";
+    string branch = repository + "/tree/" + GitMetadata.Branch;
+    string build = repository + "/actions/runs/" + GitMetadata.BuildId;
+    string commit = repository + "/commit/" + GitMetadata.Commit;
 }
 <!DOCTYPE html>
 <html>
@@ -153,12 +158,6 @@
                         <span id="rate-limit-resets" class="relative-timestamp" title="@rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.Reset.Humanize()</span>.
                     </small>
                 </span>
-                @{
-                    string repository = "https://github.com/martincostello/dependabot-helper";
-                    string branch = repository + "/tree/" + GitMetadata.Branch;
-                    string build = repository + "/actions/runs/" + GitMetadata.BuildId;
-                    string commit = repository + "/commit/" + GitMetadata.Commit;
-                }
                 <span class="d-none d-lg-inline-block float-right">
                     <small>
                         Built from
