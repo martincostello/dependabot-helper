@@ -145,13 +145,40 @@
         <hr />
         <footer>
             <p>
+                <span>
+                    <small @(rateLimits?.Limit is null ? "d-none" : string.Empty)">
+                        GitHub API Limits:
+                        <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
+                        Resets
+                        <span id="rate-limit-resets" class="relative-timestamp" title="@rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.Reset.Humanize()</span>.
+                    </small>
+                </span>
+                @{
+                    string repository = "https://github.com/martincostello/dependabot-helper";
+                    string branch = repository + "/tree/" + GitMetadata.Branch;
+                    string build = repository + "/actions/runs/" + GitMetadata.BuildId;
+                    string commit = repository + "/commit/" + GitMetadata.Commit;
+                }
+                <span class="d-none d-lg-inline-block float-right">
+                    <small>
+                        Built from
+                        <a href="@commit" title="View commit @GitMetadata.Commit on GitHub">
+                            @string.Join(string.Empty, GitMetadata.Commit.Take(7))
+                        </a>
+                        on
+                        <a href="@branch" title="View branch @GitMetadata.Branch on GitHub">
+                            @GitMetadata.Branch
+                        </a>
+                        by
+                        <a href="@build" title="View deployment on GitHub">
+                            GitHub
+                        </a>
+                        <span id="build-date" class="relative-timestamp" title="@GitMetadata.Timestamp.ToString("u", CultureInfo.InvariantCulture)">@GitMetadata.Timestamp.Humanize()</span>.
+                    </small>
+                </span>
+            </p>
+            <p>
                 &copy; @(DateTimeOffset.UtcNow.Year) - Martin Costello
-                <small class="float-right @(rateLimits?.Limit is null ? "d-none" : string.Empty)">
-                    GitHub API Limits:
-                    <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
-                    Resets
-                    <span id="rate-limit-resets" class="relative-timestamp" title="@rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.Reset.Humanize()</span>.
-                </small>
             </p>
         </footer>
     </main>
@@ -159,4 +186,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
     <script src="~/static/js/main.js" asp-append-version="true"></script>
 </body>
+<!--
+    Deployment:    @(build)
+    Commit SHA:    @(GitMetadata.Commit)
+    Commit branch: @(GitMetadata.Branch)
+    Timestamp:     @(GitMetadata.Timestamp)
+    Version:       @(System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription)
+-->
 </html>
