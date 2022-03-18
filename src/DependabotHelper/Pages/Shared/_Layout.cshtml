@@ -151,7 +151,7 @@
         <footer>
             <p>
                 <span>
-                    <small @(rateLimits?.Limit is null ? "d-none" : string.Empty)">
+                    <small class="@(rateLimits?.Limit is null ? "d-none" : string.Empty)">
                         GitHub API Limits:
                         <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
                         Resets
