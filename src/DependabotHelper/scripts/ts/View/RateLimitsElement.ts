@@ -42,7 +42,7 @@ export class RateLimitsElement {
     }
 
     private updateRelativeTimestamps() {
-        const elements = document.querySelectorAll('relative-timestamp');
+        const elements = document.querySelectorAll('.relative-timestamp');
         for (const element of elements) {
             const timestamp = element.getAttribute(this.titleAttribute);
             if (timestamp) {
