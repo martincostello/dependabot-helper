@@ -162,11 +162,11 @@
                     <small>
                         Built from
                         <a href="@commit" title="View commit @GitMetadata.Commit on GitHub">
-                            @string.Join(string.Empty, GitMetadata.Commit.Take(7))
+                            <code>@string.Join(string.Empty, GitMetadata.Commit.Take(7))</code>
                         </a>
                         on
                         <a href="@branch" title="View branch @GitMetadata.Branch on GitHub">
-                            @GitMetadata.Branch
+                            <code>@GitMetadata.Branch</code>
                         </a>
                         by
                         <a href="@build" title="View deployment on GitHub">
