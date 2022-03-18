@@ -20,10 +20,7 @@ export class RateLimitsElement {
         this.total = Page.findId('rate-limit-total');
 
         setInterval(() => {
-            const timestamp = this.resets.getAttribute(this.titleAttribute);
-            if (timestamp) {
-                this.updateRelativeTime(moment(timestamp));
-            }
+            this.updateRelativeTimestamps();
         }, 60 * 1000);
     }
 
@@ -39,12 +36,22 @@ export class RateLimitsElement {
         const resetsAt = moment(limits.resets * 1000);
 
         this.resets.setAttribute(this.titleAttribute, resetsAt.format());
-        this.updateRelativeTime(resetsAt);
+        this.updateRelativeTime(this.resets, resetsAt);
 
         Elements.show(this.remaining.parentElement);
     }
 
-    private updateRelativeTime(timestamp: moment.Moment) {
-        this.resets.innerText = timestamp.fromNow();
+    private updateRelativeTimestamps() {
+        const elements = document.querySelectorAll('relative-timestamp');
+        for (const element of elements) {
+            const timestamp = element.getAttribute(this.titleAttribute);
+            if (timestamp) {
+                this.updateRelativeTime(<HTMLElement>element, moment(timestamp));
+            }
+        }
+    }
+
+    private updateRelativeTime(element: HTMLElement, timestamp: moment.Moment) {
+        element.innerText = timestamp.fromNow();
     }
 }
