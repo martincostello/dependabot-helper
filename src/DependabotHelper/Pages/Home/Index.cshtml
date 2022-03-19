@@ -13,77 +13,63 @@
 </div>
 <div id="owner-list" data-refresh-period="@(Model.RefreshPeriod?.TotalMilliseconds)">
     <div class="d-none owner-item owner-template">
-        <h2 class="owner-name"></h2>
+        <h2 class="owner-name pl-1"></h2>
         <table class="table">
             <caption class="owner-caption"></caption>
             <thead>
-                <tr>
-                    <th scope="col" aria-label="The name of the repository">Repository</th>
-                    <th scope="col" class="col-lg-3" aria-label="The pull request status checks and approvals">Statuses and Approvals</th>
-                    <th scope="col" class="col-lg-4">Actions</th>
+                <tr class="d-flex">
+                    <th class="col" aria-label="The name of the repository">Repository</th>
+                    <th class="col col-3" aria-label="The pull request status checks and approvals">Statuses</th>
+                    <th class="col col-2 col-md-3">Actions</th>
                 </tr>
             </thead>
             <tbody class="repo-list">
                 <tr class="d-none item-template repo-item">
-                    <td class="align-middle">
+                    <td class="col">
                         <span class="loader spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <a class="repo-name" href="#" target="_blank"></a>
+                        <a class="align-middle repo-name" href="#" target="_blank"></a>
                     </td>
-                    <td>
-                        <div class="container-fluid">
+                    <td class="col col-3">
+                        <div class="container">
                             <div class="row">
-                                <span class="col-12 col-lg-3 mt-2 mt-lg-0 mt-lg-2">
+                                <div class="col status-container">
                                     <span class="repo-count-pending" aria-label="The number of pending checks">&hellip;</span>
                                     <span class="fa-solid fa-spinner repo-status text-warning" data-count="0" aria-hidden="true"></span>
-                                </span>
-                                <span class="col-12 col-lg-3 mt-4 mt-lg-0 mt-lg-2">
+                                </div>
+                                <div class="col status-container">
                                     <span class="repo-count-error loading-count" aria-label="The number of failed checks">&hellip;</span>
                                     <span class="fa-solid fa-xmark repo-status text-danger" data-count="0" aria-hidden="true"></span>
-                                </span>
-                                <span class="col-12 col-lg-3 mt-4 mb-3 mt-lg-0 mb-lg-0 mt-lg-2">
+                                </div>
+                                <div class="col status-container">
                                     <span class="repo-count-success loading-count" aria-label="The number of successful checks">&hellip;</span>
                                     <span class="fa-solid fa-check repo-status text-success" data-count="0" aria-hidden="true"></span>
-                                </span>
-                                <span class="col-12 col-lg-3 mt-1 mt-lg-0 mt-lg-0 mt-lg-2">
+                                </div>
+                                <div class="col status-container">
                                     <span class="repo-count-approved loading-count" aria-label="The number of approvals">&hellip;</span>
                                     <span class="fa-solid fa-thumbs-up repo-status text-primary" data-count="0" aria-hidden="true"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="float-right">
-                            <div class="container-fluid">
-                                <div class="row">
-                                    <span class="m-1 my-lg-2">
-                                        <button class="btn btn-manage-action btn-secondary repo-refresh" title="Refresh" type="button" disabled>
-                                            <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
-                                            <span class="loader spinner-border spinner-border-sm d-none" role="status">
-                                                <span class="sr-only">Refreshing...</span>
-                                            </span>
-                                        </button>
-                                    </span>
-                                    <span class="m-1 my-lg-2">
-                                        <a class="btn btn-manage-action btn-primary repo-configure disabled" href="#" role="button" target="_blank" title="View the Dependabot configuration">
-                                            <span class="fa-solid fa-robot" aria-hidden="true"></span>
-                                        </a>
-                                    </span>
-                                    <span class="m-1 my-lg-2">
-                                        <button class="btn btn-manage-action btn-pr repo-pull-requests" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
-                                            <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
-                                        </button>
-                                    </span>
-                                    <span class="m-1 my-lg-2">
-                                        <button class="btn btn-manage-action btn-success btn-merge repo-merge" title="Attempt to merge all mergeable pull requests" type="button" disabled>
-                                            <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
-                                            <span class="loader spinner-border spinner-border-sm d-none" role="status">
-                                                <span class="sr-only">Merging...</span>
-                                            </span>
-                                        </button>
-                                    </span>
                                 </div>
                             </div>
                         </div>
+                    </td>
+                    <td class="col col-2 col-md-3">
+                        <button class="btn btn-manage-action btn-secondary repo-refresh m-1" title="Refresh" type="button" disabled>
+                            <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
+                            <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                <span class="sr-only">Refreshing...</span>
+                            </span>
+                        </button>
+                        <a class="btn btn-manage-action btn-primary repo-configure disabled m-1" href="#" role="button" target="_blank" title="View the Dependabot configuration">
+                            <span class="fa-solid fa-robot" aria-hidden="true"></span>
+                        </a>
+                        <button class="btn btn-manage-action btn-pr repo-pull-requests m-1" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
+                            <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
+                        </button>
+                        <button class="btn btn-manage-action btn-success btn-merge repo-merge m-1" title="Attempt to merge all mergeable pull requests" type="button" disabled>
+                            <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
+                            <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                <span class="sr-only">Merging...</span>
+                            </span>
+                        </button>
                     </td>
                 </tr>
             </tbody>

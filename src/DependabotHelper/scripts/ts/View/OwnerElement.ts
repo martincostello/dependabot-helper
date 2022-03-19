@@ -37,6 +37,7 @@ export class OwnerElement {
 
         const element = this.repostoryList.lastElementChild;
         element.classList.remove(this.itemTemplateClass);
+        element.classList.add('d-flex');
 
         return new RepositoryElement(this.owner, name, element);
     }

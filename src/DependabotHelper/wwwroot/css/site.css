@@ -93,6 +93,18 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     content: ' (#' attr(data-number) ')';
 }
 
+.status-container {
+    padding-top: 0.5rem;
+}
+
+@media (max-width: 1200px) {
+    .status-container {
+        min-height: 3rem;
+        min-width: 4rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
 .text-github-open {
     color: #2da44e;
 }
