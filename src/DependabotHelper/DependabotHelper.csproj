@@ -8,6 +8,7 @@
     <UserSecretsId>DependabotHelper</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" />
     <PackageReference Include="AspNet.Security.OAuth.GitHub" />
     <PackageReference Include="Humanizer" />
     <PackageReference Include="Microsoft.TypeScript.MSBuild" PrivateAssets="all" />

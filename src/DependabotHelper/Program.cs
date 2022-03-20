@@ -30,6 +30,8 @@ if (string.Equals(builder.Configuration["CODESPACES"], "true", StringComparison.
         options => options.ForwardedHeaders |= ForwardedHeaders.XForwardedHost);
 }
 
+builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
