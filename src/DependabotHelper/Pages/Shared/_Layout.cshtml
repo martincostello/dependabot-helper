@@ -161,15 +161,15 @@
                 <span class="d-none d-lg-inline-block float-right">
                     <small>
                         Built from
-                        <a href="@commit" title="View commit @GitMetadata.Commit on GitHub">
+                        <a href="@commit" title="View commit @GitMetadata.Commit on GitHub" target="_blank">
                             <code>@string.Join(string.Empty, GitMetadata.Commit.Take(7))</code>
                         </a>
                         on
-                        <a href="@branch" title="View branch @GitMetadata.Branch on GitHub">
+                        <a href="@branch" title="View branch @GitMetadata.Branch on GitHub" target="_blank">
                             <code>@GitMetadata.Branch</code>
                         </a>
                         by
-                        <a href="@build" title="View deployment on GitHub">
+                        <a href="@build" title="View deployment on GitHub" target="_blank">
                             GitHub
                         </a>
                         <span id="build-date" class="relative-timestamp" title="@GitMetadata.Timestamp.ToString("u", CultureInfo.InvariantCulture)">@GitMetadata.Timestamp.Humanize()</span>.
