@@ -7,7 +7,7 @@ namespace MartinCostello.DependabotHelper;
 
 public static class GitMetadata
 {
-    public static string BuildId { get; } = GetMetadataValue("BuildId", "Unknown");
+    public static string BuildId { get; } = GetMetadataValue("BuildId", string.Empty);
 
     public static string Branch { get; } = GetMetadataValue("CommitBranch", "Unknown");
 
