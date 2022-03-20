@@ -168,10 +168,15 @@
                         <a href="@branch" title="View branch @GitMetadata.Branch on GitHub" target="_blank">
                             <code>@GitMetadata.Branch</code>
                         </a>
-                        by
-                        <a href="@build" title="View deployment on GitHub" target="_blank">
-                            GitHub
-                        </a>
+                        @if (!string.IsNullOrWhiteSpace(GitMetadata.BuildId))
+                        {
+                            <text>
+                            by
+                            <a href="@build" title="View deployment on GitHub" target="_blank">
+                                GitHub
+                            </a>
+                            </text>
+                        }
                         <span id="build-date" class="relative-timestamp" title="@GitMetadata.Timestamp.ToString("u", CultureInfo.InvariantCulture)">@GitMetadata.Timestamp.Humanize()</span>.
                     </small>
                 </span>
