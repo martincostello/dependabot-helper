@@ -7,6 +7,7 @@ param(
     [Parameter(Mandatory = $false)][string] $Configuration = "Release",
     [Parameter(Mandatory = $false)][string] $OutputPath = "",
     [Parameter(Mandatory = $false)][string] $Runtime = "",
+    [Parameter(Mandatory = $false)][string] $TestFilter = "",
     [Parameter(Mandatory = $false)][switch] $SkipTests
 )
 
@@ -91,6 +92,11 @@ function DotNetTest {
     param([string]$Project)
 
     $additionalArgs = @()
+
+    if (![string]::IsNullOrEmpty($TestFilter)) {
+        $additionalArgs += "--filter"
+        $additionalArgs += $TestFilter
+    }
 
     if (![string]::IsNullOrEmpty($env:GITHUB_SHA)) {
         $additionalArgs += "--logger"
