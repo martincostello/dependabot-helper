@@ -2,7 +2,6 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Security.Cryptography;
-using AspNet.Security.OAuth.GitHub;
 using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper;
@@ -42,7 +41,7 @@ public sealed class CustomHttpHeadersMiddleware
     public Task Invoke(
         HttpContext context,
         IWebHostEnvironment environment,
-        IOptions<GitHubAuthenticationOptions> gitHubOptions)
+        IOptions<GitHubOptions> gitHubOptions)
     {
         string nonce = GenerateNonce();
         context.SetCspNonce(nonce);
@@ -56,7 +55,7 @@ public sealed class CustomHttpHeadersMiddleware
             {
                 context.Response.Headers.Add(
                     "Content-Security-Policy",
-                    ContentSecurityPolicy(nonce, gitHubOptions.Value.AuthorizationEndpoint));
+                    ContentSecurityPolicy(nonce, gitHubOptions.Value.EnterpriseDomain));
             }
 
             if (context.Request.IsHttps)
@@ -86,18 +85,18 @@ public sealed class CustomHttpHeadersMiddleware
 
     private static string ContentSecurityPolicy(
         string nonce,
-        string gitHubAuthorizationEndpoint)
+        string gitHubEnterpriseDomain)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
             ContentSecurityPolicyTemplate,
             nonce,
-            ParseGitHubHost(gitHubAuthorizationEndpoint));
+            ParseGitHubHost(gitHubEnterpriseDomain));
     }
 
-    private static string ParseGitHubHost(string gitHubAuthorizationEndpoint)
+    private static string ParseGitHubHost(string gitHubEnterpriseDomain)
     {
-        if (Uri.TryCreate(gitHubAuthorizationEndpoint, UriKind.Absolute, out Uri? gitHubHost))
+        if (Uri.TryCreate(gitHubEnterpriseDomain, UriKind.Absolute, out Uri? gitHubHost))
         {
             return gitHubHost.Host;
         }
