@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using AspNet.Security.OAuth.GitHub;
+using Microsoft.Extensions.Options;
+
 namespace MartinCostello.DependabotHelper;
 
 public sealed class CustomHttpHeadersMiddleware
 {
-    private static readonly string ContentSecurityPolicy = string.Join(
+    private static readonly string ContentSecurityPolicyTemplate = string.Join(
         ';',
         new[]
         {
@@ -13,6 +16,7 @@ public sealed class CustomHttpHeadersMiddleware
             "script-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com",
             "script-src-elem 'self' cdn.jsdelivr.net cdnjs.cloudflare.com",
             "style-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
+            "style-src-elem 'self' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
             "img-src 'self' avatars.githubusercontent.com",
             "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
             "connect-src 'self'",
@@ -20,7 +24,7 @@ public sealed class CustomHttpHeadersMiddleware
             "object-src 'none'",
             "child-src 'self'",
             "frame-ancestors 'none'",
-            "form-action 'self' github.com",
+            "form-action 'self' {0}",
             "block-all-mixed-content",
             "base-uri 'self'",
             "manifest-src 'self'",
@@ -34,7 +38,10 @@ public sealed class CustomHttpHeadersMiddleware
         _next = next;
     }
 
-    public Task Invoke(HttpContext context, IWebHostEnvironment environment)
+    public Task Invoke(
+        HttpContext context,
+        IWebHostEnvironment environment,
+        IOptions<GitHubAuthenticationOptions> gitHubOptions)
     {
         context.Response.OnStarting(() =>
         {
@@ -43,7 +50,9 @@ public sealed class CustomHttpHeadersMiddleware
 
             if (environment.IsProduction())
             {
-                context.Response.Headers.Add("Content-Security-Policy", ContentSecurityPolicy);
+                context.Response.Headers.Add(
+                    "Content-Security-Policy",
+                    ContentSecurityPolicy(gitHubOptions.Value.AuthorizationEndpoint));
             }
 
             if (context.Request.IsHttps)
@@ -69,5 +78,24 @@ public sealed class CustomHttpHeadersMiddleware
         });
 
         return _next(context);
+    }
+
+    private static string ContentSecurityPolicy(
+        string gitHubAuthorizationEndpoint)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            ContentSecurityPolicyTemplate,
+            ParseGitHubHost(gitHubAuthorizationEndpoint));
+    }
+
+    private static string ParseGitHubHost(string gitHubAuthorizationEndpoint)
+    {
+        if (Uri.TryCreate(gitHubAuthorizationEndpoint, UriKind.Absolute, out Uri? gitHubHost))
+        {
+            return gitHubHost.Host;
+        }
+
+        return "github.com";
     }
 }
