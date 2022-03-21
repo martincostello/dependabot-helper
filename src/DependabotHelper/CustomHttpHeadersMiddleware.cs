@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using System.Security.Cryptography;
 using AspNet.Security.OAuth.GitHub;
 using Microsoft.Extensions.Options;
 
@@ -13,10 +14,10 @@ public sealed class CustomHttpHeadersMiddleware
         new[]
         {
             "default-src 'self'",
-            "script-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com",
-            "script-src-elem 'self' cdn.jsdelivr.net cdnjs.cloudflare.com",
-            "style-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
-            "style-src-elem 'self' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
+            "script-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com",
+            "script-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com",
+            "style-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
+            "style-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
             "img-src 'self' avatars.githubusercontent.com",
             "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
             "connect-src 'self'",
@@ -24,7 +25,7 @@ public sealed class CustomHttpHeadersMiddleware
             "object-src 'none'",
             "child-src 'self'",
             "frame-ancestors 'none'",
-            "form-action 'self' {0}",
+            "form-action 'self' {1}",
             "block-all-mixed-content",
             "base-uri 'self'",
             "manifest-src 'self'",
@@ -43,6 +44,9 @@ public sealed class CustomHttpHeadersMiddleware
         IWebHostEnvironment environment,
         IOptions<GitHubAuthenticationOptions> gitHubOptions)
     {
+        string nonce = GenerateNonce();
+        context.SetCspNonce(nonce);
+
         context.Response.OnStarting(() =>
         {
             context.Response.Headers.Remove("Server");
@@ -52,7 +56,7 @@ public sealed class CustomHttpHeadersMiddleware
             {
                 context.Response.Headers.Add(
                     "Content-Security-Policy",
-                    ContentSecurityPolicy(gitHubOptions.Value.AuthorizationEndpoint));
+                    ContentSecurityPolicy(nonce, gitHubOptions.Value.AuthorizationEndpoint));
             }
 
             if (context.Request.IsHttps)
@@ -81,11 +85,13 @@ public sealed class CustomHttpHeadersMiddleware
     }
 
     private static string ContentSecurityPolicy(
+        string nonce,
         string gitHubAuthorizationEndpoint)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
             ContentSecurityPolicyTemplate,
+            nonce,
             ParseGitHubHost(gitHubAuthorizationEndpoint));
     }
 
@@ -97,5 +103,11 @@ public sealed class CustomHttpHeadersMiddleware
         }
 
         return "github.com";
+    }
+
+    private static string GenerateNonce()
+    {
+        byte[] data = RandomNumberGenerator.GetBytes(32);
+        return Convert.ToBase64String(data).Replace('+', '/');
     }
 }
