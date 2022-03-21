@@ -6,6 +6,7 @@ using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper;
@@ -15,6 +16,7 @@ namespace MartinCostello.DependabotHelper;
 /// </summary>
 public static class AuthenticationEndpoints
 {
+    private const string ApplicationName = "dependabothelper";
     private const string DeniedPath = "/denied";
     private const string RootPath = "/";
     private const string SignInPath = "/sign-in";
@@ -64,6 +66,9 @@ public static class AuthenticationEndpoints
                 }
             })
             .ValidateOnStart()
+            .Services
+            .AddDataProtection()
+            .SetApplicationName(ApplicationName)
             .Services;
     }
 
