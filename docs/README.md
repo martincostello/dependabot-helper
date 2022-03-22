@@ -47,6 +47,38 @@ you have access to that you choose to configure to manage updates for.
 
 [![View the open pull requests for a repository](./images/pull-requests.png "View pull requests")](#view-pull-requests)
 
+## Installation
+
+Dependabot Helper is an ASP.NET Core web application. [Building, publishing and deploying the application]
+yourself requires a working familiarity with ASP.NET Core and your chosen
+hosting platform (such as Linux or Windows). The application has also been
+designed and tested to work when hosted in an AWS Lambda function using the
+`dotnet6` managed runtime.
+
+[Building, publishing and deploying the application]: https://docs.microsoft.com/aspnet/core/host-and-deploy
+
+Beyond compiling and deploying the application yourself, the minimum requirement
+to self-host Dependabot Helper is to create an OAuth application in GitHub.com
+(or GitHub Enterprise Server) and configure the OAuth application's Client ID
+and Client Secret (and domain for GitHub Enterprise Server). The documentation
+to create an OAuth application in GitHub [can be found here].
+
+[can be found here]: https://docs.github.com/developers/apps/building-oauth-apps/creating-an-oauth-app
+
+If you wish to heavily customize the application, you should fork the repository
+and make whichever changes you desire. Pull requests that improve the functionality
+for all users and are in-keeping with the application's overall purpose are welcome!
+
+If you wish to make only minor runtime customizations, such as configuring
+logging, suggested ways of achieving this include overriding the
+configuration options using environment variables, and deploying the application
+with a custom assembly that contains an implementation of [`IStartupFilter`]
+that is enabled at runtime using the [`ASPNETCORE_HOSTINGSTARTUPASSEMBLIES`]
+environment variable.
+
+[`IStartupFilter`]: https://andrewlock.net/exploring-istartupfilter-in-asp-net-core/
+[`ASPNETCORE_HOSTINGSTARTUPASSEMBLIES`]: https://docs.microsoft.com/aspnet/core/fundamentals/host/platform-specific-configuration
+
 ## API Access and Data Storage
 
 Users/organizations and repositories are cached in-memory for 10 minutes by
