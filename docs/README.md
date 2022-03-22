@@ -88,7 +88,7 @@ can be disabled for ephemeral deployments, such as AWS Lambda.
 The repositories you select to manage are stored in your browser's local storage.
 
 Your GitHub OAuth access token is stored encrypted in the web application's
-authentication cookie.
+authentication cookie (`.dependabothelper.authentication`).
 
 You can audit the code for yourself, but the GitHub OAuth access token acquired
 for your user when you log into the application is only used to:
