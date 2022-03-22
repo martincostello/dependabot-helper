@@ -17,7 +17,7 @@ you have access to that you choose to configure to manage updates for.
 ## Features
 
 - Integrates with the [GitHub REST API].
-- Acts as you via GitHub [OAuth] tokens (the default scopes are `repo` and `user:email`).
+- Acts as you via GitHub [OAuth] tokens (the default scope is `repo`).
 - Works with both GitHub.com and [GitHub Enterprise Server] (_tested with GHES 3.2_).
 - Supports being hosted as a web application and as an [AWS Lambda function].
 - Configure access to your own repositories as well as organizations you are a member of.
@@ -120,7 +120,7 @@ the application.
 | `GitHub:ClientId` | `string` | - | The client ID for the GitHub OAuth application to use. |
 | `GitHub:ClientSecret` | `string` | - | The client secret for the GitHub OAuth application to use. |
 | `GitHub:EnterpriseDomain` | `string` | - | The URL of a GitHub Enterprise Server instance to use instead of GitHub.com. |
-| `GitHub:Scopes` | `string[]` | `[ "repo", "user:email" ]` | The scopes to request for the OAuth token when a user authenticates with the application. |
+| `GitHub:Scopes` | `string[]` | `[ "repo" ]` | The scope(s) to request for the OAuth token when a user authenticates with the application. |
 
 <!--
 | `` | `` | `` | |
