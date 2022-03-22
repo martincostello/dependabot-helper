@@ -92,11 +92,30 @@
                     <li class="nav-item">
                         <a class="nav-link" href="~/configure" title="Configure Repositories" id="configure-link">Configure</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/martincostello/dependabot-helper" target="_blank" title="View Dependabot Helper on GitHub.com">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             GitHub
                             <span class="fa-brands fa-github" aria-hidden="true"></span>
                         </a>
+                        <div class="dropdown-menu" aria-labelledby="navbar-dropdown">
+                            <a class="dropdown-item" href="@(repository)" target="_blank" title="View Dependabot Helper on GitHub.com">
+                                View the code
+                                <span class="fa-solid fa-code-branch text-github-open" aria-hidden="true"></span>
+                            </a>
+                            <a class="dropdown-item" href="@(repository)/issues/new?assignees=&labels=bug&template=bug_report.md" target="_blank" title="Create an issue for a bug GitHub.com">
+                                Found a bug?
+                                <span class="fas fa-bug text-danger" aria-hidden="true"></span>
+                            </a>
+                            <a class="dropdown-item" href="@(repository)/issues/new?assignees=&labels=feature-request&template=feature_request.md" target="_blank" title="Create an issue for a feature request on GitHub.com">
+                                Suggest a feature
+                                <span class="far fa-lightbulb text-warning" aria-hidden="true"></span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="@(repository)/tree/@(GitMetadata.Commit)/docs#readme" target="_blank" title="Read the Dependabot Helper documentation on GitHub.com">
+                                Help
+                                <span class="far fa-question-circle text-primary" aria-hidden="true"></span>
+                            </a>
+                        </div>
                     </li>
                 </ul>
                 @if (User.Identity!.IsAuthenticated)
