@@ -37,15 +37,15 @@ you have access to that you choose to configure to manage updates for.
 
 ### Configure repositories
 
-[![Configure repositories to manage](./images/configure.png "Configure repositories")](#screenshots)
+[![Configure repositories to manage](./images/configure.png "Configure repositories")](#configure-repositories)
 
 ### Pull requests summary
 
-[![Pull requests for configured repositories](./images/manage.png "Manage pull requests")](#screenshots)
+[![Pull requests for configured repositories](./images/manage.png "Manage pull requests")](#pull-requests-summary)
 
 ### View pull requests
 
-[![View the open pull requests for a repository](./images/pull-requests.png "View pull requests")](#screenshots)
+[![View the open pull requests for a repository](./images/pull-requests.png "View pull requests")](#view-pull-requests)
 
 ## API Access and Data Storage
 
@@ -84,7 +84,7 @@ the application.
 | `Dependabot:Labels` | `string[]` | `[ "dependencies" ]` | The label(s) pull requests must have to be shown. |
 | `Dependabot:MergeRetryWaits` | `TimeSpan[]` | `[ "00:00:01", "00:00:02" ]` | The period(s) to wait when attempting to merge pull requests if merge fails as the pull request is not mergeable. |
 | `Dependabot:RefreshPeriod` | `TimeSpan` | `00:10:00` | The approximate interval after which the status of the configured repositories is refreshed. |
-| `Dependabot:Users` | `string[]` | `"app/dependabot", "app/github-actions"` | The users(s) pull requests must be created by to be shown. |
+| `Dependabot:Users` | `string[]` | `[ "app/dependabot", "app/github-actions" ]` | The users(s) pull requests must be created by to be shown. |
 | `GitHub:ClientId` | `string` | - | The client ID for the GitHub OAuth application to use. |
 | `GitHub:ClientSecret` | `string` | - | The client secret for the GitHub OAuth application to use. |
 | `GitHub:EnterpriseDomain` | `string` | - | The URL of a GitHub Enterprise Server instance to use instead of GitHub.com. |
