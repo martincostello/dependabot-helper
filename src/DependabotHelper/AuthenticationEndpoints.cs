@@ -163,7 +163,7 @@ public static class AuthenticationEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapAuthenticationRoutes(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet(DeniedPath, () => Results.Redirect(RootPath + "?denied=true"));
+        builder.MapGet(DeniedPath, () => Results.Redirect(SignInPath + "?denied=true"));
 
         builder.MapGet(SignOutPath, () => Results.Redirect(RootPath));
 
