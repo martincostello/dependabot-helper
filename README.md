@@ -2,7 +2,7 @@
 
 [![Build status](https://github.com/martincostello/dependabot-helper/workflows/build/badge.svg?branch=main&event=push)](https://github.com/martincostello/dependabot-helper/actions?query=workflow%3Abuild+branch%3Amain+event%3Apush)
 
-![The Dependabot Helper homepage](./docs/images/manage.png "Dependabot Helper")
+[![The Dependabot Helper homepage](./docs/images/manage.png "Dependabot Helper")](#)
 
 ## Introduction
 
