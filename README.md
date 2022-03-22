@@ -6,6 +6,8 @@
 
 Dependabot Helper is an ASP.NET Core application that helps manage Dependabot updates across GitHub multiple repositories.
 
+For more information, refer to the [documentation](./documentation/docs#readme).
+
 ## Debugging
 
 To debug the application locally outside of the integration tests, you will need
