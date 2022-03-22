@@ -17,6 +17,7 @@ namespace MartinCostello.DependabotHelper;
 public static class AuthenticationEndpoints
 {
     private const string ApplicationName = "dependabothelper";
+    private const string CookiePrefix = ".dependabothelper.";
     private const string DeniedPath = "/denied";
     private const string RootPath = "/";
     private const string SignInPath = "/sign-in";
@@ -38,6 +39,7 @@ public static class AuthenticationEndpoints
             .AddAuthentication(options => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
+                options.Cookie.Name = CookiePrefix + "authentication";
                 options.LoginPath = SignInPath;
                 options.LogoutPath = SignOutPath;
             })
@@ -50,6 +52,7 @@ public static class AuthenticationEndpoints
                 options.CallbackPath = SignInPath + "-github";
                 options.ClientId = configuration.Value.ClientId;
                 options.ClientSecret = configuration.Value.ClientSecret;
+                options.CorrelationCookie.Name = CookiePrefix + "correlation";
                 options.EnterpriseDomain = configuration.Value.EnterpriseDomain;
                 options.SaveTokens = true;
 
@@ -67,6 +70,12 @@ public static class AuthenticationEndpoints
             })
             .ValidateOnStart()
             .Services
+            .AddAntiforgery((options) =>
+            {
+                options.Cookie.Name = CookiePrefix + "antiforgery";
+                options.FormFieldName = "__antiforgery";
+                options.HeaderName = "x-antiforgery";
+            })
             .AddDataProtection()
             .SetApplicationName(ApplicationName)
             .Services;
