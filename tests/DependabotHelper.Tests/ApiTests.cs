@@ -1546,6 +1546,14 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var processor = Fixture.Services.GetRequiredService<MockGitHubEventProcessor>();
+
+        processor.Events.Count.ShouldBe(1);
+        var actual = processor.Events.Dequeue();
+
+        actual.ShouldNotBeNull();
+        actual.BodyJson.ShouldBe(payload);
     }
 
     private static JsonSerializerOptions CreateSerializerOptions()
