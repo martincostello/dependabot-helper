@@ -3,7 +3,6 @@
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
-using Terrajobst.GitHubEvents.AspNetCore;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -16,17 +15,12 @@ public static class GitHubEndpoints
     /// Maps the endpoints for GitHub.
     /// </summary>
     /// <param name="builder">The <see cref="IEndpointConventionBuilder"/>.</param>
-    /// <param name="configuration">The <see cref="IConfiguration"/> to use.</param>
     /// <param name="logger">The <see cref="ILogger"/> to use.</param>
     /// <returns>
     /// A <see cref="IEndpointConventionBuilder"/> that can be used to further customize the endpoint.
     /// </returns>
-    public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder, IConfiguration configuration, ILogger logger)
+    public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder, ILogger logger)
     {
-        builder.MapGitHubWebHook(
-            configuration["GitHub:WebhookEndpoint"],
-            configuration["GitHub:WebhookSecret"]);
-
         builder.MapGet("/github/repos/{owner}", async (
             string owner,
             ClaimsPrincipal user,

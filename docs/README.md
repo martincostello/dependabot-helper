@@ -121,5 +121,3 @@ the application.
 | `GitHub:ClientSecret` | `string` | - | The client secret for the GitHub OAuth application to use. |
 | `GitHub:EnterpriseDomain` | `string` | - | The URL of a GitHub Enterprise Server instance to use instead of GitHub.com. |
 | `GitHub:Scopes` | `string[]` | `[ "repo" ]` | The scope(s) to request for the OAuth token when a user authenticates with the application. |
-| `GitHub:WebhookEndpoint` | `string` | '/github/webhook' | The path for the endpoint to accept GitHub webhook payloads. |
-| `GitHub:WebhookSecret` | `string` | - | The optional secret to use to validate GitHub webhook payloads. |
