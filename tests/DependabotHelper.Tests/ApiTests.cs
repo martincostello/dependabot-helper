@@ -1542,7 +1542,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         using var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         // Act
-        using var response = await client.PostAsync("/github-webhook", content);
+        using var response = await client.PostAsync("/github/webhook", content);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);

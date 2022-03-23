@@ -23,7 +23,9 @@ public static class GitHubEndpoints
     /// </returns>
     public static IEndpointRouteBuilder MapGitHubRoutes(this IEndpointRouteBuilder builder, IConfiguration configuration, ILogger logger)
     {
-        builder.MapGitHubWebHook(secret: configuration["GitHub:WebhookSecret"]);
+        builder.MapGitHubWebHook(
+            configuration["GitHub:WebhookEndpoint"],
+            configuration["GitHub:WebhookSecret"]);
 
         builder.MapGet("/github/repos/{owner}", async (
             string owner,
