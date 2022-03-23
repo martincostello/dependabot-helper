@@ -12,4 +12,6 @@ public sealed class GitHubOptions
     public string EnterpriseDomain { get; set; } = string.Empty;
 
     public IList<string> Scopes { get; set; } = new List<string>();
+
+    public string WebhookSecret { get; set; } = string.Empty;
 }

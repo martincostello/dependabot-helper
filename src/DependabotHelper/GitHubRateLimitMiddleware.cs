@@ -5,7 +5,7 @@ using Octokit;
 
 namespace MartinCostello.DependabotHelper;
 
-public class GitHubRateLimitMiddleware
+public sealed class GitHubRateLimitMiddleware
 {
     private readonly RequestDelegate _next;
 

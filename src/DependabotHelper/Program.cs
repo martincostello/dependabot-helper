@@ -40,6 +40,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<CustomHttpHeadersMiddleware>();
+app.UseMiddleware<GitHubRateLimitMiddleware>();
 
 app.UseStatusCodePagesWithReExecute("/error", "?id={0}");
 
@@ -56,8 +57,7 @@ app.UseAuthorization();
 
 app.MapAuthenticationRoutes();
 
-app.MapGitHubRoutes(app.Logger);
-app.UseMiddleware<GitHubRateLimitMiddleware>();
+app.MapGitHubRoutes(app.Configuration, app.Logger);
 
 app.MapRazorPages();
 
