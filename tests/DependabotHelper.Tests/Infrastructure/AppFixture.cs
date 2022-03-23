@@ -14,7 +14,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Terrajobst.GitHubEvents;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
 
@@ -111,9 +110,6 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
 
             services.AddSingleton<IPostConfigureOptions<GitHubAuthenticationOptions>, RemoteAuthorizationEventsFilter>();
             services.AddScoped<LoopbackOAuthEvents>();
-
-            services.AddSingleton<MockGitHubEventProcessor>();
-            services.AddSingleton<IGitHubEventProcessor>((p) => p.GetRequiredService<MockGitHubEventProcessor>());
         });
 
         Interceptor.RegisterBundle(Path.Combine("Bundles", "oauth-http-bundle.json"));

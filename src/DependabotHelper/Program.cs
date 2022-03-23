@@ -57,7 +57,7 @@ app.UseAuthorization();
 
 app.MapAuthenticationRoutes();
 
-app.MapGitHubRoutes(app.Configuration, app.Logger);
+app.MapGitHubRoutes(app.Logger);
 
 app.MapRazorPages();
 

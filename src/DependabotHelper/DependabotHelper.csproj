@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.TypeScript.MSBuild" PrivateAssets="all" />
     <PackageReference Include="Octokit" />
     <PackageReference Include="Polly" />
-    <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="scripts\ts\**\*.ts" />
