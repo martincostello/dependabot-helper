@@ -13,5 +13,7 @@ public sealed class GitHubOptions
 
     public IList<string> Scopes { get; set; } = new List<string>();
 
+    public string WebhookEndpoint { get; set; } = string.Empty;
+
     public string WebhookSecret { get; set; } = string.Empty;
 }
