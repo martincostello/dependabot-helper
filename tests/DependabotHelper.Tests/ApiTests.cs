@@ -3,6 +3,8 @@
 
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using JustEat.HttpClientInterception;
 using MartinCostello.DependabotHelper.Builders;
@@ -10,6 +12,8 @@ using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
@@ -1505,10 +1509,67 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         actualPullRequest.Status.ShouldBe(expected);
     }
 
+    [Fact]
+    public async Task Can_Accept_GitHub_Webhook()
+    {
+        // Arrange
+        (string payload, string signature) = CreateWebhook(new
+        {
+            // See https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#webhook-payload-example-27
+            zen = "Anything added dilutes everything else.",
+            hook_id = 109948940,
+            hook = new
+            {
+                type = "Repository",
+                id = 109948940,
+                name = "web",
+                active = true,
+                events = new[] { "*" },
+            },
+        });
+
+        using var client = Fixture.CreateDefaultClient();
+
+        client.DefaultRequestHeaders.Add("User-Agent", "GitHub-Hookshot/1.2.3");
+        client.DefaultRequestHeaders.Add("X-GitHub-Delivery", Guid.NewGuid().ToString());
+        client.DefaultRequestHeaders.Add("X-GitHub-Event", "ping");
+        client.DefaultRequestHeaders.Add("X-GitHub-Hook-ID", "109948940");
+        client.DefaultRequestHeaders.Add("X-GitHub-Hook-Installation-Target-ID", "github-installation-target-id");
+        client.DefaultRequestHeaders.Add("X-GitHub-Hook-Installation-Target-Type", "github-installation-target-type");
+        client.DefaultRequestHeaders.Add("X-Hub-Signature", signature);
+        client.DefaultRequestHeaders.Add("X-Hub-Signature-256", signature);
+
+        using var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+        // Act
+        using var response = await client.PostAsync("/github-webhook", content);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
     private static JsonSerializerOptions CreateSerializerOptions()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
         return options;
+    }
+
+    private (string Payload, string Signature) CreateWebhook(object value)
+    {
+        var options = Fixture.Services.GetRequiredService<IOptions<GitHubOptions>>().Value;
+
+        string payload = JsonSerializer.Serialize(value);
+
+        // See https://github.com/terrajobst/Terrajobst.GitHubEvents/blob/cb86100c783373e198cefb1ed7e92526a44833b0/src/Terrajobst.GitHubEvents.AspNetCore/GitHubEventsExtensions.cs#L112-L119
+        var encoding = Encoding.UTF8;
+
+        byte[] key = encoding.GetBytes(options.WebhookSecret);
+        byte[] data = encoding.GetBytes(payload);
+
+        byte[] hash = HMACSHA256.HashData(key, data);
+        string hashString = Convert.ToHexString(hash).ToLowerInvariant();
+
+        return (payload, $"sha256={hashString}");
     }
 }
