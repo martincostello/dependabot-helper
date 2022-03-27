@@ -53,29 +53,27 @@ public sealed class CustomHttpHeadersMiddleware
 
             if (environment.IsProduction())
             {
-                context.Response.Headers.Add(
-                    "Content-Security-Policy",
-                    ContentSecurityPolicy(nonce, gitHubOptions.Value.EnterpriseDomain));
+                context.Response.Headers["Content-Security-Policy"] = ContentSecurityPolicy(nonce, gitHubOptions.Value.EnterpriseDomain);
             }
 
             if (context.Request.IsHttps)
             {
-                context.Response.Headers.Add("Expect-CT", "max-age=1800");
+                context.Response.Headers["Expect-CT"] = "max-age=1800";
             }
 
-            context.Response.Headers.Add("Feature-Policy", "accelerometer 'none'; camera 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; payment 'none'; usb 'none'");
-            context.Response.Headers.Add("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()");
-            context.Response.Headers.Add("Referrer-Policy", "no-referrer-when-downgrade");
-            context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-            context.Response.Headers.Add("X-Download-Options", "noopen");
+            context.Response.Headers["Feature-Policy"] = "accelerometer 'none'; camera 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; payment 'none'; usb 'none'";
+            context.Response.Headers["Permissions-Policy"] = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";
+            context.Response.Headers["Referrer-Policy"] = "no-referrer-when-downgrade";
+            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            context.Response.Headers["X-Download-Options"] = "noopen";
 
             if (!context.Response.Headers.ContainsKey("X-Frame-Options"))
             {
                 context.Response.Headers.Add("X-Frame-Options", "DENY");
             }
 
-            context.Response.Headers.Add("X-Request-Id", context.TraceIdentifier);
-            context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+            context.Response.Headers["X-Request-Id"] = context.TraceIdentifier;
+            context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
 
             return Task.CompletedTask;
         });
