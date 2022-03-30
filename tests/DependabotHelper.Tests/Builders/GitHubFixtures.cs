@@ -15,6 +15,15 @@ public static class GitHubFixtures
 
     public const string GitHubActionsBotName = "app/github-actions";
 
+    public static BranchProtectionSettingsBuilder CreateBranchProtection(
+        int requiredApprovingReviewCount)
+    {
+        return new()
+        {
+            RequiredApprovingReviewCount = requiredApprovingReviewCount,
+        };
+    }
+
     public static CheckRunBuilder CreateCheckRun(
         string status,
         string? conclusion = null,

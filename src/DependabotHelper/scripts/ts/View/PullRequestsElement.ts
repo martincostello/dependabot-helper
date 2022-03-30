@@ -58,9 +58,9 @@ export class PullRequestsElement {
 
         const isApproved = element.querySelector('.pr-is-approved');
 
-        if (pullRequest.isApproved) {
+        if (!pullRequest.isApproved) {
             Elements.show(isApproved);
-        } else {
+        } else if (pullRequest.canApprove) {
 
             const approveButton = element.querySelector('.pr-approve');
 

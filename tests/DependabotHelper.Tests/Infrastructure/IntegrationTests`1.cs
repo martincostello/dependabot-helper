@@ -86,6 +86,24 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         return authenticatedClient;
     }
 
+    protected void RegisterGetBranchProtection(
+        PullRequestBuilder pullRequest,
+        BranchProtectionSettingsBuilder? protection = null,
+        int? statusCode = null,
+        Action<HttpRequestInterceptionBuilder>? configure = null)
+    {
+        var builder = CreateDefaultBuilder()
+            .Requests()
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/branches/{pullRequest.BaseRef}/protection")
+            .Responds()
+            .WithStatus(statusCode ?? (protection is null ? 404 : 200))
+            .WithJsonContent(protection?.Build() ?? new { });
+
+        configure?.Invoke(builder);
+
+        builder.RegisterWith(Fixture.Interceptor);
+    }
+
     protected void RegisterGetDependabotContent(
         RepositoryBuilder repository,
         int statusCode = StatusCodes.Status200OK)
@@ -140,6 +158,8 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Responds()
             .WithJsonContent(pullRequest)
             .RegisterWith(Fixture.Interceptor);
+
+        RegisterGetBranchProtection(pullRequest); // Register no rules by default
     }
 
     protected void RegisterGetOrganizationRepositories(UserBuilder user, params RepositoryBuilder[] response)
@@ -201,7 +221,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
 
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/commits/{pullRequest.Sha}/status")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/commits/{pullRequest.HeadSha}/status")
             .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
@@ -229,7 +249,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
 
         CreateDefaultBuilder()
             .Requests()
-            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/commits/{pullRequest.Sha}/check-suites")
+            .ForPath($"/repos/{pullRequest.Repository.Owner.Login}/{pullRequest.Repository.Name}/commits/{pullRequest.HeadSha}/check-suites")
             .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);

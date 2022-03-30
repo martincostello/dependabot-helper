@@ -120,6 +120,7 @@ public sealed class GitHubService
         }
 
         result.All = await GetPullRequestsAsync(
+            user,
             owner,
             repository.Name,
             fetchStatuses: true);
@@ -204,6 +205,7 @@ public sealed class GitHubService
         }
 
         var mergeCandidates = await GetPullRequestsAsync(
+            user,
             owner,
             name,
             fetchStatuses: false);
@@ -272,6 +274,7 @@ public sealed class GitHubService
     }
 
     private async Task<IList<Models.PullRequest>> GetPullRequestsAsync(
+        ClaimsPrincipal currentUser,
         string owner,
         string name,
         bool fetchStatuses)
@@ -343,6 +346,7 @@ public sealed class GitHubService
                     continue;
                 }
 
+                bool canApprove = false;
                 bool isApproved = false;
                 var status = ChecksStatus.Pending;
 
@@ -354,7 +358,7 @@ public sealed class GitHubService
                         owner,
                         name);
 
-                    isApproved = await IsApprovedAsync(owner, name, issue.Number);
+                    (canApprove, isApproved) = await IsApprovedAsync(currentUser, owner, name, issue.Number, pr.Base.Ref);
                     status = await GetChecksStatusAsync(owner, name, pr.Head.Sha);
 
                     _logger.LogInformation(
@@ -368,6 +372,7 @@ public sealed class GitHubService
 
                 result.Add(new()
                 {
+                    CanApprove = canApprove,
                     HtmlUrl = pr.HtmlUrl,
                     IsApproved = isApproved,
                     Number = pr.Number,
@@ -382,7 +387,12 @@ public sealed class GitHubService
         return result;
     }
 
-    private async Task<bool> IsApprovedAsync(string owner, string name, int number)
+    private async Task<(bool CanApprove, bool IsApproved)> IsApprovedAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name,
+        int number,
+        string targetBranch)
     {
         _logger.LogDebug(
             "Fetching approvals for pull request {Number} in repository {Owner}/{Name}.",
@@ -401,7 +411,7 @@ public sealed class GitHubService
 
         if (approved.Count < 1)
         {
-            return false;
+            return (true, false);
         }
 
         // Only use the most recent review for each approver.
@@ -412,12 +422,32 @@ public sealed class GitHubService
             .Where((p) => p.AuthorAssociation.Value.CanReview())
             .ToList();
 
+        bool canApprove = !reviewsPerUsers.Any((p) => p.User.Login == user.GetUserLogin());
+
         if (reviewsPerUsers.Any((p) => p.State == PullRequestReviewState.ChangesRequested))
         {
-            return false;
+            return (canApprove, false);
         }
 
-        return reviewsPerUsers.Any((p) => p.State == PullRequestReviewState.Approved);
+        int approvedReviews = reviewsPerUsers.Count((p) => p.State == PullRequestReviewState.Approved);
+
+        int requiredReviewsCount = await GetNumberOfRequiredReviewersAsync(user, owner, name, targetBranch);
+
+        bool isApproved = approvedReviews >= requiredReviewsCount;
+
+        return (canApprove, isApproved);
+    }
+
+    private async Task<int> GetNumberOfRequiredReviewersAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name,
+        string branch)
+    {
+        var protection = await GetBranchProtectionAsync(user, owner, name, branch);
+
+        // For the purposes of this app, at least one reviewer is always required
+        return protection?.RequiredPullRequestReviews?.RequiredApprovingReviewCount ?? 1;
     }
 
     private async Task<ChecksStatus> GetChecksStatusAsync(string owner, string name, string commitSha)
@@ -571,6 +601,25 @@ public sealed class GitHubService
             catch (NotFoundException)
             {
                 return false;
+            }
+        });
+    }
+
+    private async Task<BranchProtectionSettings?> GetBranchProtectionAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name,
+        string branch)
+    {
+        return await CacheGetOrCreateAsync(user, $"{owner}:{name}:branch-protection:{branch}", async () =>
+        {
+            try
+            {
+                return await _client.Repository.Branch.GetBranchProtection(owner, name, branch);
+            }
+            catch (NotFoundException)
+            {
+                return null;
             }
         });
     }

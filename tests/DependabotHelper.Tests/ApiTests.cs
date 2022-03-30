@@ -601,6 +601,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         actualPullRequest.ShouldNotBeNull();
         actualPullRequest.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}/pull/{pullRequest.Number}");
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeTrue();
         actualPullRequest.Number.ShouldBe(pullRequest.Number);
         actualPullRequest.RepositoryName.ShouldBe(repository.Name);
@@ -644,6 +645,50 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
+        actualPullRequest.IsApproved.ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task Can_Get_Pull_Requests_With_No_Required_Approvals(int requiredApprovingReviewCount)
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredApprovingReviewCount);
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeFalse();
     }
 
@@ -687,7 +732,199 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData("john-smith", false)]
+    [InlineData("octocat", true)]
+    public async Task Can_Get_Pull_Requests_When_Approved_By_Self_Or_Another(
+        string approver,
+        bool expectedCanApprove)
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetReviews(
+            pullRequest,
+            CreateReview(approver, "APPROVED"));
+
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBe(expectedCanApprove);
+        actualPullRequest.IsApproved.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("john-smith", false)]
+    [InlineData("octocat", true)]
+    public async Task Can_Get_Pull_Requests_When_Approved_By_Self_Or_Another_But_Not_Enough_Reviews(
+        string approver,
+        bool expectedCanApprove)
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(2);
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetReviews(
+            pullRequest,
+            CreateReview(approver, "APPROVED"));
+
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBe(expectedCanApprove);
+        actualPullRequest.IsApproved.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Approved_By_Self_And_Another_And_Enough_Reviews()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(2);
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetReviews(
+            pullRequest,
+            CreateReview("john-smith", "APPROVED"),
+            CreateReview("octokit", "APPROVED"));
+
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeFalse();
+        actualPullRequest.IsApproved.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task Can_Get_Pull_Requests_When_Approved_By_Others_And_Enough_Reviews(
+        int requiredApprovingReviewCount)
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredApprovingReviewCount);
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        var reviews = Enumerable.Repeat(() => CreateReview(Guid.NewGuid().ToString(), "APPROVED"), requiredApprovingReviewCount)
+            .Select((p) => p())
+            .ToArray();
+
+        RegisterGetReviews(
+            pullRequest,
+            reviews);
+
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
+        actualPullRequest.IsApproved.ShouldBeTrue();
     }
 
     [Fact]
@@ -729,6 +966,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeTrue();
     }
 
@@ -771,6 +1009,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeFalse();
     }
 
@@ -825,6 +1064,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBe(expected);
     }
 
@@ -869,6 +1109,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeTrue();
     }
 
@@ -913,6 +1154,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeFalse();
     }
 
@@ -958,6 +1200,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeFalse();
     }
 
@@ -1004,6 +1247,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var actualPullRequest = actual.All[0];
 
         actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
         actualPullRequest.IsApproved.ShouldBeTrue();
     }
 
