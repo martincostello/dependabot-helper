@@ -4,6 +4,7 @@
 import { ChecksStatus } from './ChecksStatus';
 
 export interface PullRequest {
+    canApprove: boolean;
     htmlUrl: string;
     isApproved: boolean;
     number: number;

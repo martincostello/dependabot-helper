@@ -7,6 +7,8 @@ public sealed class PullRequest
 {
     public string HtmlUrl { get; set; } = default!;
 
+    public bool CanApprove { get; set; }
+
     public bool IsApproved { get; set; }
 
     public int Number { get; set; }

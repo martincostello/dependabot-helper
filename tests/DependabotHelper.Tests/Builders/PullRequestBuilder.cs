@@ -10,6 +10,14 @@ public sealed class PullRequestBuilder : ResponseBuilder
         Repository = repository;
     }
 
+    public string BaseRef { get; set; } = RandomString();
+
+    public string BaseSha { get; set; } = RandomString();
+
+    public string HeadRef { get; set; } = RandomString();
+
+    public string HeadSha { get; set; } = RandomString();
+
     public bool IsDraft { get; set; }
 
     public bool? IsMergeable { get; set; }
@@ -17,8 +25,6 @@ public sealed class PullRequestBuilder : ResponseBuilder
     public int Number { get; set; } = RandomNumber();
 
     public RepositoryBuilder Repository { get; set; }
-
-    public string Sha { get; set; } = RandomString();
 
     public string Title { get; set; } = RandomString();
 
@@ -38,9 +44,15 @@ public sealed class PullRequestBuilder : ResponseBuilder
             draft = IsDraft,
             mergeable = IsMergeable,
             title = Title,
+            @base = new
+            {
+                @ref = BaseRef,
+                sha = BaseSha,
+            },
             head = new
             {
-                sha = Sha,
+                @ref = HeadRef,
+                sha = HeadSha,
             },
         };
     }
