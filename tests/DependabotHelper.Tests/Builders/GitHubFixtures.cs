@@ -16,24 +16,32 @@ public static class GitHubFixtures
     public const string GitHubActionsBotName = "app/github-actions";
 
     public static BranchProtectionSettingsBuilder CreateBranchProtection(
-        int requiredApprovingReviewCount)
+        int requiredApprovingReviewCount = 0,
+        IList<string>? requiredStatusCheckContexts = null)
     {
         return new()
         {
             RequiredApprovingReviewCount = requiredApprovingReviewCount,
+            RequiredStatusCheckContexts = requiredStatusCheckContexts,
         };
     }
 
     public static CheckRunBuilder CreateCheckRun(
         string status,
         string? conclusion = null,
-        string? applicationName = null)
+        string? applicationName = null,
+        string? name = null)
     {
         var builder = new CheckRunBuilder(status, conclusion);
 
         if (applicationName is not null)
         {
             builder.ApplicationName = applicationName;
+        }
+
+        if (name is not null)
+        {
+            builder.Name = name;
         }
 
         return builder;
@@ -122,7 +130,17 @@ updates:
         return builder;
     }
 
-    public static CommitStatusBuilder CreateStatus(string state) => new(state);
+    public static CommitStatusBuilder CreateStatus(string state, string? context = null)
+    {
+        var builder = new CommitStatusBuilder(state);
+
+        if (context is not null)
+        {
+            builder.Context = context;
+        }
+
+        return builder;
+    }
 
     public static CombinedCommitStatusBuilder CreateStatuses(
         string state,

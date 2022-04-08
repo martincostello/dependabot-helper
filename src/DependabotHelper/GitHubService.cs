@@ -359,7 +359,7 @@ public sealed class GitHubService
                         name);
 
                     (canApprove, isApproved) = await IsApprovedAsync(currentUser, owner, name, issue.Number, pr.Base.Ref);
-                    status = await GetChecksStatusAsync(owner, name, pr.Head.Sha);
+                    status = await GetChecksStatusAsync(currentUser, owner, name, pr.Head.Sha, pr.Base.Ref);
 
                     _logger.LogInformation(
                         "Fetched approvals and statuses for pull request {Number} in repository {Owner}/{Name}. Approved: {Approved}; Status: {Status}.",
@@ -450,8 +450,22 @@ public sealed class GitHubService
         return protection?.RequiredPullRequestReviews?.RequiredApprovingReviewCount ?? 1;
     }
 
-    private async Task<ChecksStatus> GetChecksStatusAsync(string owner, string name, string commitSha)
+    private async Task<ChecksStatus> GetChecksStatusAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name,
+        string commitSha,
+        string branch)
     {
+        var requiredStatuses = await GetRequiredStatusChecksAsync(user, owner, name, branch);
+
+        _logger.LogDebug(
+            "Found {Count} required status checks for the {Branch} of repository {Owner}/{Name}.",
+            requiredStatuses.Count,
+            branch,
+            owner,
+            name);
+
         ChecksStatus? status = null;
 
         _logger.LogDebug(
@@ -469,17 +483,18 @@ public sealed class GitHubService
             owner,
             name);
 
+        var successfulStatuses = new HashSet<string>();
+
         if (combinedCommitStatus.TotalCount > 0)
         {
-            if (_logger.IsEnabled(LogLevel.Trace))
+            foreach (var commitStatus in combinedCommitStatus.Statuses)
             {
-                foreach (var commitStatus in combinedCommitStatus.Statuses)
-                {
-                    _logger.LogTrace(
-                        "Commit status: Context: {Context}; State: {State}",
-                        commitStatus.Context,
-                        commitStatus.State);
-                }
+                successfulStatuses.Add(commitStatus.Context);
+
+                _logger.LogTrace(
+                    "Commit status: Context: {Context}; State: {State}",
+                    commitStatus.Context,
+                    commitStatus.State);
             }
 
             status = combinedCommitStatus.State.Value switch
@@ -516,14 +531,35 @@ public sealed class GitHubService
             // Running and completed suites always affect the overally status
             var candidateSuites = runningSuites.Concat(completedSuites);
 
+            async Task<CheckRunsResponse> GetCheckRunsAsync(long checkSuiteId)
+            {
+                return await _client.Check.Run.GetAllForCheckSuite(owner, name, checkSuiteId, new CheckRunRequest()
+                {
+                    Filter = CheckRunCompletedAtFilter.Latest,
+                });
+            }
+
+            if (requiredStatuses.Count > 0)
+            {
+                foreach (var checkSuite in candidateSuites)
+                {
+                    var checkRuns = await GetCheckRunsAsync(checkSuite.Id);
+
+                    foreach (var checkRun in checkRuns.CheckRuns)
+                    {
+                        if (checkRun.Conclusion == CheckConclusion.Success)
+                        {
+                            successfulStatuses.Add(checkRun.Name);
+                        }
+                    }
+                }
+            }
+
             // Queued suites only count if they contain at least one check run.
             // Otherwise they're likely just some old integration no longer in use.
             foreach (var checkSuite in queuedSuites)
             {
-                var checkRuns = await _client.Check.Run.GetAllForCheckSuite(owner, name, checkSuite.Id, new CheckRunRequest()
-                {
-                    Filter = CheckRunCompletedAtFilter.Latest,
-                });
+                var checkRuns = await GetCheckRunsAsync(checkSuite.Id);
 
                 if (checkRuns.TotalCount > 0)
                 {
@@ -570,7 +606,26 @@ public sealed class GitHubService
             }
         }
 
+        // The status is only really successful if all required statuses are successful.
+        // Otherwise, it's still pending until any missing required statuses have run.
+        if (status == ChecksStatus.Success &&
+            requiredStatuses.Count > 0 &&
+            !successfulStatuses.IsSupersetOf(requiredStatuses))
+        {
+            status = ChecksStatus.Pending;
+        }
+
         return status ?? ChecksStatus.Pending;
+    }
+
+    private async Task<IReadOnlyList<string>> GetRequiredStatusChecksAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name,
+        string branch)
+    {
+        var protection = await GetBranchProtectionAsync(user, owner, name, branch);
+        return protection?.RequiredStatusChecks?.Contexts ?? Array.Empty<string>();
     }
 
     private async Task<Octokit.Repository> GetRepositoryAsync(ClaimsPrincipal user, string owner, string name)

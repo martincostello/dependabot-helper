@@ -15,6 +15,8 @@ public sealed class CheckRunBuilder : ResponseBuilder
 
     public string? Conclusion { get; set; }
 
+    public string Name { get; set; } = RandomString();
+
     public string Status { get; set; }
 
     public override object Build()
@@ -23,6 +25,7 @@ public sealed class CheckRunBuilder : ResponseBuilder
         {
             id = Id,
             conclusion = Conclusion,
+            name = Name,
             status = Status,
             app = new
             {
