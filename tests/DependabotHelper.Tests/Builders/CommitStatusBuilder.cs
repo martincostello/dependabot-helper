@@ -10,12 +10,15 @@ public sealed class CommitStatusBuilder : ResponseBuilder
         State = state;
     }
 
+    public string Context { get; set; } = RandomString();
+
     public string State { get; set; }
 
     public override object Build()
     {
         return new
         {
+            context = Context,
             state = State,
         };
     }

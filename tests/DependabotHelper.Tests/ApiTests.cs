@@ -1326,19 +1326,28 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
 
         RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
+        var checkSuite = CreateCheckSuite("completed", conclusion);
+
+        RegisterGetCheckRuns(
+            repository,
+            checkSuite.Id,
+            CreateCheckRun("completed", conclusion, name: "ci"));
+
         RegisterGetCheckSuites(
             pullRequest,
-            CreateCheckSuites(CreateCheckSuite("completed", conclusion)));
+            CreateCheckSuites(checkSuite));
 
         var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
@@ -1371,7 +1380,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     [Theory]
     [InlineData("completed", "neutral")]
     [InlineData("completed", "success")]
-    public async Task Can_Get_Pull_Requests_When_Check_Suite_Success(string status, string? conclusion)
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Success_When_No_Required_Statuses(string status, string? conclusion)
     {
         // Arrange
         var user = CreateUser();
@@ -1417,6 +1426,122 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         actualPullRequest.ShouldNotBeNull();
         actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Success_With_All_Required_Statuses()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci" });
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        var checkSuite = CreateCheckSuite("completed", "success");
+
+        RegisterGetCheckRuns(
+            repository,
+            checkSuite.Id,
+            CreateCheckRun("completed", "success", name: "ci"));
+
+        RegisterGetCheckSuites(
+            pullRequest,
+            CreateCheckSuites(checkSuite));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Success[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Check_Suite_Success_With_Required_Status_Missing()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+        RegisterGetReviews(pullRequest);
+        RegisterGetStatuses(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        var checkSuite = CreateCheckSuite("completed", "success");
+
+        RegisterGetCheckRuns(
+            repository,
+            checkSuite.Id,
+            CreateCheckRun("completed", "success", name: "ci"));
+
+        RegisterGetCheckSuites(
+            pullRequest,
+            CreateCheckSuites(checkSuite));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(0);
+
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Pending);
     }
 
     [Theory]
@@ -1549,11 +1674,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
 
         RegisterGetIssues(repository, DependabotBotName);
@@ -1592,7 +1719,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Fact]
-    public async Task Can_Get_Pull_Requests_When_Status_Success()
+    public async Task Can_Get_Pull_Requests_When_Status_Success_When_No_Required_Statuses()
     {
         // Arrange
         var user = CreateUser();
@@ -1638,6 +1765,162 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         actualPullRequest.ShouldNotBeNull();
         actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Status_Success_With_All_Required_Statuses()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci" });
+
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+        RegisterGetReviews(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetStatuses(
+            pullRequest,
+            CreateStatuses("success", CreateStatus("success", "ci")));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Success[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Status_Success_With_All_Required_Statuses_And_Optional_Statuses()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci" });
+
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+        RegisterGetReviews(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetStatuses(
+            pullRequest,
+            CreateStatuses(
+                "success",
+                CreateStatus("success", "lint"),
+                CreateStatus("success", "ci")));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(0);
+
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Success[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Success);
+    }
+
+    [Fact]
+    public async Task Can_Get_Pull_Requests_When_Status_Success_With_Required_Status_Missing()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
+
+        RegisterGetRepository(repository);
+        RegisterGetCheckSuites(pullRequest);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+        RegisterGetBranchProtection(pullRequest, protection);
+        RegisterGetReviews(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetStatuses(
+            pullRequest,
+            CreateStatuses("success", CreateStatus("success", "ci")));
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+        actual.Error.ShouldNotBeNull();
+        actual.Error.Count.ShouldBe(0);
+        actual.Success.ShouldNotBeNull();
+        actual.Success.Count.ShouldBe(0);
+
+        actual.Pending.ShouldNotBeNull();
+        actual.Pending.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.Status.ShouldBe(ChecksStatus.Pending);
     }
 
     [Theory]

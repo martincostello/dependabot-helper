@@ -7,6 +7,8 @@ public sealed class BranchProtectionSettingsBuilder : ResponseBuilder
 {
     public int RequiredApprovingReviewCount { get; set; }
 
+    public IList<string>? RequiredStatusCheckContexts { get; set; }
+
     public override object Build()
     {
         return new
@@ -14,6 +16,10 @@ public sealed class BranchProtectionSettingsBuilder : ResponseBuilder
             required_pull_request_reviews = new
             {
                 required_approving_review_count = RequiredApprovingReviewCount,
+            },
+            required_status_checks = new
+            {
+                contexts = RequiredStatusCheckContexts,
             },
         };
     }
