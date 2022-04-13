@@ -18,7 +18,7 @@ namespace MartinCostello.DependabotHelper.Infrastructure;
 
 public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAccessor
 {
-    private readonly Dictionary<string, string> _configOverrides = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string?> _configOverrides = new(StringComparer.OrdinalIgnoreCase);
 
     public AppFixture()
     {
@@ -76,21 +76,22 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
         {
             var config = new[]
             {
-                KeyValuePair.Create("AzureKeyVault:ClientId", string.Empty),
-                KeyValuePair.Create("AzureKeyVault:ClientSecret", string.Empty),
-                KeyValuePair.Create("AzureKeyVault:TenantId", string.Empty),
-                KeyValuePair.Create("AzureKeyVault:Uri", string.Empty),
-                KeyValuePair.Create("ConnectionStrings:AzureStorage", string.Empty),
-                KeyValuePair.Create("Dependabot:IncludeForks", bool.TrueString),
-                KeyValuePair.Create("Dependabot:IncludePrivate", bool.TrueString),
-                KeyValuePair.Create("Dependabot:MergeRetryWaits:0", "00:00:00.100"),
-                KeyValuePair.Create("Dependabot:MergeRetryWaits:1", "00:00:00.200"),
-                KeyValuePair.Create("GitHub:ClientId", "github-id"),
-                KeyValuePair.Create("GitHub:ClientSecret", "github-secret"),
-                KeyValuePair.Create("GitHub:EnterpriseDomain", string.Empty),
-                KeyValuePair.Create("Site:AnalyticsId", "G-0000000000"),
-                KeyValuePair.Create("Site:CdnHost", string.Empty),
-                KeyValuePair.Create("Site:Domain", "dependabot.local"),
+                KeyValuePair.Create<string, string?>("AzureKeyVault:ClientId", string.Empty),
+                KeyValuePair.Create<string, string?>("AzureKeyVault:ClientSecret", string.Empty),
+                KeyValuePair.Create<string, string?>("AzureKeyVault:TenantId", string.Empty),
+                KeyValuePair.Create<string, string?>("AzureKeyVault:Uri", string.Empty),
+                KeyValuePair.Create<string, string?>("ConnectionStrings:AzureStorage", string.Empty),
+                KeyValuePair.Create<string, string?>("Dependabot:IncludeForks", bool.TrueString),
+                KeyValuePair.Create<string, string?>("Dependabot:IncludePrivate", bool.TrueString),
+                KeyValuePair.Create<string, string?>("Dependabot:MergeRetryWaits:0", "00:00:00.100"),
+                KeyValuePair.Create<string, string?>("Dependabot:MergeRetryWaits:1", "00:00:00.200"),
+                KeyValuePair.Create<string, string?>("GitHub:ClientId", "github-id"),
+                KeyValuePair.Create<string, string?>("GitHub:ClientSecret", "github-secret"),
+                KeyValuePair.Create<string, string?>("GitHub:EnterpriseDomain", string.Empty),
+                KeyValuePair.Create<string, string?>("GitHub:WebhookSecret", "github-secret"),
+                KeyValuePair.Create<string, string?>("Site:AnalyticsId", "G-0000000000"),
+                KeyValuePair.Create<string, string?>("Site:CdnHost", string.Empty),
+                KeyValuePair.Create<string, string?>("Site:Domain", "dependabot.local"),
             };
 
             configBuilder.AddInMemoryCollection(config);

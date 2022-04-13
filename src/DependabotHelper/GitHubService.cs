@@ -810,10 +810,11 @@ public sealed class GitHubService
         }
 
         string prefix = user.GetUserId();
-        return await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
+        var result = await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
         {
             entry.AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
             return await factory();
         });
+        return result!;
     }
 }
