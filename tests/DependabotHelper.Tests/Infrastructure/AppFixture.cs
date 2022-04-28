@@ -77,6 +77,11 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
         {
             var config = new[]
             {
+                KeyValuePair.Create("AzureKeyVault:ClientId", string.Empty),
+                KeyValuePair.Create("AzureKeyVault:ClientSecret", string.Empty),
+                KeyValuePair.Create("AzureKeyVault:TenantId", string.Empty),
+                KeyValuePair.Create("AzureKeyVault:Uri", string.Empty),
+                KeyValuePair.Create("ConnectionStrings:AzureStorage", string.Empty),
                 KeyValuePair.Create("Dependabot:IncludeForks", bool.TrueString),
                 KeyValuePair.Create("Dependabot:IncludePrivate", bool.TrueString),
                 KeyValuePair.Create("Dependabot:MergeRetryWaits:0", "00:00:00.100"),

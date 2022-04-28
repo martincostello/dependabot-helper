@@ -30,21 +30,27 @@ public static class AuthenticationEndpoints
     /// Adds GitHub authentication to the application.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/>.</param>
+    /// <param name="configuration">The <see cref="IConfiguration"/>.</param>
+    /// <param name="environment">The <see cref="IHostEnvironment"/>.</param>
     /// <returns>
     /// A <see cref="IServiceCollection"/> that can be used to further configure the application.
     /// </returns>
-    public static IServiceCollection AddGitHubAuthentication(this IServiceCollection services)
+    public static IServiceCollection AddGitHubAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        return services
-            .AddAuthentication(options => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
+        services
+            .AddAuthentication((options) => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie((options) =>
             {
                 options.Cookie.Name = CookiePrefix + "authentication";
                 options.LoginPath = SignInPath;
                 options.LogoutPath = SignOutPath;
             })
-            .AddGitHub()
-            .Services
+            .AddGitHub();
+
+        services
             .AddOptions<GitHubAuthenticationOptions>(GitHubAuthenticationDefaults.AuthenticationScheme)
             .Configure<IOptions<GitHubOptions>>((options, configuration) =>
             {
@@ -68,17 +74,34 @@ public static class AuthenticationEndpoints
                     options.ClaimActions.MapJsonKey(GitHubAvatarClaim, "avatar_url");
                 }
             })
-            .ValidateOnStart()
-            .Services
-            .AddAntiforgery((options) =>
-            {
-                options.Cookie.Name = CookiePrefix + "antiforgery";
-                options.FormFieldName = "__antiforgery";
-                options.HeaderName = "x-antiforgery";
-            })
+            .ValidateOnStart();
+
+        services.AddAntiforgery((options) =>
+        {
+            options.Cookie.Name = CookiePrefix + "antiforgery";
+            options.FormFieldName = "__antiforgery";
+            options.HeaderName = "x-antiforgery";
+        });
+
+        var dataProtection = services
             .AddDataProtection()
-            .SetApplicationName(ApplicationName)
-            .Services;
+            .SetApplicationName(ApplicationName);
+
+        string connectionString = configuration["ConnectionStrings:AzureStorage"];
+
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+#pragma warning disable CA1308
+            string relativePath = $"dependabothelper/{environment.EnvironmentName.ToLowerInvariant()}/keys.xml";
+#pragma warning restore CA1308
+
+            dataProtection.PersistKeysToAzureBlobStorage(
+                connectionString,
+                "data-protection",
+                relativePath);
+        }
+
+        return services;
     }
 
     /// <summary>
