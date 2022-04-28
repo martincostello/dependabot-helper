@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGitHubAuthentication();
+builder.Host.ConfigureApplication();
+
+builder.Services.AddGitHubAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddGitHubClient();
 builder.Services.AddRazorPages();
 
@@ -24,10 +26,10 @@ builder.Services.Configure<JsonOptions>((options) =>
     options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
-if (string.Equals(builder.Configuration["CODESPACES"], "true", StringComparison.OrdinalIgnoreCase))
+if (string.Equals(builder.Configuration["CODESPACES"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
 {
     builder.Services.Configure<ForwardedHeadersOptions>(
-        options => options.ForwardedHeaders |= ForwardedHeaders.XForwardedHost);
+        (options) => options.ForwardedHeaders |= ForwardedHeaders.XForwardedHost);
 }
 
 builder.WebHost.ConfigureKestrel((p) => p.AddServerHeader = false);
