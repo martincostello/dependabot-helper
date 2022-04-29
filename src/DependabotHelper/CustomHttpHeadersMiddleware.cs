@@ -14,12 +14,12 @@ public sealed class CustomHttpHeadersMiddleware
         {
             "default-src 'self'",
             "script-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com",
-            "script-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com",
+            "script-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com {2}",
             "style-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
             "style-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
             "img-src 'self' avatars.githubusercontent.com",
             "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
-            "connect-src 'self'",
+            "connect-src 'self' {3}",
             "media-src 'none'",
             "object-src 'none'",
             "child-src 'self'",
@@ -41,10 +41,13 @@ public sealed class CustomHttpHeadersMiddleware
     public Task Invoke(
         HttpContext context,
         IWebHostEnvironment environment,
-        IOptions<GitHubOptions> gitHubOptions)
+        IOptions<GitHubOptions> gitHubOptions,
+        IOptions<SiteOptions> siteOptions)
     {
         string nonce = GenerateNonce();
         context.SetCspNonce(nonce);
+
+        bool renderAnalytics = !string.IsNullOrEmpty(siteOptions.Value.AnalyticsId);
 
         context.Response.OnStarting(() =>
         {
@@ -53,7 +56,10 @@ public sealed class CustomHttpHeadersMiddleware
 
             if (environment.IsProduction())
             {
-                context.Response.Headers["Content-Security-Policy"] = ContentSecurityPolicy(nonce, gitHubOptions.Value.EnterpriseDomain);
+                context.Response.Headers["Content-Security-Policy"] = ContentSecurityPolicy(
+                    nonce,
+                    gitHubOptions.Value.EnterpriseDomain,
+                    renderAnalytics);
             }
 
             if (context.Request.IsHttps)
@@ -83,13 +89,16 @@ public sealed class CustomHttpHeadersMiddleware
 
     private static string ContentSecurityPolicy(
         string nonce,
-        string gitHubEnterpriseDomain)
+        string gitHubEnterpriseDomain,
+        bool renderAnalytics)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
             ContentSecurityPolicyTemplate,
             nonce,
-            ParseGitHubHost(gitHubEnterpriseDomain));
+            ParseGitHubHost(gitHubEnterpriseDomain),
+            renderAnalytics ? "www.googletagmanager.com" : string.Empty,
+            renderAnalytics ? "www.google-analytics.com" : string.Empty);
     }
 
     private static string ParseGitHubHost(string gitHubEnterpriseDomain)

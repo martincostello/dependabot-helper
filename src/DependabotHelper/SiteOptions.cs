@@ -5,6 +5,8 @@ namespace MartinCostello.DependabotHelper;
 
 public sealed class SiteOptions
 {
+    public string AnalyticsId { get; set; } = string.Empty;
+
     public string Description { get; set; } = string.Empty;
 
     public string Domain { get; set; } = string.Empty;
