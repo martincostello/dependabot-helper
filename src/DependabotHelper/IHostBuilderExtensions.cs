@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -24,7 +25,7 @@ public static class IHostBuilderExtensions
             }
         });
 
-        builder.ConfigureServices((services) =>
+        builder.ConfigureServices((context, services) =>
         {
             services.AddSingleton((provider) =>
             {
@@ -38,6 +39,13 @@ public static class IHostBuilderExtensions
                 TokenCredential credential = CreateTokenCredential(config);
                 return new SecretClient(vaultUri, credential);
             });
+
+            string analyticsId = context.Configuration["Site:AnalyticsId"];
+
+            if (!string.IsNullOrEmpty(analyticsId))
+            {
+                services.AddTransient<ITagHelperComponent, AnalyticsTagHelperComponent>();
+            }
         });
 
         return builder;
