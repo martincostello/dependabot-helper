@@ -27,7 +27,7 @@
                 <tr class="d-none item-template repo-item">
                     <td class="col">
                         <span class="loader spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <a class="align-middle repo-name" href="#" target="_blank"></a>
+                        <a class="align-middle repo-name" href="#" target="_blank" analytics-event="view_pull_requests"></a>
                     </td>
                     <td class="col col-3">
                         <div class="container">
@@ -52,19 +52,19 @@
                         </div>
                     </td>
                     <td class="col col-2 col-md-3">
-                        <button class="btn btn-manage-action btn-secondary repo-refresh m-1" title="Refresh" type="button" disabled>
+                        <button class="btn btn-manage-action btn-secondary repo-refresh m-1" title="Refresh" type="button" disabled analytics-event="refresh_pull_requests">
                             <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
                             <span class="loader spinner-border spinner-border-sm d-none" role="status">
                                 <span class="sr-only">Refreshing...</span>
                             </span>
                         </button>
-                        <a class="btn btn-manage-action btn-primary repo-configure disabled m-1" href="#" role="button" target="_blank" title="View the Dependabot configuration">
+                        <a class="btn btn-manage-action btn-primary repo-configure disabled m-1" href="#" role="button" target="_blank" title="View the Dependabot configuration" analytics-event="view_repo_configuration">
                             <span class="fa-solid fa-robot" aria-hidden="true"></span>
                         </a>
-                        <button class="btn btn-manage-action btn-pr repo-pull-requests m-1" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled>
+                        <button class="btn btn-manage-action btn-pr repo-pull-requests m-1" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled analytics-event="view_pull_requests_modal">
                             <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
                         </button>
-                        <button class="btn btn-manage-action btn-success btn-merge repo-merge m-1" title="Attempt to merge all mergeable pull requests" type="button" disabled>
+                        <button class="btn btn-manage-action btn-success btn-merge repo-merge m-1" title="Attempt to merge all mergeable pull requests" type="button" disabled analytics-event="merge_pull_requests">
                             <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
                             <span class="loader spinner-border spinner-border-sm d-none" role="status">
                                 <span class="sr-only">Merging...</span>
@@ -106,7 +106,7 @@
                         <tr class="pr-template d-none">
                             <td>
                                 <span class="fa-solid fa-code-merge text-github-open" aria-hidden="true"></span>
-                                <a href="" target="_blank" class="pr-title" title="View this pull request in GitHub">Title</a>
+                                <a href="" target="_blank" class="pr-title" title="View this pull request in GitHub" analytics-event="view_pull_request">Title</a>
                             </td>
                             <td class="text-center">
                                 <span class="fa-solid fa-xmark text-danger pr-status-error d-none" data-count="0" aria-label="Error" title="Error"></span>
@@ -121,7 +121,7 @@
                                 </span>
                                 <span>
                                     <span class="fa-solid fa-thumbs-up text-primary pr-is-approved d-none" data-count="0" aria-label="Approved" title="Approved"></span>
-                                    <button class="btn btn-success btn-approve pr-approve d-none" type="button" aria-label="Approve this pull request">
+                                    <button class="btn btn-success btn-approve pr-approve d-none" type="button" aria-label="Approve this pull request" analytics-event="approve_pull_request">
                                         <span>Approve</span>
                                         <span class="fa-solid fa-check d-none d-md-inline-block" aria-hidden="true"></span>
                                         <span class="loader spinner-border spinner-border-sm d-none" role="status">
