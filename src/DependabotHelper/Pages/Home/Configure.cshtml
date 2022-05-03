@@ -28,7 +28,7 @@
                         <td class="align-middle owner-name @highlight">@owner.Name</td>
                         <td>
                             <div>
-                                <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-toggle="modal" data-target="#repo-search-modal">
+                                <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-toggle="modal" data-target="#repo-search-modal" analytics-event="view_org_repos_modal">
                                     <span class="fa-solid fa-gears" aria-title="Select repositories"></span>
                                 </button>
                             </div>
@@ -57,7 +57,7 @@
                 <h5 class="modal-title" id="repo-search-label" aria-title="Select repositories to manage Dependabot updates for">
                     Select repositories
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" analytics-event="close_org_repos_modal">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -73,7 +73,7 @@
                     <tbody>
                         <tr class="check-template repository-item d-none">
                             <td>
-                                <a href="" target="_blank" class="repo-name"></a>
+                                <a href="" target="_blank" class="repo-name" analytics-event="view_org_repo"></a>
                                 <span class="fa-solid fa-lock repo-is-private text-muted d-none" title="Private" aria-label="The repository is private"></span>
                                 <span class="fa-solid fa-code-fork repo-is-fork text-muted d-none" title="Fork" aria-label="The repository is a fork"></span>
                             </td>
@@ -87,8 +87,8 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="repo-cancel" >Close</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" id="repo-save">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="repo-cancel" analytics-event="cancel_org_repos">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="repo-save" analytics-event="save_org_repos">
                     Save changes
                     <span class="loader spinner-border spinner-border-sm d-none" role="status">
                         <span class="sr-only">Saving...</span>

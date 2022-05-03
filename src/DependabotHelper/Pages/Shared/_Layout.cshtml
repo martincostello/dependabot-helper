@@ -88,31 +88,31 @@
             <div class="collapse navbar-collapse" id="site-navbar">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="~/" title="Manage Updates" id="manage-link">Manage</a>
+                        <a class="nav-link" href="~/" title="Manage Updates" id="manage-link" analytics-event="manage_pull_requests">Manage</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="~/configure" title="Configure Repositories" id="configure-link">Configure</a>
+                        <a class="nav-link" href="~/configure" title="Configure Repositories" id="configure-link" analytics-event="configure_repos">Configure</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" analytics-event="navbar_dropdown">
                             GitHub
                             <span class="fa-brands fa-github" aria-hidden="true"></span>
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbar-dropdown">
-                            <a class="dropdown-item" href="@(repository)" target="_blank" title="View Dependabot Helper on GitHub.com">
+                            <a class="dropdown-item" href="@(repository)" target="_blank" title="View Dependabot Helper on GitHub.com" analytics-event="view_code_repo">
                                 View the code
                                 <span class="fa-solid fa-code text-info" aria-hidden="true"></span>
                             </a>
-                            <a class="dropdown-item" href="@(repository)/issues/new?assignees=&labels=bug&template=bug_report.md" target="_blank" title="Create an issue for a bug GitHub.com">
+                            <a class="dropdown-item" href="@(repository)/issues/new?assignees=&labels=bug&template=bug_report.md" target="_blank" title="Create an issue for a bug GitHub.com" analytics-event="create_issue">
                                 Found a bug?
                                 <span class="fas fa-bug text-danger" aria-hidden="true"></span>
                             </a>
-                            <a class="dropdown-item" href="@(repository)/issues/new?assignees=&labels=feature-request&template=feature_request.md" target="_blank" title="Create an issue for a feature request on GitHub.com">
+                            <a class="dropdown-item" href="@(repository)/issues/new?assignees=&labels=feature-request&template=feature_request.md" target="_blank" title="Create an issue for a feature request on GitHub.com" analytics-event="create_feature_request">
                                 Suggest a feature
                                 <span class="far fa-lightbulb text-warning" aria-hidden="true"></span>
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="@(repository)/tree/@(GitMetadata.Commit)/docs#readme" target="_blank" title="Read the Dependabot Helper documentation on GitHub.com">
+                            <a class="dropdown-item" href="@(repository)/tree/@(GitMetadata.Commit)/docs#readme" target="_blank" title="Read the Dependabot Helper documentation on GitHub.com" analytics-event="view_documentation">
                                 Help
                                 <span class="far fa-question-circle text-primary" aria-hidden="true"></span>
                             </a>
@@ -130,7 +130,7 @@
                                     string profileUrl = User.GetProfileUrl();
                                     string? avatarUrl = User.GetAvatarUrl();
                                 }
-                                <a class="nav-link" href="@profileUrl" title="View your GitHub profile" target="_blank">
+                                <a class="nav-link" href="@profileUrl" title="View your GitHub profile" target="_blank" analytics-event="view_github_profile">
                                     <span id="user-name">@displayName</span>
                                     @if (!string.IsNullOrWhiteSpace(avatarUrl))
                                     {
@@ -139,7 +139,7 @@
                                 </a>
                             </li>
                             <li>
-                                <button type="submit" class="btn btn-link navbar-btn nav-link" title="Sign out" id="sign-out">
+                                <button type="submit" class="btn btn-link navbar-btn nav-link" title="Sign out" id="sign-out" analytics-event="sign_out">
                                     Sign out
                                     <span class="fa fa-sign-out" aria-hidden="true"></span>
                                 </button>
@@ -181,18 +181,18 @@
                 <span class="d-none d-lg-inline-block float-right">
                     <small>
                         Built from
-                        <a href="@commit" title="View commit @GitMetadata.Commit on GitHub" target="_blank">
+                        <a href="@commit" title="View commit @GitMetadata.Commit on GitHub" target="_blank" analytics-event="view_commit">
                             <code>@string.Join(string.Empty, GitMetadata.Commit.Take(7))</code>
                         </a>
                         on
-                        <a href="@branch" title="View branch @GitMetadata.Branch on GitHub" target="_blank">
+                        <a href="@branch" title="View branch @GitMetadata.Branch on GitHub" target="_blank" analytics-event="view_branch">
                             <code>@GitMetadata.Branch</code>
                         </a>
                         @if (!string.IsNullOrWhiteSpace(GitMetadata.BuildId))
                         {
                             <text>
                             by
-                            <a href="@build" title="View deployment on GitHub" target="_blank">
+                            <a href="@build" title="View deployment on GitHub" target="_blank" analytics-event="view_deployment">
                                 GitHub
                             </a>
                             </text>
