@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.1.0" />
+    <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.2.0" />
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="6.0.6" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.2.1" />
