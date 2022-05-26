@@ -48,64 +48,82 @@ export class Manage extends Page {
             }
         }
 
-        const modal = Page.findId('pr-modal');
-        this.modal = new PullRequestsElement(modal);
-
-        this.modal.onApprove(async (owner, name, number) => {
-
-            await this.gitHub.approvePullRequest(owner, name, number);
-
-            const element = repoElements.find((element) => element.owner === owner && element.name === name);
-
-            if (element) {
-                await this.updateRepository(element);
-            }
-        });
-
-        let refreshInterval: number = null;
-
-        const refreshIntervalString = ownerList.getAttribute('data-refresh-period');
-
-        if (refreshIntervalString) {
-            const interval = parseInt(refreshIntervalString, 10);
-            if (interval > 1000 * 30) {
-                refreshInterval = interval;
-            }
-        }
-
-        // Sequentially load the Pull Requests for each repository listed
-        for (const element of repoElements) {
-
-            await this.updateRepository(element);
-
-            element.onMerge(async (owner, name) => {
-                await this.gitHub.mergePullRequests(owner, name);
-                this.updateRateLimits();
-                await this.updateRepository(element);
-            });
-
-            element.onPullRequests((pullRequests) => {
-                this.modal.update(pullRequests);
-            });
-
-            element.onRefresh(async (_owner, _name) => {
-                await this.updateRepository(element);
-            });
-
-            // Automatically refresh the UI with a random
-            // jitter factor of 0-30 seconds, if configured.
-            if (refreshInterval) {
-                const jitter = Math.floor(Math.random() * 30) * 1000;
-                const interval = refreshInterval + jitter;
-
-                setInterval(async () => {
-                    await this.updateRepository(element);
-                }, interval);
-            }
-        }
-
         if (repoElements.length < 1) {
             Elements.show(Page.findId('not-configured'));
+        } else {
+
+            const modal = Page.findId('pr-modal');
+            this.modal = new PullRequestsElement(modal);
+
+            this.modal.onApprove(async (owner, name, number) => {
+
+                await this.gitHub.approvePullRequest(owner, name, number);
+
+                const element = repoElements.find((element) => element.owner === owner && element.name === name);
+
+                if (element) {
+                    await this.updateRepository(element);
+                }
+            });
+
+            let refreshInterval: number = null;
+
+            const refreshIntervalString = ownerList.getAttribute('data-refresh-period');
+
+            if (refreshIntervalString) {
+                const interval = parseInt(refreshIntervalString, 10);
+                if (interval > 1000 * 30) {
+                    refreshInterval = interval;
+                }
+            }
+
+            await this.configureRepositories(repoElements, refreshInterval);
+        }
+    }
+
+    private async configureRepositories(
+        repositories: RepositoryElement[],
+        refreshInterval: number): Promise<void> {
+
+        const promises: Promise<void>[] = [];
+
+        for (const repository of repositories) {
+
+            promises.push(this.configureRepository(repository, refreshInterval));
+        }
+
+        await Promise.all(promises);
+    }
+
+    private async configureRepository(
+        repository: RepositoryElement,
+        refreshInterval: number): Promise<void> {
+
+        await this.updateRepository(repository);
+
+        repository.onMerge(async (owner, name) => {
+            await this.gitHub.mergePullRequests(owner, name);
+            this.updateRateLimits();
+            await this.updateRepository(repository);
+        });
+
+        repository.onPullRequests((pullRequests) => {
+            this.modal.update(pullRequests);
+        });
+
+        repository.onRefresh(async (_owner, _name) => {
+            await this.updateRepository(repository);
+        });
+
+        // Automatically refresh the UI with a random
+        // jitter factor of 0-30 seconds, if configured.
+        if (refreshInterval) {
+            const jitter = Math.floor(Math.random() * 30) * 1000;
+            const interval = refreshInterval + jitter;
+
+            setInterval(async () => {
+                await this.updateRepository(repository);
+            }, interval);
         }
     }
 
