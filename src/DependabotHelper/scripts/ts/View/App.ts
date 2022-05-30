@@ -23,7 +23,7 @@ export class App {
         const analyticsElement = document.querySelector('meta[name="x-analytics-id"]');
         let analyticsId = '';
 
-        if (analyticsElement !== null) {
+        if (analyticsElement) {
             analyticsId = analyticsElement.getAttribute('content');
         }
 
@@ -35,7 +35,7 @@ export class App {
         const userElement = document.querySelector('meta[name="x-user-id"]');
         let userId = '';
 
-        if (userElement !== null) {
+        if (userElement) {
             userId = userElement.getAttribute('content');
         }
 
