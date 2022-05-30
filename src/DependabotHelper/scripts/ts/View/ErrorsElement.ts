@@ -10,6 +10,10 @@ export class ErrorsElement {
 
     constructor() {
         this.alert = Page.findId('error-alert');
+        const dismiss = this.alert.querySelector('.error-dismiss');
+        dismiss.addEventListener('click', () => {
+            Elements.hide(this.alert);
+        });
     }
 
     show(error: any): void {
