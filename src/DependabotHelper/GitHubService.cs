@@ -735,7 +735,7 @@ public sealed class GitHubService
     {
         absoluteExpirationRelativeToNow ??= _options.CacheLifetime;
 
-        if (_options.DisableCaching || absoluteExpirationRelativeToNow < TimeSpan.FromMinutes(1))
+        if (_options.DisableCaching || absoluteExpirationRelativeToNow < ShortCacheLifetime)
         {
             return await factory();
         }
