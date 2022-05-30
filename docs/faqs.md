@@ -21,10 +21,10 @@ Reasons for a pull request failing to merge include:
 
 1. The pull request contains merge conflicts that need to be manually resolved.
 1. One or more branch protection rules are not satisfied. This can include:
-  * Required approvals, for example Code Owners, are missing;
-  * One or more required status check is missing/failed;
-  * One ore more code conversations are unresolved;
-  * Git pre-commit hooks fail.
+    * Required approvals, for example Code Owners, are missing;
+    * One or more required status check is missing/failed;
+    * One ore more code conversations are unresolved;
+    * Git pre-commit hooks fail.
 1. The HTTP timeout to process a single request to merge open pull requests
 elapses (for example if there are many open pull requests);
 1. GitHub API rate limits for your account being exceeded.
