@@ -47,6 +47,10 @@ you have access to that you choose to configure to manage updates for.
 
 [![View the open pull requests for a repository](./images/pull-requests.png "View pull requests")](#view-pull-requests)
 
+## FAQs
+
+For answers to frequently asked questions about Dependabot Helper, see [this document](./faqs.md "Frequently Asked Questions").
+
 ## Installation
 
 Dependabot Helper is an ASP.NET Core web application. [Building, publishing and deploying the application]
