@@ -12,6 +12,16 @@ namespace MartinCostello.DependabotHelper;
 
 public sealed class GitHubService
 {
+    /// <summary>
+    /// The cache period for data that is long-lived and/or stable.
+    /// </summary>
+    private static readonly TimeSpan LongCacheLifetime = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// The cache period for data that is short-lived and/or volatile.
+    /// </summary>
+    private static readonly TimeSpan ShortCacheLifetime = TimeSpan.FromSeconds(30);
+
     private readonly IMemoryCache _cache;
     private readonly IGitHubClient _client;
     private readonly ILogger _logger;
@@ -274,45 +284,16 @@ public sealed class GitHubService
     }
 
     private async Task<IList<Models.PullRequest>> GetPullRequestsAsync(
-        ClaimsPrincipal currentUser,
+        ClaimsPrincipal user,
         string owner,
         string name,
         bool fetchStatuses)
     {
         var result = new List<Models.PullRequest>();
 
-        foreach (string user in _options.Users)
+        foreach (string creator in _options.Users)
         {
-            var request = new RepositoryIssueRequest()
-            {
-                Creator = user,
-                Filter = IssueFilter.Created,
-                State = ItemStateFilter.Open,
-            };
-
-            foreach (string label in _options.Labels)
-            {
-                request.Labels.Add(label);
-            }
-
-            _logger.LogInformation(
-                "Finding open issues created by {User} in repository {Owner}/{Name}.",
-                user,
-                owner,
-                name);
-
-            var issues = await _client.Issue.GetAllForRepository(owner, name, request);
-
-            var openPullRequests = issues
-                .Where((p) => p.PullRequest is not null)
-                .ToList();
-
-            _logger.LogInformation(
-                "Found {Count} open pull requests created by {User} in repository {Owner}/{Name}.",
-                openPullRequests.Count,
-                user,
-                owner,
-                name);
+            var openPullRequests = await GetOpenPullRequestsAsync(user, owner, name, creator);
 
             foreach (var issue in openPullRequests)
             {
@@ -358,8 +339,8 @@ public sealed class GitHubService
                         owner,
                         name);
 
-                    (canApprove, isApproved) = await IsApprovedAsync(currentUser, owner, name, issue.Number, pr.Base.Ref);
-                    status = await GetChecksStatusAsync(currentUser, owner, name, pr.Head.Sha, pr.Base.Ref);
+                    (canApprove, isApproved) = await IsApprovedAsync(user, owner, name, issue.Number, pr.Base.Ref);
+                    status = await GetChecksStatusAsync(user, owner, name, pr.Head.Sha, pr.Base.Ref);
 
                     _logger.LogInformation(
                         "Fetched approvals and statuses for pull request {Number} in repository {Owner}/{Name}. Approved: {Approved}; Status: {Status}.",
@@ -400,7 +381,10 @@ public sealed class GitHubService
             owner,
             name);
 
-        var approved = await _client.PullRequest.Review.GetAll(owner, name, number);
+        var approved = await CacheGetOrCreateAsync(user, $"reviews:{owner}:{name}:{number}", ShortCacheLifetime, async () =>
+        {
+            return await _client.PullRequest.Review.GetAll(owner, name, number);
+        });
 
         _logger.LogDebug(
             "Found {Count} approvals for pull request {Number} in repository {Owner}/{Name}.",
@@ -474,7 +458,10 @@ public sealed class GitHubService
             owner,
             name);
 
-        var combinedCommitStatus = await _client.Repository.Status.GetCombined(owner, name, commitSha);
+        var combinedCommitStatus = await CacheGetOrCreateAsync(user, $"status:{owner}:{name}:{commitSha}", ShortCacheLifetime, async () =>
+        {
+            return await _client.Repository.Status.GetCombined(owner, name, commitSha);
+        });
 
         _logger.LogDebug(
             "Found {Count} statuses for commit {Reference} in repository {Owner}/{Name}.",
@@ -511,17 +498,22 @@ public sealed class GitHubService
             owner,
             name);
 
-        var checkSuitesResponse = await _client.Check.Suite.GetAllForReference(owner, name, commitSha);
-
-        _logger.LogDebug(
-            "Found {Count} check suites for commit {Reference} in repository {Owner}/{Name}.",
-            checkSuitesResponse.TotalCount,
-            commitSha,
-            owner,
-            name);
+        CheckSuitesResponse? checkSuitesResponse = null;
 
         // No need to query the check suites if we already know the status is failed
-        if (checkSuitesResponse.TotalCount > 0 && status != ChecksStatus.Error)
+        if (status != ChecksStatus.Error)
+        {
+            checkSuitesResponse = await _client.Check.Suite.GetAllForReference(owner, name, commitSha);
+
+            _logger.LogDebug(
+                "Found {Count} check suites for commit {Reference} in repository {Owner}/{Name}.",
+                checkSuitesResponse.TotalCount,
+                commitSha,
+                owner,
+                name);
+        }
+
+        if (checkSuitesResponse?.TotalCount > 0 && status != ChecksStatus.Error)
         {
             // Split the check suites into their possible statuses
             var queuedSuites = checkSuitesResponse.CheckSuites.Where((p) => p.Status == CheckStatus.Queued);
@@ -638,7 +630,7 @@ public sealed class GitHubService
 
     private async Task<User> GetUserAsync(ClaimsPrincipal user, string login)
     {
-        return await CacheGetOrCreateAsync(user, $"user:{login}", async () =>
+        return await CacheGetOrCreateAsync(user, $"user:{login}", LongCacheLifetime, async () =>
         {
             return await _client.User.Get(login);
         });
@@ -646,7 +638,7 @@ public sealed class GitHubService
 
     private async Task<bool> IsDependabotEnabledAsync(ClaimsPrincipal user, string owner, string name)
     {
-        return await CacheGetOrCreateAsync(user, $"repo:{owner}/{name}/dependabot", async () =>
+        return await CacheGetOrCreateAsync(user, $"repo:{owner}/{name}/dependabot", LongCacheLifetime, async () =>
         {
             try
             {
@@ -677,6 +669,62 @@ public sealed class GitHubService
                 return null;
             }
         });
+    }
+
+    private async Task<IReadOnlyList<Issue>> GetOpenPullRequestsAsync(
+        ClaimsPrincipal user,
+        string owner,
+        string name,
+        string creator)
+    {
+        var request = new RepositoryIssueRequest()
+        {
+            Creator = creator,
+            Filter = IssueFilter.Created,
+            State = ItemStateFilter.Open,
+        };
+
+        foreach (string label in _options.Labels)
+        {
+            request.Labels.Add(label);
+        }
+
+        _logger.LogInformation(
+            "Finding open issues created by {User} in repository {Owner}/{Name}.",
+            creator,
+            owner,
+            name);
+
+        var issues = await CacheGetOrCreateAsync(user, $"issues:{owner}:{name}:{creator}", ShortCacheLifetime, async () =>
+        {
+            return await _client.Issue.GetAllForRepository(owner, name, request);
+        });
+
+        var openPullRequests = issues
+            .Where((p) => p.PullRequest is not null)
+            .ToList();
+
+        _logger.LogInformation(
+            "Found {Count} open pull requests created by {User} in repository {Owner}/{Name}.",
+            openPullRequests.Count,
+            creator,
+            owner,
+            name);
+
+        return openPullRequests;
+    }
+
+    private async Task<T> CacheGetOrCreateAsync<T>(
+        ClaimsPrincipal user,
+        string key,
+        TimeSpan? absoluteExpirationRelativeToNow,
+        Func<Task<T>> factory)
+    {
+        return await CacheGetOrCreateAsync(
+            user,
+            key,
+            factory,
+            absoluteExpirationRelativeToNow);
     }
 
     private async Task<T> CacheGetOrCreateAsync<T>(
