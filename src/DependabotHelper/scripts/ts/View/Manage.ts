@@ -98,7 +98,11 @@ export class Manage extends Page {
             promises.push(this.configureRepository(repository, refreshInterval));
         }
 
-        await Promise.allSettled(promises);
+        if (Promise.allSettled) {
+            await Promise.allSettled(promises);
+        } else {
+            await Promise.all(promises);
+        }
     }
 
     private async configureRepository(
