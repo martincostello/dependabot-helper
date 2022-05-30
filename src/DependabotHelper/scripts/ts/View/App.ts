@@ -21,7 +21,11 @@ export class App {
     async initialize(): Promise<void> {
 
         const analyticsElement = document.querySelector('meta[name="x-analytics-id"]');
-        const analyticsId = analyticsElement?.getAttribute('content') ?? '';
+        let analyticsId = '';
+
+        if (analyticsElement !== null) {
+            analyticsId = analyticsElement.getAttribute('content');
+        }
 
         if (analyticsId) {
             const analytics = new Analytics();
@@ -29,7 +33,11 @@ export class App {
         }
 
         const userElement = document.querySelector('meta[name="x-user-id"]');
-        const userId = userElement?.getAttribute('content') ?? '';
+        let userId = '';
+
+        if (userElement !== null) {
+            userId = userElement.getAttribute('content');
+        }
 
         if (!userId) {
             return;

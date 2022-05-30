@@ -108,7 +108,13 @@ export class GitHubClient {
 
     private getMetaContent(name: string): string {
         const element = document.querySelector(`meta[name="${name}"]`);
-        return element?.getAttribute('content') ?? '';
+        let content = '';
+
+        if (element) {
+            content = element.getAttribute('content');
+        }
+
+        return content;
     }
 
     private updateRateLimits(headers: Headers) {

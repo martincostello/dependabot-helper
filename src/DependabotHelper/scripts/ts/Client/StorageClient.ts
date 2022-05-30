@@ -74,7 +74,7 @@ export class StorageClient {
 
         try {
             profiles = JSON.parse(localStorage.getItem(this.key)) || [];
-        } catch {
+        } catch (_: any) {
             // Ignore any errors accessing local storage
         }
 
