@@ -3,7 +3,9 @@
 
 import { GitHubClient } from '../Client/GitHubClient';
 import { StorageClient } from '../Client/StorageClient';
+import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
 import { Elements } from './Elements';
+import { ErrorsElement } from './ErrorsElement';
 import { OwnerElement } from './OwnerElement';
 import { Page } from './Page';
 import { PullRequestsElement } from './PullRequestsElement';
@@ -16,8 +18,8 @@ export class Manage extends Page {
 
     private modal: PullRequestsElement;
 
-    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement) {
-        super(gitHub, storage, rateLimits);
+    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement, errors: ErrorsElement) {
+        super(gitHub, storage, rateLimits, errors);
     }
 
     async initialize(): Promise<void> {
@@ -57,7 +59,11 @@ export class Manage extends Page {
 
             this.modal.onApprove(async (owner, name, number) => {
 
-                await this.gitHub.approvePullRequest(owner, name, number);
+                try {
+                    await this.gitHub.approvePullRequest(owner, name, number);
+                } catch (error: any) {
+                    this.showError(error);
+                }
 
                 const element = repoElements.find((element) => element.owner === owner && element.name === name);
 
@@ -102,7 +108,13 @@ export class Manage extends Page {
         await this.updateRepository(repository);
 
         repository.onMerge(async (owner, name) => {
-            await this.gitHub.mergePullRequests(owner, name);
+
+            try {
+                await this.gitHub.mergePullRequests(owner, name);
+            } catch (error: any) {
+                this.showError(error);
+            }
+
             this.updateRateLimits();
             await this.updateRepository(repository);
         });
@@ -128,8 +140,19 @@ export class Manage extends Page {
     }
 
     private async updateRepository(element: RepositoryElement): Promise<void> {
-        const repository = await this.gitHub.getPullRequests(element.owner, element.name);
-        element.update(repository);
+
+        let repository: RepositoryPullRequests = null;
+
+        try {
+            repository = await this.gitHub.getPullRequests(element.owner, element.name);
+        } catch (error: any) {
+            this.showError(error);
+        }
+
+        if (repository) {
+            element.update(repository);
+        }
+
         this.updateRateLimits();
     }
 }

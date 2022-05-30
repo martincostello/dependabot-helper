@@ -166,6 +166,19 @@
               </p>
             </div>
         }
+        <div class="alert alert-danger alert-dismissible fade show d-none" role="alert" id="error-alert">
+            <h4 class="alert-heading">
+                <span class="fa-solid fa-triangle-exclamation" aria-hidden="true"></span>
+                Error
+            </h4>
+            <p class="error-message"></p>
+            <p>
+                <pre class="error-stack-trace"></pre>
+            </p>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         @RenderBody()
         <hr />
         <footer>

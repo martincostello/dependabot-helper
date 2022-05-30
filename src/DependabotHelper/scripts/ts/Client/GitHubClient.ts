@@ -1,6 +1,7 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+import { ApiError } from '../Models/ApiError';
 import { RateLimits } from '../Models/RateLimits';
 import { Repository } from '../Models/Repository';
 import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
@@ -56,11 +57,26 @@ export class GitHubClient {
 
         this.updateRateLimits(response.headers);
 
-        if (!response.ok) {
-            throw new Error(response.status.toString(10));
+        let json: any;
+
+        try {
+            json = await response.json();
+        } catch (error: any) {
+            json = null;
         }
 
-        return await response.json();
+        if (!response.ok) {
+
+            const apiError = json as ApiError;
+
+            if (apiError) {
+                throw new Error(`${json.title} (HTTP ${response.status})`);
+            } else {
+                throw new Error(response.status.toString(10));
+            }
+        }
+
+        return json;
     }
 
     private async postJson(url: string): Promise<void> {

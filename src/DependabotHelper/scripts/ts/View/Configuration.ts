@@ -3,7 +3,9 @@
 
 import { GitHubClient } from '../Client/GitHubClient';
 import { StorageClient } from '../Client/StorageClient';
+import { Repository } from '../Models/Repository';
 import { Elements } from './Elements';
+import { ErrorsElement } from './ErrorsElement';
 import { Page } from './Page';
 import { RateLimitsElement } from './RateLimitsElement';
 
@@ -20,8 +22,8 @@ export class Configuration extends Page {
     private save: Element;
     private template: Element;
 
-    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement) {
-        super(gitHub, storage, rateLimits);
+    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement, errors: ErrorsElement) {
+        super(gitHub, storage, rateLimits, errors);
     }
 
     initialize() {
@@ -56,7 +58,13 @@ export class Configuration extends Page {
         const loader = this.modal.querySelector('.table-loader');
         Elements.show(loader);
 
-        const repositories = await this.gitHub.getRepositories(owner);
+        let repositories: Repository[] = [];
+
+        try {
+            repositories = await this.gitHub.getRepositories(owner);
+        } catch (error: any) {
+            this.showError(error);
+        }
 
         this.updateRateLimits();
 
