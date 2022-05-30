@@ -67,6 +67,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependabotHelper.EndToEndTe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{EF9C21CA-0F1C-4E1F-A61D-3F90F237DF90}"
 	ProjectSection(SolutionItems) = preProject
+		docs\faqs.md = docs\faqs.md
 		docs\README.md = docs\README.md
 	EndProjectSection
 EndProject
