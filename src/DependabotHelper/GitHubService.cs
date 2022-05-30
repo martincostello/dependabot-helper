@@ -679,9 +679,15 @@ public sealed class GitHubService
         });
     }
 
-    private async Task<T> CacheGetOrCreateAsync<T>(ClaimsPrincipal user, string key, Func<Task<T>> factory)
+    private async Task<T> CacheGetOrCreateAsync<T>(
+        ClaimsPrincipal user,
+        string key,
+        Func<Task<T>> factory,
+        TimeSpan? absoluteExpirationRelativeToNow = default)
     {
-        if (_options.DisableCaching || _options.CacheLifetime < TimeSpan.FromMinutes(1))
+        absoluteExpirationRelativeToNow ??= _options.CacheLifetime;
+
+        if (_options.DisableCaching || absoluteExpirationRelativeToNow < TimeSpan.FromMinutes(1))
         {
             return await factory();
         }
@@ -689,7 +695,7 @@ public sealed class GitHubService
         string prefix = user.GetUserId();
         return await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
         {
-            entry.AbsoluteExpirationRelativeToNow = _options.CacheLifetime;
+            entry.AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
             return await factory();
         });
     }
