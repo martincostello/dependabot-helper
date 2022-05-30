@@ -5,6 +5,7 @@ import { GitHubClient } from '../Client/GitHubClient';
 import { StorageClient } from '../Client/StorageClient';
 import { Analytics } from './Analytics';
 import { Configuration } from './Configuration';
+import { ErrorsElement } from './ErrorsElement';
 import { Manage } from './Manage';
 import { Page } from './Page';
 import { RateLimitsElement } from './RateLimitsElement';
@@ -36,14 +37,15 @@ export class App {
 
         const storage = new StorageClient();
         const rateLimits = new RateLimitsElement();
+        const errors = new ErrorsElement();
 
         if (Page.ownerList()) {
-            const manage = new Manage(this.gitHub, storage, rateLimits);
+            const manage = new Manage(this.gitHub, storage, rateLimits, errors);
             await manage.initialize();
         }
 
         if (Page.searchModal()) {
-            const config = new Configuration(this.gitHub, storage, rateLimits);
+            const config = new Configuration(this.gitHub, storage, rateLimits, errors);
             config.initialize();
         }
     }

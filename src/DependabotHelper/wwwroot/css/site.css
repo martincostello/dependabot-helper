@@ -85,6 +85,17 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     color: #fff;
 }
 
+.error-stack-trace {
+    overflow: scroll;
+    overflow-x: hidden;
+}
+
+.error-stack-trace::-webkit-scrollbar {
+    background: transparent;
+    display: none;
+    width: 0;
+}
+
 .navbar-dark .navbar-nav .nav-link {
     color: #B0B0B0;
 }
