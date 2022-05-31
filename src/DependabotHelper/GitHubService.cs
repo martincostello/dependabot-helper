@@ -293,7 +293,12 @@ public sealed class GitHubService
 
         foreach (string creator in _options.Users)
         {
-            var openPullRequests = await GetOpenPullRequestsAsync(user, owner, name, creator);
+            // If fetching the statuses, fetch the pull requests bypassing the cache
+            // otherwise when PRs are merged, the list does not reflect the just-merged
+            // issues in the UI, making it look like the PRs were not merged at all.
+            bool useCache = !fetchStatuses;
+
+            var openPullRequests = await GetOpenPullRequestsAsync(user, owner, name, creator, useCache);
 
             foreach (var issue in openPullRequests)
             {
@@ -675,7 +680,8 @@ public sealed class GitHubService
         ClaimsPrincipal user,
         string owner,
         string name,
-        string creator)
+        string creator,
+        bool useCache = true)
     {
         var request = new RepositoryIssueRequest()
         {
@@ -695,7 +701,9 @@ public sealed class GitHubService
             owner,
             name);
 
-        var issues = await CacheGetOrCreateAsync(user, $"issues:{owner}:{name}:{creator}", ShortCacheLifetime, async () =>
+        var cacheLifetime = useCache ? ShortCacheLifetime : TimeSpan.Zero;
+
+        var issues = await CacheGetOrCreateAsync(user, $"issues:{owner}:{name}:{creator}", cacheLifetime, async () =>
         {
             return await _client.Issue.GetAllForRepository(owner, name, request);
         });
