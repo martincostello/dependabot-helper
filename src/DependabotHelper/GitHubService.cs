@@ -386,10 +386,7 @@ public sealed class GitHubService
             owner,
             name);
 
-        var approved = await CacheGetOrCreateAsync(user, $"reviews:{owner}:{name}:{number}", ShortCacheLifetime, async () =>
-        {
-            return await _client.PullRequest.Review.GetAll(owner, name, number);
-        });
+        var approved = await _client.PullRequest.Review.GetAll(owner, name, number);
 
         _logger.LogDebug(
             "Found {Count} approvals for pull request {Number} in repository {Owner}/{Name}.",
