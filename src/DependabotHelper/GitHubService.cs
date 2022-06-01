@@ -386,6 +386,7 @@ public sealed class GitHubService
             owner,
             name);
 
+        // Do not cache reviews so that the UI updates correctly on merging
         var approved = await _client.PullRequest.Review.GetAll(owner, name, number);
 
         _logger.LogDebug(
