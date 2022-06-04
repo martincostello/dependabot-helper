@@ -8,7 +8,7 @@
         <strong>You have not configured any repositories</strong>
     </p>
     <p>
-        Configure which repositories you wish to manage Dependabot updates for <a href="~/configure">here</a>.
+        Configure which repositories you wish to manage Dependabot updates for <a href="~/configure" title="Configure repositories to mange.">using this page</a>.
     </p>
 </div>
 <div id="owner-list" data-refresh-period="@(Model.RefreshPeriod?.TotalMilliseconds)">
@@ -53,7 +53,7 @@
                     </td>
                     <td class="col col-2 col-md-3">
                         <button class="btn btn-manage-action btn-secondary repo-refresh m-1" title="Refresh" type="button" disabled analytics-event="refresh_pull_requests">
-                            <span class="fa fa-refresh" aria-label="Refresh the check and approval counts"></span>
+                            <span class="fa fa-refresh" aria-label="Refresh the check and approval counts" role="img"></span>
                             <span class="loader spinner-border spinner-border-sm d-none" role="status">
                                 <span class="sr-only">Refreshing...</span>
                             </span>
