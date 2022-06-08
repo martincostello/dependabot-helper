@@ -17,6 +17,10 @@ public sealed class DependabotOptions
 
     public IList<TimeSpan> MergeRetryWaits { get; set; } = new List<TimeSpan>();
 
+    public int PageCount { get; set; } = 1;
+
+    public int PageSize { get; set; } = 25;
+
     public TimeSpan? RefreshPeriod { get; set; }
 
     public IList<string> Users { get; set; } = new List<string>();

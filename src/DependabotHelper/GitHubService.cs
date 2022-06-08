@@ -693,6 +693,12 @@ public sealed class GitHubService
             request.Labels.Add(label);
         }
 
+        var options = new ApiOptions()
+        {
+            PageCount = _options.PageCount,
+            PageSize = _options.PageSize,
+        };
+
         _logger.LogInformation(
             "Finding open issues created by {User} in repository {Owner}/{Name}.",
             creator,
@@ -703,7 +709,7 @@ public sealed class GitHubService
 
         var issues = await CacheGetOrCreateAsync(user, $"issues:{owner}:{name}:{creator}", cacheLifetime, async () =>
         {
-            return await _client.Issue.GetAllForRepository(owner, name, request);
+            return await _client.Issue.GetAllForRepository(owner, name, request, options);
         });
 
         var openPullRequests = issues
