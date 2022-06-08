@@ -370,7 +370,9 @@ public sealed class GitHubService
             }
         }
 
-        return result;
+        return result
+            .OrderByDescending((p) => p.Number)
+            .ToList();
     }
 
     private async Task<(bool CanApprove, bool IsApproved)> IsApprovedAsync(
