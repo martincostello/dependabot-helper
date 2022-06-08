@@ -144,7 +144,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         CreateDefaultBuilder()
             .Requests()
             .ForPath($"/repos/{repository.Owner.Login}/{repository.Name}/issues")
-            .ForQuery($"creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc")
+            .ForQuery($"creator={encodedCreator}&filter=created&state=open&labels=dependencies&sort=created&direction=desc&per_page=25")
             .Responds()
             .WithJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
