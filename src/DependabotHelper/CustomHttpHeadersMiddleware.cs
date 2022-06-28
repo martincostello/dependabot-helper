@@ -98,7 +98,7 @@ public sealed class CustomHttpHeadersMiddleware
             nonce,
             ParseGitHubHost(gitHubEnterpriseDomain),
             renderAnalytics ? "www.googletagmanager.com" : string.Empty,
-            renderAnalytics ? "www.google-analytics.com" : string.Empty);
+            renderAnalytics ? "region1.google-analytics.com www.google-analytics.com" : string.Empty);
     }
 
     private static string ParseGitHubHost(string gitHubEnterpriseDomain)
