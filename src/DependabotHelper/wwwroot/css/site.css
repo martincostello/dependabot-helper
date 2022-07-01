@@ -9,6 +9,19 @@ html {
 
 a {
     color: #0060C7;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a.btn:hover,
+a.dropdown-item:hover,
+a.navbar-brand:hover,
+a.nav-link:hover,
+a:not([href]):not([class]):hover {
+    text-decoration: none;
 }
 
 img {
@@ -114,6 +127,10 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
         min-width: 4rem;
         padding-bottom: 0.5rem;
     }
+}
+
+.table > :not(:first-child) {
+    border-top: initial;
 }
 
 .text-github-open {

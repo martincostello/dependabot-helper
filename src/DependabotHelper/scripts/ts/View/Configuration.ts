@@ -34,16 +34,16 @@ export class Configuration extends Page {
 
         this.save.addEventListener('click', () => {
             this.saveChanges();
+            const bootstrap: any = window['bootstrap' as any];
+            bootstrap.Modal.getOrCreateInstance(this.modal).hide();
         });
 
-        const modalEvents = $(this.modal);
-
-        modalEvents.on('show.bs.modal', async (event: any) => {
+        this.modal.addEventListener('show.bs.modal', async (event: any) => {
             const owner: string = event.relatedTarget.getAttribute(this.ownerAttribute);
             await this.loadRepositories(owner);
         });
 
-        modalEvents.on('hide.bs.modal', () => {
+        this.modal.addEventListener('hide.bs.modal', () => {
             this.unloadRepositories();
         });
     }

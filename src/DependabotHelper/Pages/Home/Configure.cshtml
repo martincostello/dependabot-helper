@@ -7,7 +7,7 @@
 <div class="justify-content-center">
     <div class="align-middle">
         <table class="table" id="repository-owner-list" data-id="@User.GetUserId()">
-            <caption>
+            <caption class="caption-top">
                 GitHub Organizations you have access to.
             </caption>
             <thead>
@@ -28,7 +28,7 @@
                         <td class="align-middle owner-name @highlight">@owner.Name</td>
                         <td>
                             <div>
-                                <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-toggle="modal" data-target="#repo-search-modal" analytics-event="view_org_repos_modal">
+                                <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-bs-toggle="modal" data-bs-target="#repo-search-modal" analytics-event="view_org_repos_modal">
                                     <span class="fa-solid fa-gears" aria-title="Select repositories"></span>
                                 </button>
                             </div>
@@ -46,20 +46,18 @@
      tabindex="-1"
      aria-labelledby="repo-search-label"
      aria-hidden="true"
-     data-backdrop="static"
+     data-bs-backdrop="static"
      data-owner="">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="spinner-border table-loader mr-2" role="status">
+                <div class="spinner-border table-loader me-2" role="status">
                     <span class="sr-only">Loading...</span>
                 </div>
                 <h5 class="modal-title" id="repo-search-label" aria-title="Select repositories to manage Dependabot updates for">
                     Select repositories
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" analytics-event="close_org_repos_modal">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close" analytics-event="close_org_repos_modal"></button>
             </div>
             <div class="modal-body">
                 <table class="table" id="repository-list">
@@ -87,8 +85,8 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="repo-cancel" analytics-event="cancel_org_repos">Close</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" id="repo-save" analytics-event="save_org_repos">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="repo-cancel" analytics-event="cancel_org_repos">Close</button>
+                <button type="button" class="btn btn-primary" id="repo-save" analytics-event="save_org_repos">
                     Save changes
                     <span class="loader spinner-border spinner-border-sm d-none" role="status">
                         <span class="sr-only">Saving...</span>

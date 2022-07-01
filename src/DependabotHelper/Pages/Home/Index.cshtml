@@ -61,7 +61,7 @@
                         <a class="btn btn-manage-action btn-primary repo-configure disabled m-1" href="#" role="button" target="_blank" title="View the Dependabot configuration" analytics-event="view_repo_configuration">
                             <span class="fa-solid fa-robot" aria-hidden="true"></span>
                         </a>
-                        <button class="btn btn-manage-action btn-pr repo-pull-requests m-1" title="View pull requests" type="button" data-toggle="modal" data-target="#pr-modal" disabled analytics-event="view_pull_requests_modal">
+                        <button class="btn btn-manage-action btn-pr repo-pull-requests m-1" title="View pull requests" type="button" data-bs-toggle="modal" data-bs-target="#pr-modal" disabled analytics-event="view_pull_requests_modal">
                             <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
                         </button>
                         <button class="btn btn-manage-action btn-success btn-merge repo-merge m-1" title="Attempt to merge all mergeable pull requests" type="button" disabled analytics-event="merge_pull_requests">
@@ -83,14 +83,12 @@
      tabindex="-1"
      aria-labelledby="pr-label"
      aria-hidden="true"
-     data-backdrop="static">
+     data-bs-backdrop="static">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="pr-label">Dependabot pull requests</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true" analytics-event="close_pull_requests_modal">&times;</span>
-                </button>
+                <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close" analytics-event="close_pull_requests_modal"></button>
             </div>
             <div class="modal-body">
                 <table class="table">
