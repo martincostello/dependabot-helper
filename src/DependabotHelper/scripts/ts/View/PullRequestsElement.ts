@@ -16,8 +16,7 @@ export class PullRequestsElement {
     constructor(modal: Element) {
         this.modal = modal;
         this.template = modal.querySelector('.pr-template');
-
-        $(this.modal).on('hide.bs.modal', () => {
+        this.modal.addEventListener('hide.bs.modal', () => {
             this.unloadPullRequests();
         });
     }

@@ -17,7 +17,7 @@ public sealed class CustomHttpHeadersMiddleware
             "script-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com {2}",
             "style-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
             "style-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
-            "img-src 'self' avatars.githubusercontent.com",
+            "img-src 'self' data: avatars.githubusercontent.com {1} {4}",
             "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
             "connect-src 'self' {3}",
             "media-src 'none'",
@@ -92,13 +92,16 @@ public sealed class CustomHttpHeadersMiddleware
         string gitHubEnterpriseDomain,
         bool renderAnalytics)
     {
+        var gitHubHost = ParseGitHubHost(gitHubEnterpriseDomain);
+
         return string.Format(
             CultureInfo.InvariantCulture,
             ContentSecurityPolicyTemplate,
             nonce,
-            ParseGitHubHost(gitHubEnterpriseDomain),
+            gitHubHost,
             renderAnalytics ? "www.googletagmanager.com" : string.Empty,
-            renderAnalytics ? "region1.google-analytics.com www.google-analytics.com" : string.Empty);
+            renderAnalytics ? "region1.google-analytics.com www.google-analytics.com" : string.Empty,
+            "avatars." + gitHubHost);
     }
 
     private static string ParseGitHubHost(string gitHubEnterpriseDomain)
