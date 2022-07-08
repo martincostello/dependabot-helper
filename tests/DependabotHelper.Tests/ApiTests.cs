@@ -1113,6 +1113,49 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         actualPullRequest.IsApproved.ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task Can_Get_Pull_Requests_Project_Bot_Can_Approve()
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        var review = CreateReview("octocat", "APPROVED", "NONE");
+        review.User.UserType = "Bot";
+
+        RegisterGetReviews(pullRequest, review);
+
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+        actual.All.ShouldNotBeNull();
+        actual.All.Count.ShouldBe(1);
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.CanApprove.ShouldBeTrue();
+        actualPullRequest.IsApproved.ShouldBeTrue();
+    }
+
     [Theory]
     [InlineData("COLLABORATOR")]
     [InlineData("MEMBER")]
