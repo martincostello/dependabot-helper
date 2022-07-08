@@ -408,7 +408,7 @@ public sealed class GitHubService
         var reviewsPerUsers = approved
             .OrderByDescending((p) => p.SubmittedAt)
             .DistinctBy((p) => p.User.Login)
-            .Where((p) => p.AuthorAssociation.Value.CanReview())
+            .Where((p) => p.AuthorAssociation.Value.CanReview() || p.User.Type == AccountType.Bot)
             .ToList();
 
         bool canApprove = !reviewsPerUsers.Any((p) => p.User.Login == user.GetUserLogin());
