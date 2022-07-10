@@ -52,7 +52,7 @@ export class PullRequestsElement {
         title.setAttribute('href', pullRequest.htmlUrl);
 
         const tooltip = element.querySelector('[data-bs-toggle="tooltip"]');
-        if (tooltip) {
+        if (tooltip && pullRequest.body) {
             tooltip.setAttribute('title', pullRequest.body);
             const bootstrap: any = window['bootstrap' as any];
             const _ = new bootstrap.Tooltip(tooltip);

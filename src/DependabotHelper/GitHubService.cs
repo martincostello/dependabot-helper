@@ -279,6 +279,11 @@ public sealed class GitHubService
 
     private static string RenderMarkdownHtml(string body)
     {
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return string.Empty;
+        }
+
         var pipeline = new MarkdownPipelineBuilder()
             .DisableHtml()
             .Build();
