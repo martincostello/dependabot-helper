@@ -20,4 +20,6 @@ public sealed class PullRequest
     public ChecksStatus Status { get; set; }
 
     public string Title { get; set; } = default!;
+
+    public string Body { get; set; } = default!;
 }

@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Security.Claims;
+using Markdig;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -276,6 +277,15 @@ public sealed class GitHubService
         _ = await _client.User.Current();
     }
 
+    private static string RenderMarkdownHtml(string body)
+    {
+        var pipeline = new MarkdownPipelineBuilder()
+            .DisableHtml()
+            .Build();
+
+        return Markdown.ToHtml(body, pipeline);
+    }
+
     private AsyncPolicy CreateMergePolicy()
     {
         return Policy
@@ -358,6 +368,7 @@ public sealed class GitHubService
 
                 result.Add(new()
                 {
+                    Body = RenderMarkdownHtml(pr.Body),
                     CanApprove = canApprove,
                     HtmlUrl = pr.HtmlUrl,
                     IsApproved = isApproved,
@@ -365,7 +376,7 @@ public sealed class GitHubService
                     RepositoryName = name,
                     RepositoryOwner = owner,
                     Status = status,
-                    Title = issue.Title,
+                    Title = pr.Title,
                 });
             }
         }

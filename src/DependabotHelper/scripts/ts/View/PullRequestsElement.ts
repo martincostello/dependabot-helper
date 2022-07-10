@@ -51,6 +51,13 @@ export class PullRequestsElement {
         title.setAttribute('data-number', pullRequest.number.toString(10));
         title.setAttribute('href', pullRequest.htmlUrl);
 
+        const tooltip = element.querySelector('[data-bs-toggle="tooltip"]');
+        if (tooltip) {
+            tooltip.setAttribute('title', pullRequest.body);
+            const bootstrap: any = window['bootstrap' as any];
+            const _ = new bootstrap.Tooltip(tooltip);
+        }
+
         const status = element.querySelector(`.pr-status-${pullRequest.status.toLowerCase()}`);
         status.setAttribute('data-count', '1');
         Elements.show(status);
