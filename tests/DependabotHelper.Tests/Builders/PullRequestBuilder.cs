@@ -14,6 +14,8 @@ public sealed class PullRequestBuilder : ResponseBuilder
 
     public string BaseSha { get; set; } = RandomString();
 
+    public string Body { get; set; } = RandomString();
+
     public string HeadRef { get; set; } = RandomString();
 
     public string HeadSha { get; set; } = RandomString();
@@ -44,6 +46,7 @@ public sealed class PullRequestBuilder : ResponseBuilder
             draft = IsDraft,
             mergeable = IsMergeable,
             title = Title,
+            body = Body,
             @base = new
             {
                 @ref = BaseRef,
