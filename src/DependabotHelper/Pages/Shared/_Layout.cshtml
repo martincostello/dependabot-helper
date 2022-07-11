@@ -16,7 +16,15 @@
     if (!string.IsNullOrEmpty(domain))
     {
         siteUrl = $"https://{domain}/";
-        imageUrl = $"https://{domain}/favicon.png";
+
+        string imageDomain = domain;
+
+        if (!string.IsNullOrEmpty(Options.Value.CdnHost))
+        {
+            imageDomain = Options.Value.CdnHost;
+        }
+
+        imageUrl = $"https://{imageDomain}/favicon.png";
     }
 
     string repository = "https://github.com/martincostello/dependabot-helper";

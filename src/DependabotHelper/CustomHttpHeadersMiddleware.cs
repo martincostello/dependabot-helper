@@ -17,7 +17,7 @@ public sealed class CustomHttpHeadersMiddleware
             "script-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com {2}",
             "style-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
             "style-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
-            "img-src 'self' data: avatars.githubusercontent.com {1} {4}",
+            "img-src 'self' data: avatars.githubusercontent.com {1} {4} {5}",
             "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
             "connect-src 'self' {3}",
             "media-src 'none'",
@@ -58,6 +58,7 @@ public sealed class CustomHttpHeadersMiddleware
             {
                 context.Response.Headers["Content-Security-Policy"] = ContentSecurityPolicy(
                     nonce,
+                    siteOptions.Value.CdnHost,
                     gitHubOptions.Value.EnterpriseDomain,
                     renderAnalytics);
             }
@@ -89,6 +90,7 @@ public sealed class CustomHttpHeadersMiddleware
 
     private static string ContentSecurityPolicy(
         string nonce,
+        string cdnHost,
         string gitHubEnterpriseDomain,
         bool renderAnalytics)
     {
@@ -101,7 +103,8 @@ public sealed class CustomHttpHeadersMiddleware
             gitHubHost,
             renderAnalytics ? "www.googletagmanager.com" : string.Empty,
             renderAnalytics ? "region1.google-analytics.com www.google-analytics.com" : string.Empty,
-            "avatars." + gitHubHost);
+            "avatars." + gitHubHost,
+            cdnHost);
     }
 
     private static string ParseGitHubHost(string gitHubEnterpriseDomain)
