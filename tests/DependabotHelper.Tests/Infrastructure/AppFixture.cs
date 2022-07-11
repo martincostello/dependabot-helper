@@ -90,6 +90,7 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
                 KeyValuePair.Create("GitHub:ClientSecret", "github-secret"),
                 KeyValuePair.Create("GitHub:EnterpriseDomain", string.Empty),
                 KeyValuePair.Create("Site:AnalyticsId", "G-0000000000"),
+                KeyValuePair.Create("Site:CdnHost", string.Empty),
                 KeyValuePair.Create("Site:Domain", "dependabot.local"),
             };
 
