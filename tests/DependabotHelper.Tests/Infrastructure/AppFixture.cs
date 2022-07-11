@@ -7,7 +7,6 @@ using JustEat.HttpClientInterception;
 using MartinCostello.Logging.XUnit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -104,8 +103,6 @@ public class AppFixture : WebApplicationFactory<Program>, ITestOutputHelperAcces
             (loggingBuilder) => loggingBuilder.ClearProviders().AddXUnit(this).SetMinimumLevel(LogLevel.Trace));
 
         builder.UseEnvironment(Environments.Production);
-
-        builder.UseSolutionRelativeContentRoot(Path.Combine("src", "DependabotHelper"));
 
         builder.ConfigureServices((services) =>
         {
