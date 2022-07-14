@@ -32,7 +32,7 @@ internal static class ResultsExtensions
             logger.LogInformation(exception, "Unauthorized.");
             return Results.Problem(statusCode: StatusCodes.Status401Unauthorized);
         }
-        else if (exception is RateLimitExceededException)
+        else if (exception is RateLimitExceededException || exception is SecondaryRateLimitExceededException)
         {
             logger.LogWarning(exception, "API rate limit exceeded.");
             return Results.Problem(

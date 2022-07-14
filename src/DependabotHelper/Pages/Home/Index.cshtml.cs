@@ -33,5 +33,9 @@ public sealed class IndexModel : PageModel
         {
             // Ignore and let the page load
         }
+        catch (Octokit.SecondaryRateLimitExceededException)
+        {
+            // Ignore and let the page load
+        }
     }
 }

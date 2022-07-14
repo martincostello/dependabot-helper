@@ -29,5 +29,9 @@ public sealed class ConfigureModel : PageModel
         {
             // Ignore and let the page load
         }
+        catch (Octokit.SecondaryRateLimitExceededException)
+        {
+            // Ignore and let the page load
+        }
     }
 }
