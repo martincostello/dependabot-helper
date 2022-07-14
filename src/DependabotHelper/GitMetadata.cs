@@ -13,6 +13,8 @@ public static class GitMetadata
 
     public static string Commit { get; } = GetMetadataValue("CommitHash", "HEAD");
 
+    public static string RepositoryUrl { get; } = GetMetadataValue("RepositoryUrl", "https://github.com/martincostello/dependabot-helper");
+
     public static DateTimeOffset Timestamp { get; } = DateTimeOffset.Parse(GetMetadataValue("BuildTimestamp", DateTimeOffset.UtcNow.ToString("u", CultureInfo.InvariantCulture)), CultureInfo.InvariantCulture);
 
     private static string GetMetadataValue(string name, string defaultValue)
