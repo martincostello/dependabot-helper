@@ -27,7 +27,13 @@
         imageUrl = $"https://{imageDomain}/favicon.png";
     }
 
-    string repository = "https://github.com/martincostello/dependabot-helper";
+    string repository = GitMetadata.RepositoryUrl;
+
+    if (repository.EndsWith(".git", StringComparison.Ordinal))
+    {
+        repository = repository[..^4];
+    }
+
     string branch = repository + "/tree/" + GitMetadata.Branch;
     string build = repository + "/actions/runs/" + GitMetadata.BuildId;
     string commit = repository + "/commit/" + GitMetadata.Commit;
