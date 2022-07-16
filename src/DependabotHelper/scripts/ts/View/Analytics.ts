@@ -2,7 +2,6 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 export class Analytics {
-
     private analyticsAttribute = 'analytics-event';
     private analyticsSelector = `[${this.analyticsAttribute}]`;
 
@@ -10,7 +9,6 @@ export class Analytics {
     private observer: MutationObserver;
 
     initialize() {
-
         const hasAnalytics = 'gtag' in window;
 
         if (!hasAnalytics) {
@@ -23,7 +21,7 @@ export class Analytics {
             attributes: false,
             childList: true,
             characterData: false,
-            subtree: true
+            subtree: true,
         });
 
         const elements = document.querySelectorAll(this.analyticsSelector);
@@ -33,7 +31,6 @@ export class Analytics {
     private onElementAdded(mutations: MutationRecord[]) {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
-
                 const element = node as Element;
 
                 if (!element || !element.querySelectorAll) {
@@ -54,7 +51,6 @@ export class Analytics {
     }
 
     private registerHandler(element: Element) {
-
         const eventName = element.getAttribute(this.analyticsAttribute);
 
         if (!eventName) {
@@ -67,7 +63,6 @@ export class Analytics {
     }
 
     private track(eventName: string, element: Element) {
-
         const properties = new Map<string, string>();
 
         for (const attribute in element.getAttributeNames()) {

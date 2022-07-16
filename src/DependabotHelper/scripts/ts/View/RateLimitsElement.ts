@@ -7,7 +7,6 @@ import { Elements } from './Elements';
 import { Page } from './Page';
 
 export class RateLimitsElement {
-
     private readonly titleAttribute = 'title';
 
     private remaining: HTMLElement;
@@ -25,7 +24,6 @@ export class RateLimitsElement {
     }
 
     update(limits: RateLimits): void {
-
         if (!limits.limit) {
             return;
         }

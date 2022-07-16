@@ -7,7 +7,6 @@ import { ErrorsElement } from './ErrorsElement';
 import { RateLimitsElement } from './RateLimitsElement';
 
 export abstract class Page {
-
     protected readonly gitHub: GitHubClient;
     protected readonly storage: StorageClient;
     private readonly errors: ErrorsElement;

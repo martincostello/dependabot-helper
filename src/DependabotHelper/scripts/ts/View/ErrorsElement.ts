@@ -5,7 +5,6 @@ import { Elements } from './Elements';
 import { Page } from './Page';
 
 export class ErrorsElement {
-
     private alert: HTMLElement;
 
     constructor() {
@@ -17,7 +16,6 @@ export class ErrorsElement {
     }
 
     show(error: any): void {
-
         const messageElement = this.alert.querySelector('.error-message');
         const stackTraceElement = this.alert.querySelector('.error-stack-trace');
 

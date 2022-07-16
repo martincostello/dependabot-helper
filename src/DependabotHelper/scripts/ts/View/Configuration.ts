@@ -10,7 +10,6 @@ import { Page } from './Page';
 import { RateLimitsElement } from './RateLimitsElement';
 
 export class Configuration extends Page {
-
     private readonly checkTemplateClass = 'check-template';
 
     private readonly ownerAttribute = 'data-owner';
@@ -27,7 +26,6 @@ export class Configuration extends Page {
     }
 
     initialize() {
-
         this.modal = Page.searchModal();
         this.save = Page.findId('repo-save');
         this.template = this.modal.querySelector('.' + this.checkTemplateClass);
@@ -49,7 +47,6 @@ export class Configuration extends Page {
     }
 
     private async loadRepositories(owner: string): Promise<void> {
-
         const owners = this.storage.getOwners();
         const checkedNames = owners.get(owner) || [];
 
@@ -75,7 +72,6 @@ export class Configuration extends Page {
         }
 
         for (const repository of repositories) {
-
             const node = this.template.cloneNode(true);
             body.appendChild(node);
 
@@ -109,7 +105,6 @@ export class Configuration extends Page {
     }
 
     private saveChanges() {
-
         const spinner = this.save.querySelector('.loader');
         Elements.show(spinner);
 
@@ -124,14 +119,12 @@ export class Configuration extends Page {
     }
 
     private getSelectedRepositories(): string[] {
-
         const names: string[] = [];
 
         const body = this.template.parentElement;
         let element = body.firstElementChild.nextElementSibling;
 
         while (element) {
-
             const check = <HTMLInputElement>element.querySelector(this.checkboxSelector);
 
             if (check.checked) {

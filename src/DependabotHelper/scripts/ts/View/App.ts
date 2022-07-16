@@ -11,7 +11,6 @@ import { Page } from './Page';
 import { RateLimitsElement } from './RateLimitsElement';
 
 export class App {
-
     private readonly gitHub: GitHubClient;
 
     constructor() {
@@ -19,7 +18,6 @@ export class App {
     }
 
     async initialize(): Promise<void> {
-
         const analyticsElement = document.querySelector('meta[name="x-analytics-id"]');
         const analyticsId = analyticsElement?.getAttribute('content') ?? '';
 

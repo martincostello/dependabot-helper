@@ -13,7 +13,6 @@ import { RateLimitsElement } from './RateLimitsElement';
 import { RepositoryElement } from './RepositoryElement';
 
 export class Manage extends Page {
-
     private readonly ownerTemplateClass = 'owner-template';
 
     private modal: PullRequestsElement;
@@ -23,14 +22,12 @@ export class Manage extends Page {
     }
 
     async initialize(): Promise<void> {
-
         const repoElements: RepositoryElement[] = [];
         const owners = this.storage.getOwners();
 
         const ownerList = Page.ownerList();
 
         for (const [owner, repositories] of owners) {
-
             if (repositories.length < 1) {
                 continue;
             }
@@ -53,12 +50,10 @@ export class Manage extends Page {
         if (repoElements.length < 1) {
             Elements.show(Page.findId('not-configured'));
         } else {
-
             const modal = Page.findId('pr-modal');
             this.modal = new PullRequestsElement(modal);
 
             this.modal.onApprove(async (owner, name, number) => {
-
                 try {
                     await this.gitHub.approvePullRequest(owner, name, number);
                 } catch (error: any) {
@@ -87,28 +82,20 @@ export class Manage extends Page {
         }
     }
 
-    private async configureRepositories(
-        repositories: RepositoryElement[],
-        refreshInterval: number): Promise<void> {
-
+    private async configureRepositories(repositories: RepositoryElement[], refreshInterval: number): Promise<void> {
         const promises: Promise<void>[] = [];
 
         for (const repository of repositories) {
-
             promises.push(this.configureRepository(repository, refreshInterval));
         }
 
         await Promise.all(promises);
     }
 
-    private async configureRepository(
-        repository: RepositoryElement,
-        refreshInterval: number): Promise<void> {
-
+    private async configureRepository(repository: RepositoryElement, refreshInterval: number): Promise<void> {
         await this.updateRepository(repository);
 
         repository.onMerge(async (owner, name) => {
-
             try {
                 await this.gitHub.mergePullRequests(owner, name);
             } catch (error: any) {
@@ -140,7 +127,6 @@ export class Manage extends Page {
     }
 
     private async updateRepository(element: RepositoryElement): Promise<void> {
-
         let repository: RepositoryPullRequests = null;
 
         try {

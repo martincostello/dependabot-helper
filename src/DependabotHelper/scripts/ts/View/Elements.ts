@@ -1,7 +1,6 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 
 export class Elements {
-
     static hidden = 'd-none';
 
     static disable(element: Element): void {
