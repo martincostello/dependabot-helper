@@ -5,7 +5,6 @@ import { OwnerRepositories } from '../Models/OwnerRepositories';
 import { UserProfile } from '../Models/UserProfile';
 
 export class StorageClient {
-
     private key = 'github-profiles';
 
     getOwners(): Map<string, string[]> {
@@ -14,7 +13,6 @@ export class StorageClient {
     }
 
     setOwners(owner: string, names: string[]): void {
-
         const userId = this.getUserId();
 
         const profiles = this.getProfiles();
@@ -23,7 +21,7 @@ export class StorageClient {
         if (!profile) {
             profile = {
                 userId: userId,
-                owners: []
+                owners: [],
             };
             profiles.push(profile);
         }
@@ -33,7 +31,7 @@ export class StorageClient {
         if (!ownerItem) {
             ownerItem = {
                 owner,
-                names: []
+                names: [],
             };
             profile.owners.push(ownerItem);
         }
@@ -44,14 +42,12 @@ export class StorageClient {
     }
 
     private getOwnersForUser(userId: string): Map<string, string[]> {
-
         let owners = new Map<string, string[]>();
 
         const profiles = this.getProfiles();
         const profile = profiles.find((profile) => profile.userId === userId);
 
         if (profile) {
-
             const compareStrings = (first: string, second: string): any => {
                 return first.toLowerCase().localeCompare(second.toLowerCase());
             };
@@ -69,7 +65,6 @@ export class StorageClient {
     }
 
     private getProfiles(): UserProfile[] {
-
         let profiles: UserProfile[] = [];
 
         try {

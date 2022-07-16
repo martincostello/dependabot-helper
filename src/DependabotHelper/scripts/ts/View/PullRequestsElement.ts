@@ -5,7 +5,6 @@ import { PullRequest } from '../Models/PullRequest';
 import { Elements } from './Elements';
 
 export class PullRequestsElement {
-
     private readonly templateClass = 'pr-template';
 
     private readonly modal: Element;
@@ -26,7 +25,6 @@ export class PullRequestsElement {
     }
 
     update(pullRequests: PullRequest[]) {
-
         const body = this.template.parentElement;
 
         while (body.childElementCount > 1) {
@@ -39,7 +37,6 @@ export class PullRequestsElement {
     }
 
     private createRow(body: Element, pullRequest: PullRequest) {
-
         const node = this.template.cloneNode(true);
         body.appendChild(node);
 
@@ -60,12 +57,10 @@ export class PullRequestsElement {
         if (pullRequest.isApproved) {
             Elements.show(isApproved);
         } else if (pullRequest.canApprove) {
-
             const approveButton = element.querySelector('.pr-approve');
 
             approveButton.addEventListener('click', async () => {
                 if (this.onApproveHandler) {
-
                     const loader = approveButton.querySelector('.loader');
 
                     Elements.disable(approveButton);
@@ -74,10 +69,7 @@ export class PullRequestsElement {
                     let success = false;
 
                     try {
-                        await this.onApproveHandler(
-                            pullRequest.repositoryOwner,
-                            pullRequest.repositoryName,
-                            pullRequest.number);
+                        await this.onApproveHandler(pullRequest.repositoryOwner, pullRequest.repositoryName, pullRequest.number);
                         success = true;
                     } finally {
                         if (success) {

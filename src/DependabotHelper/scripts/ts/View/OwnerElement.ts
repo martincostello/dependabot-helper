@@ -5,7 +5,6 @@ import { Elements } from './Elements';
 import { RepositoryElement } from './RepositoryElement';
 
 export class OwnerElement {
-
     private readonly itemTemplateClass = 'item-template';
 
     private readonly element: Element;
@@ -14,7 +13,6 @@ export class OwnerElement {
     private readonly repostoryList: Element;
 
     constructor(owner: string, element: Element) {
-
         this.owner = owner;
         this.element = element;
 
@@ -31,7 +29,6 @@ export class OwnerElement {
     }
 
     addRepository(name: string): RepositoryElement {
-
         const node = this.itemTemplate.cloneNode(true);
         this.repostoryList.appendChild(node);
 

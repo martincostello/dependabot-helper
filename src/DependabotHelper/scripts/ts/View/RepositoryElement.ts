@@ -6,7 +6,6 @@ import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
 import { Elements } from './Elements';
 
 export class RepositoryElement {
-
     readonly owner: string;
     readonly name: string;
 
@@ -34,7 +33,6 @@ export class RepositoryElement {
     private onRefreshHandler: (owner: string, name: string) => Promise<void>;
 
     constructor(owner: string, name: string, element: Element) {
-
         this.owner = owner;
         this.name = name;
         this.container = element;
@@ -105,7 +103,6 @@ export class RepositoryElement {
     }
 
     update(repository: RepositoryPullRequests): void {
-
         this.pullRequests = repository.all;
 
         this.repoName.setAttribute('href', repository.htmlUrl);
