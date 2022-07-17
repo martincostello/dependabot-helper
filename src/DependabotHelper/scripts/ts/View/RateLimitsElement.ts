@@ -1,7 +1,7 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import * as moment from '../../../node_modules/moment/moment';
+import moment from 'moment';
 import { RateLimits } from '../Models/RateLimits';
 import { Elements } from './Elements';
 import { Page } from './Page';
