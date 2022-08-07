@@ -170,7 +170,6 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
         {
             "Content-Security-Policy",
             "Expect-CT",
-            "Feature-Policy",
             "Permissions-Policy",
             "Referrer-Policy",
             "X-Content-Type-Options",
