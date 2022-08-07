@@ -13,10 +13,10 @@ public sealed class CustomHttpHeadersMiddleware
         new[]
         {
             "default-src 'self'",
-            "script-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com",
-            "script-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com {2}",
-            "style-src 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
-            "style-src-elem 'self' 'nonce-{0}' cdn.jsdelivr.net cdnjs.cloudflare.com use.fontawesome.com",
+            "script-src 'self' 'nonce-{0}' cdnjs.cloudflare.com",
+            "script-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com {2}",
+            "style-src 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
+            "style-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
             "img-src 'self' data: avatars.githubusercontent.com {1} {4} {5}",
             "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
             "connect-src 'self' {3}",
