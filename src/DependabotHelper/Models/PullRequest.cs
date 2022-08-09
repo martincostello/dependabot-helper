@@ -11,6 +11,8 @@ public sealed class PullRequest
 
     public bool IsApproved { get; set; }
 
+    public string NodeId { get; set; } = default!;
+
     public int Number { get; set; }
 
     public string RepositoryOwner { get; set; } = default!;

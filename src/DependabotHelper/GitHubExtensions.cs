@@ -4,6 +4,9 @@
 using Octokit;
 using Octokit.Internal;
 
+using IGraphQLConnection = Octokit.GraphQL.IConnection;
+using IGraphQLCredentialStore = Octokit.GraphQL.ICredentialStore;
+
 namespace MartinCostello.DependabotHelper;
 
 public static class GitHubExtensions
@@ -16,7 +19,10 @@ public static class GitHubExtensions
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
 
-        services.AddSingleton<ICredentialStore, UserCredentialStore>();
+        services.AddSingleton<UserCredentialStore>();
+        services.AddSingleton<ICredentialStore>((p) => p.GetRequiredService<UserCredentialStore>());
+        services.AddSingleton<IGraphQLCredentialStore>((p) => p.GetRequiredService<UserCredentialStore>());
+
         services.AddSingleton<IJsonSerializer, SimpleJsonSerializer>();
 
         services.AddScoped<GitHubService>();
@@ -28,7 +34,7 @@ public static class GitHubExtensions
 
         services.AddScoped<IConnection>((provider) =>
         {
-            var baseAddress = GetGitHubUri(provider);
+            var baseAddress = GetGitHubApiUri(provider);
             var credentialStore = provider.GetRequiredService<ICredentialStore>();
             var httpClient = provider.GetRequiredService<IHttpClient>();
             var serializer = provider.GetRequiredService<IJsonSerializer>();
@@ -36,9 +42,20 @@ public static class GitHubExtensions
             return new Connection(UserAgent, baseAddress, credentialStore, httpClient, serializer);
         });
 
+        services.AddScoped<IGraphQLConnection>((provider) =>
+        {
+            var productInformation = new Octokit.GraphQL.ProductHeaderValue(UserAgent.Name, UserAgent.Version);
+
+            var baseAddress = GetGitHubGraphQLUri(provider);
+            var credentialStore = provider.GetRequiredService<IGraphQLCredentialStore>();
+            var httpClient = provider.GetRequiredService<HttpClient>();
+
+            return new Octokit.GraphQL.Connection(productInformation, baseAddress, credentialStore, httpClient);
+        });
+
         services.AddScoped<IGitHubClient>((provider) =>
         {
-            var baseAddress = GetGitHubUri(provider);
+            var baseAddress = GetGitHubApiUri(provider);
 
             if (baseAddress == GitHubClient.GitHubApiUrl)
             {
@@ -63,16 +80,30 @@ public static class GitHubExtensions
         return new ProductHeaderValue("DependabotHelper", productVersion);
     }
 
-    private static Uri GetGitHubUri(IServiceProvider provider)
+    private static Uri GetGitHubApiUri(IServiceProvider provider)
     {
         var baseAddress = GitHubClient.GitHubApiUrl;
-
         var configuration = provider.GetRequiredService<IConfiguration>();
 
-        if (configuration["GitHub:EnterpriseDomain"] is string enterpriseUri &&
-            !string.IsNullOrWhiteSpace(enterpriseUri))
+        if (configuration["GitHub:EnterpriseDomain"] is string enterpriseDomain &&
+            !string.IsNullOrWhiteSpace(enterpriseDomain))
         {
-            baseAddress = new(enterpriseUri, UriKind.Absolute);
+            baseAddress = new(enterpriseDomain, UriKind.Absolute);
+        }
+
+        return baseAddress;
+    }
+
+    private static Uri GetGitHubGraphQLUri(IServiceProvider provider)
+    {
+        var baseAddress = Octokit.GraphQL.Connection.GithubApiUri;
+        var configuration = provider.GetRequiredService<IConfiguration>();
+
+        if (configuration["GitHub:EnterpriseDomain"] is string enterpriseDomain &&
+            !string.IsNullOrWhiteSpace(enterpriseDomain))
+        {
+            var enterpriseUri = new Uri(enterpriseDomain, UriKind.Absolute);
+            baseAddress = new(enterpriseUri, "api" + baseAddress.AbsolutePath);
         }
 
         return baseAddress;

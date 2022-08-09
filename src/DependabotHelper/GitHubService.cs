@@ -6,7 +6,10 @@ using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Octokit;
+using Octokit.GraphQL;
 using Polly;
+
+using IGraphQLConnection = Octokit.GraphQL.IConnection;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -24,16 +27,19 @@ public sealed class GitHubService
 
     private readonly IMemoryCache _cache;
     private readonly IGitHubClient _client;
+    private readonly IGraphQLConnection _connection;
     private readonly ILogger _logger;
     private readonly DependabotOptions _options;
 
     public GitHubService(
         IGitHubClient client,
+        IGraphQLConnection connection,
         IMemoryCache cache,
         IOptionsSnapshot<DependabotOptions> options,
         ILogger<GitHubService> logger)
     {
         _client = client;
+        _connection = connection;
         _cache = cache;
         _logger = logger;
         _options = options.Value;
@@ -198,22 +204,6 @@ public sealed class GitHubService
         string owner,
         string name)
     {
-        var mergeRequest = new MergePullRequest()
-        {
-            MergeMethod = PullRequestMergeMethod.Merge,
-        };
-
-        var repository = await GetRepositoryAsync(user, owner, name);
-
-        if (repository.AllowMergeCommit == false)
-        {
-            mergeRequest.MergeMethod = repository.AllowRebaseMerge switch
-            {
-                true => PullRequestMergeMethod.Rebase,
-                _ => PullRequestMergeMethod.Squash,
-            };
-        }
-
         var mergeCandidates = await GetPullRequestsAsync(
             user,
             owner,
@@ -224,10 +214,30 @@ public sealed class GitHubService
 
         if (mergeCandidates.Count > 0)
         {
+            var mergeMethod = PullRequestMergeMethod.Merge;
+
+            var repository = await GetRepositoryAsync(user, owner, name);
+
+            if (repository.AllowMergeCommit == false)
+            {
+                mergeMethod = repository.AllowRebaseMerge switch
+                {
+                    true => PullRequestMergeMethod.Rebase,
+                    _ => PullRequestMergeMethod.Squash,
+                };
+            }
+
+            var mergeRequest = new MergePullRequest()
+            {
+                MergeMethod = mergeMethod,
+            };
+
             var policy = CreateMergePolicy();
 
             foreach (var pr in mergeCandidates.OrderBy((p) => p.Number))
             {
+                bool enableAutoMerge = false;
+
                 try
                 {
                     _logger.LogInformation(
@@ -255,6 +265,8 @@ public sealed class GitHubService
                         pr.RepositoryOwner,
                         pr.RepositoryName,
                         pr.Number);
+
+                    enableAutoMerge = true;
                 }
                 catch (ApiException ex)
                 {
@@ -264,6 +276,11 @@ public sealed class GitHubService
                         pr.RepositoryOwner,
                         pr.RepositoryName,
                         pr.Number);
+                }
+
+                if (enableAutoMerge)
+                {
+                    await TryEnableAutoMergeAsync(pr, mergeMethod);
                 }
             }
         }
@@ -281,6 +298,43 @@ public sealed class GitHubService
         return Policy
             .Handle<PullRequestNotMergeableException>()
             .WaitAndRetryAsync(_options.MergeRetryWaits);
+    }
+
+    private async Task TryEnableAutoMergeAsync(
+        Models.PullRequest pullRequest,
+        PullRequestMergeMethod mergeMethod)
+    {
+        var input = new Octokit.GraphQL.Model.EnablePullRequestAutoMergeInput()
+        {
+            MergeMethod = Enum.Parse<Octokit.GraphQL.Model.PullRequestMergeMethod>(mergeMethod.ToString()),
+            PullRequestId = new(pullRequest.NodeId),
+        };
+
+        var query = new Mutation()
+            .EnablePullRequestAutoMerge(input)
+            .Select((p) => new { p.PullRequest.Number })
+            .Compile();
+
+        try
+        {
+            await _connection.Run(query);
+
+            _logger.LogInformation(
+                "Enabled auto-merge for pull request {Owner}/{Repository}#{Number}.",
+                pullRequest.RepositoryOwner,
+                pullRequest.RepositoryName,
+                pullRequest.Number);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to enable auto-merge for pull request {Owner}/{Repository}#{Number} with node ID {NodeId}.",
+                pullRequest.RepositoryOwner,
+                pullRequest.RepositoryName,
+                pullRequest.Number,
+                pullRequest.NodeId);
+        }
     }
 
     private async Task<IList<Models.PullRequest>> GetPullRequestsAsync(
@@ -361,6 +415,7 @@ public sealed class GitHubService
                     CanApprove = canApprove,
                     HtmlUrl = pr.HtmlUrl,
                     IsApproved = isApproved,
+                    NodeId = pr.NodeId,
                     Number = pr.Number,
                     RepositoryName = name,
                     RepositoryOwner = owner,
