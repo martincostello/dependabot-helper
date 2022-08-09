@@ -256,6 +256,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetRepository(repository);
         RegisterPutPullRequestMerge(pullRequest1, mergeable: true);
         RegisterPutPullRequestMerge(pullRequest5, mergeable: false);
+        RegisterEnableAutomerge(pullRequest5);
 
         RegisterGetIssues(
             repository,

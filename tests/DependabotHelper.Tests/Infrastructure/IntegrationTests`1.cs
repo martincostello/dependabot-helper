@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Net;
+using System.Text.Json;
 using JustEat.HttpClientInterception;
 using MartinCostello.DependabotHelper.Builders;
 using Microsoft.AspNetCore.Http;
@@ -288,6 +289,50 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .Responds()
             .WithStatus(mergeable ? StatusCodes.Status200OK : StatusCodes.Status405MethodNotAllowed)
             .WithSystemTextJsonContent(new { })
+            .RegisterWith(Fixture.Interceptor);
+    }
+
+    protected void RegisterEnableAutomerge(PullRequestBuilder pullRequest)
+    {
+        var response = new
+        {
+            data = new
+            {
+                enablePullRequestAutoMerge = new
+                {
+                    number = new
+                    {
+                        number = pullRequest.Number,
+                    },
+                },
+            },
+        };
+
+        var builder = new HttpRequestInterceptionBuilder()
+            .Requests()
+            .ForHttps()
+            .ForHost("api.github.com")
+            .ForRequestHeader("Authorization", "bearer gho_secret-access-token")
+            .ForPost()
+            .ForPath("graphql")
+            .ForContent(async (request) =>
+            {
+                request.ShouldNotBeNull();
+
+                byte[] body = await request.ReadAsByteArrayAsync();
+                using var document = JsonDocument.Parse(body);
+
+                var query = document.RootElement.GetProperty("query").GetString();
+
+                query.ShouldNotBeNull();
+
+                bool hasCorrectPayload = query.Contains(@$"pullRequestId:""{pullRequest.NodeId}""", StringComparison.Ordinal);
+
+                return hasCorrectPayload;
+            })
+            .Responds()
+            .WithStatus(StatusCodes.Status201Created)
+            .WithSystemTextJsonContent(response)
             .RegisterWith(Fixture.Interceptor);
     }
 
