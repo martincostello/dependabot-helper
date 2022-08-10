@@ -41,7 +41,7 @@ public static class AuthenticationEndpoints
         IHostEnvironment environment)
     {
         services
-            .AddAuthentication((options) => options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie((options) =>
             {
                 options.Cookie.Name = CookiePrefix + "authentication";
