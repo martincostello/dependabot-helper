@@ -14,10 +14,10 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v3
+      if: ${{ github.event.repository.fork == false }}
 
     - name: Update static assets
       uses: martincostello/update-static-assets@v1
-      if: ${{ github.repository_owner == 'martincostello' }}
       with:
         labels: "dependencies"
         repo-token: ${{ secrets.ACCESS_TOKEN }}
