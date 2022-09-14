@@ -99,9 +99,9 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 .btn-pr:active,
 .btn-pr:focus,
 .btn-pr:hover {
-    background-color: #6b30d9;
-    border-color: #6b30d9;
-    color: #fff;
+    background-color: #6b30d9 !important;
+    border-color: #6b30d9 !important;
+    color: #fff !important;
 }
 
 .error-stack-trace {
