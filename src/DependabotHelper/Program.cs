@@ -27,7 +27,7 @@ builder.Services.Configure<DependabotOptions>(builder.Configuration.GetSection("
 builder.Services.Configure<GitHubOptions>(builder.Configuration.GetSection("GitHub"));
 builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection("Site"));
 
-builder.Services.Configure<JsonOptions>((options) =>
+builder.Services.ConfigureHttpJsonOptions((options) =>
 {
     options.SerializerOptions.WriteIndented = true;
     options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
