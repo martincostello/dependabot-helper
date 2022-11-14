@@ -6,37 +6,39 @@
 }
 <div class="justify-content-center">
     <div class="align-middle">
-        <table class="table" id="repository-owner-list" data-id="@User.GetUserId()">
-            <caption class="caption-top">
-                GitHub Organizations you have access to.
-            </caption>
-            <thead>
-                <tr>
-                    <th scope="col" class="col-1"></th>
-                    <th scope="col">Owner</th>
-                    <th scope="col" class="col-1"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(var owner in Model.Owners)
-                {
-                    string highlight = owner.Name == login ? "font-weight-bold" : string.Empty;
-                    <tr class="owner-item">
-                        <td class="align-middle">
-                            <img src="@owner.AvatarUrl" class="user-profile" aria-hidden="true" />
-                        </td>
-                        <td class="align-middle owner-name @highlight">@owner.Name</td>
-                        <td>
-                            <div>
-                                <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-bs-toggle="modal" data-bs-target="#repo-search-modal" analytics-event="view_org_repos_modal">
-                                    <span class="fa-solid fa-gears" aria-title="Select repositories"></span>
-                                </button>
-                            </div>
-                        </td>
+        <div class="table-responsive">
+            <table class="table" id="repository-owner-list" data-id="@User.GetUserId()">
+                <caption class="caption-top">
+                    GitHub Organizations you have access to.
+                </caption>
+                <thead>
+                    <tr>
+                        <th scope="col" class="col-1"></th>
+                        <th scope="col">Owner</th>
+                        <th scope="col" class="col-1"></th>
                     </tr>
-                }        
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach(var owner in Model.Owners)
+                    {
+                        string highlight = owner.Name == login ? "font-weight-bold" : string.Empty;
+                        <tr class="owner-item">
+                            <td class="align-middle">
+                                <img src="@owner.AvatarUrl" class="user-profile" aria-hidden="true" />
+                            </td>
+                            <td class="align-middle owner-name @highlight">@owner.Name</td>
+                            <td>
+                                <div>
+                                    <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-bs-toggle="modal" data-bs-target="#repo-search-modal" analytics-event="view_org_repos_modal">
+                                        <span class="fa-solid fa-gears" aria-title="Select repositories"></span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }        
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -60,29 +62,31 @@
                 <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close" analytics-event="close_org_repos_modal"></button>
             </div>
             <div class="modal-body">
-                <table class="table" id="repository-list">
-                    <caption>The repositories that belong to this owner.</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">Repository</th>
-                            <th scope="col" class="col-lg-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="check-template repository-item d-none">
-                            <td>
-                                <a href="" target="_blank" class="repo-name" analytics-event="view_org_repo"></a>
-                                <span class="fa-solid fa-lock repo-is-private text-muted d-none" title="Private" aria-label="The repository is private"></span>
-                                <span class="fa-solid fa-code-fork repo-is-fork text-muted d-none" title="Fork" aria-label="The repository is a fork"></span>
-                            </td>
-                            <td>
-                                <div class="form-check">
-                                    <input class="form-check-input position-static repo-enable" type="checkbox" value="" aria-label="">
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table" id="repository-list">
+                        <caption>The repositories that belong to this owner.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Repository</th>
+                                <th scope="col" class="col-lg-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="check-template repository-item d-none">
+                                <td>
+                                    <a href="" target="_blank" class="repo-name" analytics-event="view_org_repo"></a>
+                                    <span class="fa-solid fa-lock repo-is-private text-muted d-none" title="Private" aria-label="The repository is private"></span>
+                                    <span class="fa-solid fa-code-fork repo-is-fork text-muted d-none" title="Fork" aria-label="The repository is a fork"></span>
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input position-static repo-enable" type="checkbox" value="" aria-label="">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="repo-cancel" analytics-event="cancel_org_repos">Close</button>
