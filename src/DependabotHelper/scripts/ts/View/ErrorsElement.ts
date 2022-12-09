@@ -5,7 +5,7 @@ import { Elements } from './Elements';
 import { Page } from './Page';
 
 export class ErrorsElement {
-    private alert: HTMLElement;
+    private readonly alert: HTMLElement;
 
     constructor() {
         this.alert = Page.findId('error-alert');

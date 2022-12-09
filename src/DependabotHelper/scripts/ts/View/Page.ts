@@ -1,23 +1,17 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { GitHubClient } from '../Client/GitHubClient';
-import { StorageClient } from '../Client/StorageClient';
+import { GitHubClient, StorageClient } from '../Client/index';
 import { ErrorsElement } from './ErrorsElement';
 import { RateLimitsElement } from './RateLimitsElement';
 
 export abstract class Page {
-    protected readonly gitHub: GitHubClient;
-    protected readonly storage: StorageClient;
-    private readonly errors: ErrorsElement;
-    private readonly rateLimits: RateLimitsElement;
-
-    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement, errors: ErrorsElement) {
-        this.gitHub = gitHub;
-        this.storage = storage;
-        this.rateLimits = rateLimits;
-        this.errors = errors;
-    }
+    constructor(
+        protected readonly gitHub: GitHubClient,
+        protected readonly storage: StorageClient,
+        private readonly rateLimits: RateLimitsElement,
+        private readonly errors: ErrorsElement
+    ) {}
 
     static findId(id: string): HTMLElement {
         return document.getElementById(id);
