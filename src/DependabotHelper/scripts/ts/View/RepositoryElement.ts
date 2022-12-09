@@ -1,18 +1,13 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { PullRequest } from '../Models/PullRequest';
-import { RepositoryPullRequests } from '../Models/RepositoryPullRequests';
+import { PullRequest, RepositoryPullRequests } from '../Models/index';
 import { Elements } from './Elements';
 
 export class RepositoryElement {
-    readonly owner: string;
-    readonly name: string;
-
     private readonly inactiveClass = 'table-inactive';
     private readonly loaderSelector = '.loader';
 
-    private readonly container: Element;
     private readonly loader: Element;
     private readonly repoName: Element;
 
@@ -32,10 +27,7 @@ export class RepositoryElement {
     private onPullRequestsHandler: (pullRequests: PullRequest[]) => void;
     private onRefreshHandler: (owner: string, name: string) => Promise<void>;
 
-    constructor(owner: string, name: string, element: Element) {
-        this.owner = owner;
-        this.name = name;
-        this.container = element;
+    constructor(public readonly owner: string, public readonly name: string, private readonly container: Element) {
         this.pullRequests = [];
 
         this.loader = this.container.querySelector(this.loaderSelector);

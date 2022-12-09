@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 import moment from 'moment';
-import { RateLimits } from '../Models/RateLimits';
+import { RateLimits } from '../Models/index';
 import { Elements } from './Elements';
 import { Page } from './Page';
 

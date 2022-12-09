@@ -1,9 +1,8 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { GitHubClient } from '../Client/GitHubClient';
-import { StorageClient } from '../Client/StorageClient';
-import { Repository } from '../Models/Repository';
+import { GitHubClient, StorageClient } from '../Client/index';
+import { Repository } from '../Models/index';
 import { Elements } from './Elements';
 import { ErrorsElement } from './ErrorsElement';
 import { Page } from './Page';
@@ -11,10 +10,8 @@ import { RateLimitsElement } from './RateLimitsElement';
 
 export class Configuration extends Page {
     private readonly checkTemplateClass = 'check-template';
-
     private readonly ownerAttribute = 'data-owner';
     private readonly valueAttribute = 'value';
-
     private readonly checkboxSelector = '.repo-enable';
 
     private modal: Element;

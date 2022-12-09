@@ -1,11 +1,10 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { OwnerRepositories } from '../Models/OwnerRepositories';
-import { UserProfile } from '../Models/UserProfile';
+import { OwnerRepositories, UserProfile } from '../Models/index';
 
 export class StorageClient {
-    private key = 'github-profiles';
+    private readonly key = 'github-profiles';
 
     getOwners(): Map<string, string[]> {
         const userId = this.getUserId();

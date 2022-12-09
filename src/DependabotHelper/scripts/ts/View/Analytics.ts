@@ -2,8 +2,8 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 export class Analytics {
-    private analyticsAttribute = 'analytics-event';
-    private analyticsSelector = `[${this.analyticsAttribute}]`;
+    private readonly analyticsAttribute = 'analytics-event';
+    private readonly analyticsSelector = `[${this.analyticsAttribute}]`;
 
     private emitter: (first: string, second: string, ...rest: any) => void;
     private observer: MutationObserver;

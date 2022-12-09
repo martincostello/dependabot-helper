@@ -7,15 +7,10 @@ import { RepositoryElement } from './RepositoryElement';
 export class OwnerElement {
     private readonly itemTemplateClass = 'item-template';
 
-    private readonly element: Element;
     private readonly itemTemplate: Element;
-    private readonly owner: string;
     private readonly repostoryList: Element;
 
-    constructor(owner: string, element: Element) {
-        this.owner = owner;
-        this.element = element;
-
+    constructor(private readonly owner: string, private readonly element: Element) {
         const ownerElement = this.element.querySelector('.owner-name');
         ownerElement.textContent = owner;
 
