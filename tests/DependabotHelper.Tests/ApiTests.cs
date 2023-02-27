@@ -332,7 +332,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Status.ShouldBe(StatusCodes.Status404NotFound);
         problem.Title.ShouldBe("Not Found");
         problem.Detail.ShouldBeNull();
-        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7231#section-6.5.4");
+        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc9110#section-15.5.5");
         problem.Instance.ShouldBeNull();
     }
 
@@ -359,7 +359,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Status.ShouldBe(StatusCodes.Status401Unauthorized);
         problem.Title.ShouldBe("Unauthorized");
         problem.Detail.ShouldBeNull();
-        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7235#section-3.1");
+        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc9110#section-15.5.2");
         problem.Instance.ShouldBeNull();
     }
 
@@ -386,7 +386,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Status.ShouldBe(StatusCodes.Status403Forbidden);
         problem.Title.ShouldBe("Forbidden");
         problem.Detail.ShouldBeNull();
-        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7231#section-6.5.3");
+        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc9110#section-15.5.4");
         problem.Instance.ShouldBeNull();
     }
 
@@ -451,7 +451,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Status.ShouldBe(StatusCodes.Status500InternalServerError);
         problem.Title.ShouldBe("An error occurred while processing your request.");
         problem.Detail.ShouldBeNull();
-        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7231#section-6.6.1");
+        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc9110#section-15.6.1");
         problem.Instance.ShouldBeNull();
     }
 
@@ -475,7 +475,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         problem.Status.ShouldBe(StatusCodes.Status400BadRequest);
         problem.Title.ShouldBe("Bad Request");
         problem.Detail.ShouldBe("Invalid CSRF token specified.");
-        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc7231#section-6.5.1");
+        problem.Type.ShouldBe("https://tools.ietf.org/html/rfc9110#section-15.5.1");
         problem.Instance.ShouldBeNull();
     }
 
