@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using Octokit;
 using Octokit.GraphQL;
 using Polly;
-
 using IGraphQLConnection = Octokit.GraphQL.IConnection;
 
 namespace MartinCostello.DependabotHelper;
@@ -293,7 +292,7 @@ public sealed class GitHubService
         _ = await _client.User.Current();
     }
 
-    private AsyncPolicy CreateMergePolicy()
+    private Polly.Retry.AsyncRetryPolicy CreateMergePolicy()
     {
         return Policy
             .Handle<PullRequestNotMergeableException>()

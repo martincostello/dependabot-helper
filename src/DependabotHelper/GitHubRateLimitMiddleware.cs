@@ -36,9 +36,9 @@ public sealed class GitHubRateLimitMiddleware
                 string reset = limits.ResetAsUtcEpochSeconds.ToString(CultureInfo.InvariantCulture);
 
                 var headers = context.Response.Headers;
-                headers.Add("x-ratelimit-limit", limit);
-                headers.Add("x-ratelimit-remaining", remaining);
-                headers.Add("x-ratelimit-reset", reset);
+                headers["x-ratelimit-limit"] = limit;
+                headers["x-ratelimit-remaining"] = remaining;
+                headers["x-ratelimit-reset"] = reset;
             }
 
             return Task.CompletedTask;
