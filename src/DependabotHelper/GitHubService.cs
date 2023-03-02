@@ -201,7 +201,8 @@ public sealed class GitHubService
     public async Task<MergePullRequestsResponse> MergePullRequestsAsync(
         ClaimsPrincipal user,
         string owner,
-        string name)
+        string name,
+        string? userMergeMethod)
     {
         var mergeCandidates = await GetPullRequestsAsync(
             user,
@@ -215,7 +216,7 @@ public sealed class GitHubService
         {
             var repository = await GetRepositoryAsync(user, owner, name);
 
-            var mergeMethod = SelectMergeMethod(repository);
+            var mergeMethod = SelectMergeMethod(repository, userMergeMethod);
 
             var mergeRequest = new MergePullRequest()
             {
@@ -808,13 +809,20 @@ public sealed class GitHubService
         return result!;
     }
 
-    private PullRequestMergeMethod SelectMergeMethod(Octokit.Repository repository)
+    private PullRequestMergeMethod SelectMergeMethod(Octokit.Repository repository, string? mergeMethod)
     {
+        var preferences = (_options.MergePreferences ?? Array.Empty<string>()).ToList();
+
+        if (mergeMethod is { } userPreference)
+        {
+            preferences.Insert(0, userPreference);
+        }
+
         var methods = new HashSet<PullRequestMergeMethod>(3);
 
-        if (_options.MergePreferences?.Count > 0)
+        if (preferences.Count > 0)
         {
-            foreach (var preference in _options.MergePreferences)
+            foreach (var preference in preferences)
             {
                 var method = new StringEnum<PullRequestMergeMethod>(preference);
 

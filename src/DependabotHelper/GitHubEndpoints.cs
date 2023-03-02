@@ -55,6 +55,7 @@ public static class GitHubEndpoints
         builder.MapPost("/github/repos/{owner}/{name}/pulls/merge", async (
             string owner,
             string name,
+            string? mergeMethod,
             ClaimsPrincipal user,
             GitHubService service,
             IAntiforgery antiforgery,
@@ -67,7 +68,7 @@ public static class GitHubEndpoints
 
             try
             {
-                return Results.Json(await service.MergePullRequestsAsync(user, owner, name));
+                return Results.Json(await service.MergePullRequestsAsync(user, owner, name, mergeMethod));
             }
             catch (Exception ex)
             {
