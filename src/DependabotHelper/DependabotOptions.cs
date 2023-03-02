@@ -15,6 +15,8 @@ public sealed class DependabotOptions
 
     public IList<string> Labels { get; set; } = new List<string>();
 
+    public IList<string> MergePreferences { get; set; } = new List<string>();
+
     public IList<TimeSpan> MergeRetryWaits { get; set; } = new List<TimeSpan>();
 
     public int PageCount { get; set; } = 1;
