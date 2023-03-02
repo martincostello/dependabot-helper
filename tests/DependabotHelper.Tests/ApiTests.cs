@@ -231,11 +231,19 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData(false, false, true)]
-    [InlineData(false, true, true)]
-    [InlineData(true, false, true)]
-    [InlineData(true, true, true)]
-    public async Task Can_Merge_Pull_Requests(bool allowMergeCommit, bool allowRebaseMerge, bool allowSquashMerge)
+    [InlineData(null, false, false, true)]
+    [InlineData(null, false, true, true)]
+    [InlineData(null, true, false, true)]
+    [InlineData(null, true, true, true)]
+    [InlineData("Invalid", true, true, true)]
+    [InlineData("Merge", true, true, true)]
+    [InlineData("Rebase", true, true, true)]
+    [InlineData("Squash", true, true, true)]
+    public async Task Can_Merge_Pull_Requests(
+        string? mergeMethod,
+        bool allowMergeCommit,
+        bool allowRebaseMerge,
+        bool allowSquashMerge)
     {
         // Arrange
         var user = CreateUser();
@@ -279,10 +287,15 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         using var client = await CreateAuthenticatedClientAsync();
 
+        string requestUri = $"/github/repos/{user.Login}/{repository.Name}/pulls/merge";
+
+        if (mergeMethod is not null)
+        {
+            requestUri += $"?mergeMethod={mergeMethod}";
+        }
+
         // Act
-        using var response = await client.PostAsJsonAsync(
-            $"/github/repos/{user.Login}/{repository.Name}/pulls/merge",
-            new { });
+        using var response = await client.PostAsJsonAsync(requestUri, new { });
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
