@@ -98,7 +98,9 @@ function DotNetTest {
         $additionalArgs += $TestFilter
     }
 
-    if (![string]::IsNullOrEmpty($env:GITHUB_SHA)) {
+    $isGitHubActions = ![string]::IsNullOrEmpty($env:GITHUB_SHA);
+
+    if ($isGitHubActions -eq $true) {
         $additionalArgs += "--logger"
         $additionalArgs += "GitHubActions;report-warnings=false"
     }
@@ -117,12 +119,24 @@ function DotNetTest {
     $coverageOutput = Join-Path $OutputPath "coverage.cobertura.xml"
     $reportOutput = Join-Path $OutputPath "coverage"
 
+    $reportTypes = "HTML"
+
+    if ($isGitHubActions -eq $true) {
+        $reportTypes += ";MarkdownSummaryGitHub"
+    }
+
     & $dotnet `
         $reportGeneratorPath `
         `"-reports:$coverageOutput`" `
         `"-targetdir:$reportOutput`" `
-        -reporttypes:HTML `
+        `"-reporttypes:$reportTypes`" `
         -verbosity:Warning
+
+    if ($isGitHubActions -eq $true) {
+        $GitHubSummary = (Join-Path $reportOutput "SummaryGithub.md")
+        $CoverageMarkdown = Get-Content $GitHubSummary | Out-String
+        $CoverageMarkdown >> $env:GITHUB_STEP_SUMMARY
+    }
 }
 
 function DotNetPublish {
