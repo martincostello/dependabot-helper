@@ -213,18 +213,9 @@ public sealed class GitHubService
 
         if (mergeCandidates.Count > 0)
         {
-            var mergeMethod = PullRequestMergeMethod.Merge;
-
             var repository = await GetRepositoryAsync(user, owner, name);
 
-            if (repository.AllowMergeCommit == false)
-            {
-                mergeMethod = repository.AllowRebaseMerge switch
-                {
-                    true => PullRequestMergeMethod.Rebase,
-                    _ => PullRequestMergeMethod.Squash,
-                };
-            }
+            var mergeMethod = SelectMergeMethod(repository);
 
             var mergeRequest = new MergePullRequest()
             {
@@ -815,5 +806,46 @@ public sealed class GitHubService
             return await factory();
         });
         return result!;
+    }
+
+    private PullRequestMergeMethod SelectMergeMethod(Octokit.Repository repository)
+    {
+        var methods = new HashSet<PullRequestMergeMethod>(3);
+
+        if (_options.MergePreferences?.Count > 0)
+        {
+            foreach (var preference in _options.MergePreferences)
+            {
+                var method = new StringEnum<PullRequestMergeMethod>(preference);
+
+                if (method.TryParse(out var value))
+                {
+                    methods.Add(value);
+                }
+            }
+        }
+
+        // Any any missing methods once preferences are applied
+        methods.Add(PullRequestMergeMethod.Merge);
+        methods.Add(PullRequestMergeMethod.Rebase);
+        methods.Add(PullRequestMergeMethod.Squash);
+
+        foreach (var method in methods)
+        {
+            PullRequestMergeMethod? choice = method switch
+            {
+                PullRequestMergeMethod.Merge when repository.AllowMergeCommit is true => PullRequestMergeMethod.Merge,
+                PullRequestMergeMethod.Rebase when repository.AllowRebaseMerge is true => PullRequestMergeMethod.Rebase,
+                PullRequestMergeMethod.Squash when repository.AllowSquashMerge is true => PullRequestMergeMethod.Squash,
+                _ => null,
+            };
+
+            if (choice is { } value)
+            {
+                return value;
+            }
+        }
+
+        throw new InvalidOperationException("Failed to determine a valid merge method.");
     }
 }

@@ -231,11 +231,11 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task Can_Merge_Pull_Requests(bool allowMergeCommit, bool allowRebaseMerge)
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public async Task Can_Merge_Pull_Requests(bool allowMergeCommit, bool allowRebaseMerge, bool allowSquashMerge)
     {
         // Arrange
         var user = CreateUser();
@@ -243,6 +243,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         var repository = user.CreateRepository();
         repository.AllowMergeCommit = allowMergeCommit;
         repository.AllowRebaseMerge = allowRebaseMerge;
+        repository.AllowSquashMerge = allowSquashMerge;
 
         var pullRequest1 = repository.CreatePullRequest();
         var pullRequest2 = repository.CreatePullRequest();

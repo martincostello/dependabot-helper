@@ -118,6 +118,7 @@ the application.
 | `Dependabot:IncludeForks` | `bool` | `false` | Whether to show forked repositories. |
 | `Dependabot:IncludePrivate` | `bool` | `false` | Whether to show private and internal repositories. |
 | `Dependabot:Labels` | `string[]` | `[ "dependencies" ]` | The label(s) pull requests must have to be shown. |
+| `Dependabot:MergePreferences` | `string[]` | `[ "Merge", "Rebase", "Squash" ]` | The preferred order of merge methods to use when attempting to merge pull requests. |
 | `Dependabot:MergeRetryWaits` | `TimeSpan[]` | `[ "00:00:01", "00:00:02" ]` | The period(s) to wait when attempting to merge pull requests if a merge fails due to the pull request not being mergeable. |
 | `Dependabot:RefreshPeriod` | `TimeSpan` | `00:10:00` | The approximate interval after which the status of the configured repositories is refreshed. |
 | `Dependabot:Users` | `string[]` | `[ "app/dependabot", "app/github-actions" ]` | The users(s) pull requests must be created by to be shown. |
