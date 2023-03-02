@@ -129,6 +129,14 @@ public sealed class GitHubService
             Name = repository.Name,
         };
 
+        foreach (var method in GetMergeMethods())
+        {
+            if (IsValidMergeMethod(method, repository))
+            {
+                result.MergeMethods.Add(method.ToString());
+            }
+        }
+
         if (await IsDependabotEnabledAsync(user, owner, name))
         {
             result.DependabotHtmlUrl = repository.HtmlUrl + "/network/updates";
@@ -282,6 +290,17 @@ public sealed class GitHubService
     public async Task VerifyCredentialsAsync()
     {
         _ = await _client.User.Current();
+    }
+
+    private static bool IsValidMergeMethod(PullRequestMergeMethod method, Octokit.Repository repository)
+    {
+        return method switch
+        {
+            PullRequestMergeMethod.Merge when repository.AllowMergeCommit is not false => true,
+            PullRequestMergeMethod.Rebase when repository.AllowRebaseMerge is not false => true,
+            PullRequestMergeMethod.Squash when repository.AllowSquashMerge is not false => true,
+            _ => false,
+        };
     }
 
     private Polly.Retry.AsyncRetryPolicy CreateMergePolicy()
@@ -809,7 +828,7 @@ public sealed class GitHubService
         return result!;
     }
 
-    private PullRequestMergeMethod SelectMergeMethod(Octokit.Repository repository, string? mergeMethod)
+    private HashSet<PullRequestMergeMethod> GetMergeMethods(string? mergeMethod = null)
     {
         var preferences = (_options.MergePreferences ?? Array.Empty<string>()).ToList();
 
@@ -838,19 +857,18 @@ public sealed class GitHubService
         methods.Add(PullRequestMergeMethod.Rebase);
         methods.Add(PullRequestMergeMethod.Squash);
 
+        return methods;
+    }
+
+    private PullRequestMergeMethod SelectMergeMethod(Octokit.Repository repository, string? mergeMethod)
+    {
+        var methods = GetMergeMethods(mergeMethod);
+
         foreach (var method in methods)
         {
-            PullRequestMergeMethod? choice = method switch
+            if (IsValidMergeMethod(method, repository))
             {
-                PullRequestMergeMethod.Merge when repository.AllowMergeCommit is true => PullRequestMergeMethod.Merge,
-                PullRequestMergeMethod.Rebase when repository.AllowRebaseMerge is true => PullRequestMergeMethod.Rebase,
-                PullRequestMergeMethod.Squash when repository.AllowSquashMerge is true => PullRequestMergeMethod.Squash,
-                _ => null,
-            };
-
-            if (choice is { } value)
-            {
-                return value;
+                return method;
             }
         }
 
