@@ -113,6 +113,10 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     color: #fff !important;
 }
 
+.dropdown-item.merge-method.active {
+    background-color: #2da44e;
+}
+
 .dropdown-toggle::after {
     color: #fff
 }
