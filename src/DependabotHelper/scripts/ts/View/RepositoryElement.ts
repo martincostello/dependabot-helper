@@ -1,7 +1,7 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { PullRequest, RepositoryPullRequests } from '../Models/index';
+import { MergeMethod, PullRequest, RepositoryPullRequests } from '../Models/index';
 import { Elements } from './Elements';
 
 export class RepositoryElement {
@@ -18,12 +18,14 @@ export class RepositoryElement {
 
     private readonly configureLink: Element;
     private readonly mergeButton: Element;
+    private readonly mergeMethods: Element;
+    private readonly mergeMethodsButton: Element;
     private readonly pullRequestsButton: Element;
     private readonly refreshButton: Element;
 
     private pullRequests: PullRequest[];
 
-    private onMergeHandler: (owner: string, name: string) => Promise<void>;
+    private onMergeHandler: (owner: string, name: string, mergeMethod: MergeMethod | null) => Promise<void>;
     private onPullRequestsHandler: (pullRequests: PullRequest[]) => void;
     private onRefreshHandler: (owner: string, name: string) => Promise<void>;
 
@@ -40,15 +42,44 @@ export class RepositoryElement {
 
         this.configureLink = this.container.querySelector('.repo-configure');
         this.mergeButton = this.container.querySelector('.repo-merge');
+        this.mergeMethods = this.container.querySelector('.repo-merge-methods');
+        this.mergeMethodsButton = this.container.querySelector('.repo-merge-methods-button');
         this.pullRequestsButton = this.container.querySelector('.repo-pull-requests');
         this.refreshButton = this.container.querySelector('.repo-refresh');
+
+        const mergeMethodAttributeName = 'data-merge-method';
 
         this.mergeButton.addEventListener('click', async () => {
             if (this.onMergeHandler) {
                 try {
                     Elements.disable(this.mergeButton);
+                    Elements.disable(this.mergeMethodsButton);
                     this.showLoader(this.mergeButton);
-                    await this.onMergeHandler(this.owner, this.name);
+
+                    const mergeMethodString = this.mergeButton.getAttribute(mergeMethodAttributeName);
+                    let mergeMethod: MergeMethod | null;
+
+                    if (mergeMethodString) {
+                        switch (mergeMethodString) {
+                            case MergeMethod.merge:
+                                mergeMethod = MergeMethod.merge;
+                                break;
+
+                            case MergeMethod.rebase:
+                                mergeMethod = MergeMethod.rebase;
+                                break;
+
+                            case MergeMethod.squash:
+                                mergeMethod = MergeMethod.squash;
+                                break;
+
+                            default:
+                                mergeMethod = null;
+                                break;
+                        }
+                    }
+
+                    await this.onMergeHandler(this.owner, this.name, mergeMethod);
                 } catch (err) {
                     throw err;
                 } finally {
@@ -56,6 +87,12 @@ export class RepositoryElement {
                 }
             }
         });
+
+        for (const method of this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method')) {
+            method.addEventListener('click', () => {
+                this.mergeButton.setAttribute(mergeMethodAttributeName, method.value);
+            });
+        }
 
         this.pullRequestsButton.addEventListener('click', () => {
             if (this.onPullRequests) {
@@ -82,7 +119,7 @@ export class RepositoryElement {
         Elements.show(this.container);
     }
 
-    onMerge(handler: (owner: string, name: string) => Promise<void>) {
+    onMerge(handler: (owner: string, name: string, mergeMethod: MergeMethod | null) => Promise<void>) {
         this.onMergeHandler = handler;
     }
 
@@ -104,6 +141,14 @@ export class RepositoryElement {
             this.configureLink.classList.remove('disabled');
         }
 
+        for (const method of this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method')) {
+            if (repository.mergeMethods.includes(method.value as MergeMethod)) {
+                Elements.show(method);
+            } else {
+                Elements.hide(method);
+            }
+        }
+
         const statuses = new Map<Element, number>();
         statuses.set(this.approvedCount, repository.approved.length);
         statuses.set(this.errorCount, repository.error.length);
@@ -118,10 +163,12 @@ export class RepositoryElement {
         if (this.pullRequests.length > 0) {
             this.container.classList.remove(this.inactiveClass);
             Elements.enable(this.mergeButton);
+            Elements.enable(this.mergeMethodsButton);
             Elements.enable(this.pullRequestsButton);
         } else {
             this.container.classList.add(this.inactiveClass);
             Elements.disable(this.mergeButton);
+            Elements.disable(this.mergeMethodsButton);
             Elements.disable(this.pullRequestsButton);
         }
 

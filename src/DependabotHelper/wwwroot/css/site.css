@@ -70,9 +70,18 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 }
 
 .btn-approve,
-.btn-merge {
+.btn-merge,
+.btn-merge.dropdown-toggle {
     background-color: #2da44e;
     border-color: #2da44e;
+}
+
+.btn-merge.dropdown-toggle:enabled {
+    border-color: rgba(27, 11, 36, 0.15);
+}
+
+.btn-merge.dropdown-toggle:disabled {
+    background-color: #198754;
 }
 
 .btn-approve:active,
@@ -102,6 +111,10 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     background-color: #6b30d9 !important;
     border-color: #6b30d9 !important;
     color: #fff !important;
+}
+
+.dropdown-toggle::after {
+    color: #fff
 }
 
 .error-stack-trace {

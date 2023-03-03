@@ -65,12 +65,22 @@
                             <button class="btn btn-manage-action btn-pr repo-pull-requests m-1" title="View pull requests" type="button" data-bs-toggle="modal" data-bs-target="#pr-modal" disabled analytics-event="view_pull_requests_modal">
                                 <span class="fa-solid fa-code-pull-request" aria-hidden="true"></span>
                             </button>
-                            <button class="btn btn-manage-action btn-success btn-merge repo-merge m-1" title="Attempt to merge all mergeable pull requests" type="button" disabled analytics-event="merge_pull_requests">
-                                <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
-                                <span class="loader spinner-border spinner-border-sm d-none" role="status">
-                                    <span class="sr-only">Merging...</span>
-                                </span>
-                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-manage-action btn-success btn-merge repo-merge ml-1 my-1" title="Attempt to merge all mergeable pull requests" type="button" disabled analytics-event="merge_pull_requests">
+                                    <span class="fa-solid fa-code-merge" aria-hidden="true"></span>
+                                    <span class="loader spinner-border spinner-border-sm d-none" role="status">
+                                        <span class="sr-only">Merging...</span>
+                                    </span>
+                                </button>
+                                <button type="button" class="btn btn-merge dropdown-toggle dropdown-toggle-split my-1 mr-1 repo-merge-methods-button" data-bs-toggle="dropdown" aria-expanded="false" disabled analytics-event="merge_methods">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu repo-merge-methods">
+                                    <li><button class="dropdown-item merge-method merge-method-merge d-none" value="@(nameof(Octokit.PullRequestMergeMethod.Merge))">Create a merge commit</button></li>
+                                    <li><button class="dropdown-item merge-method merge-method-squash d-none" value="@(nameof(Octokit.PullRequestMergeMethod.Squash))">Squash and merge</button></li>
+                                    <li><button class="dropdown-item merge-method merge-method-rebase d-none" value="@(nameof(Octokit.PullRequestMergeMethod.Rebase))">Rebase and merge</button></li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
