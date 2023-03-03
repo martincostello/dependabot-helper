@@ -1,7 +1,7 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { ApiError, RateLimits, Repository, RepositoryPullRequests } from '../Models/index';
+import { ApiError, MergeMethod, RateLimits, Repository, RepositoryPullRequests } from '../Models/index';
 
 export class GitHubClient {
     readonly rateLimits: RateLimits;
@@ -34,11 +34,17 @@ export class GitHubClient {
         return await this.getJson<Repository[]>(`/github/repos/${encodedOwner}`);
     }
 
-    async mergePullRequests(owner: string, name: string): Promise<void> {
+    async mergePullRequests(owner: string, name: string, mergeMethod: MergeMethod | null = null): Promise<void> {
         const encodedOwner = encodeURIComponent(owner);
         const encodedName = encodeURIComponent(name);
 
-        await this.postJson(`/github/repos/${encodedOwner}/${encodedName}/pulls/merge`);
+        let url = `/github/repos/${encodedOwner}/${encodedName}/pulls/merge`;
+
+        if (mergeMethod) {
+            url += `?mergeMethod=${mergeMethod}`;
+        }
+
+        await this.postJson(url);
     }
 
     private async getJson<T>(url: string): Promise<T> {

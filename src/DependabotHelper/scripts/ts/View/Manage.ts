@@ -94,9 +94,9 @@ export class Manage extends Page {
     private async configureRepository(repository: RepositoryElement, refreshInterval: number): Promise<void> {
         await this.updateRepository(repository);
 
-        repository.onMerge(async (owner, name) => {
+        repository.onMerge(async (owner, name, mergeMethod) => {
             try {
-                await this.gitHub.mergePullRequests(owner, name);
+                await this.gitHub.mergePullRequests(owner, name, mergeMethod);
             } catch (error: any) {
                 this.showError(error);
             }

@@ -3,6 +3,7 @@
 
 export { ApiError } from './ApiError';
 export { ChecksStatus } from './ChecksStatus';
+export { MergeMethod } from './MergeMethod';
 export { Owner } from './Owner';
 export { OwnerRepositories } from './OwnerRepositories';
 export { PullRequest } from './PullRequest';
