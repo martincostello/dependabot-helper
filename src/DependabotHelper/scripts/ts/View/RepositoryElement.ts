@@ -88,9 +88,18 @@ export class RepositoryElement {
             }
         });
 
-        for (const method of this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method')) {
+        const mergeMethods = this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method');
+
+        for (const method of mergeMethods) {
             method.addEventListener('click', () => {
                 this.mergeButton.setAttribute(mergeMethodAttributeName, method.value);
+                Elements.activate(method);
+
+                for (const other of mergeMethods) {
+                    if (other !== method) {
+                        Elements.deactivate(other);
+                    }
+                }
             });
         }
 
@@ -141,9 +150,18 @@ export class RepositoryElement {
             this.configureLink.classList.remove('disabled');
         }
 
-        for (const method of this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method')) {
+        const mergeMethods = this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method');
+
+        // Set the first enabled one to active, remove active from all the others
+        for (let i = 0; i < mergeMethods.length; i++) {
+            const method = mergeMethods[i];
             if (repository.mergeMethods.includes(method.value as MergeMethod)) {
                 Elements.show(method);
+                if (i === 0) {
+                    Elements.activate(method);
+                } else {
+                    Elements.deactivate(method);
+                }
             } else {
                 Elements.hide(method);
             }
