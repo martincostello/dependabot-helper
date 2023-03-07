@@ -27,6 +27,7 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/sign-in", MediaTypeNames.Text.Html)]
     [InlineData("/static/js/main.js", "text/javascript")]
+    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Get_Resource_Unauthenticated(string requestUri, string contentType)
     {
         // Arrange
@@ -53,6 +54,7 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     [InlineData("/not-found.html", MediaTypeNames.Text.Html)]
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/static/js/main.js", "text/javascript")]
+    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Get_Resource_Authenticated(string requestUri, string contentType)
     {
         // Arrange
