@@ -153,12 +153,14 @@ export class RepositoryElement {
         const mergeMethods = this.mergeMethods.querySelectorAll<HTMLInputElement>('.merge-method');
 
         // Set the first enabled one to active, remove active from all the others
-        for (let i = 0; i < mergeMethods.length; i++) {
-            const method = mergeMethods[i];
+        let hasActiveMethod = false;
+
+        for (const method of mergeMethods) {
             if (repository.mergeMethods.includes(method.value as MergeMethod)) {
                 Elements.show(method);
-                if (i === 0) {
+                if (!hasActiveMethod) {
                     Elements.activate(method);
+                    hasActiveMethod = true;
                 } else {
                     Elements.deactivate(method);
                 }
