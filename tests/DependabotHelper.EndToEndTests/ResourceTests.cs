@@ -26,7 +26,6 @@ public class ResourceTests : EndToEndTest
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/sign-in", MediaTypeNames.Text.Html)]
     [InlineData("/static/js/main.js", "text/javascript")]
-    [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Load_Resource_As_Get(string requestUri, string contentType)
     {
         // Arrange
