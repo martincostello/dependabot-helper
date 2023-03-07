@@ -2,7 +2,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "inlineSources": true,
-    "inlineSourceMap": true,
+    "moduleResolution": "node",
     "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitThis": true,

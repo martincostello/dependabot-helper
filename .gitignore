@@ -19,6 +19,7 @@ obj
 packages
 project.lock.json
 src/DependabotHelper/wwwroot/static/**/*.js
+src/DependabotHelper/wwwroot/static/**/*.js.LICENSE.txt
 src/DependabotHelper/wwwroot/static/**/*.map
 TestResults
 typings
