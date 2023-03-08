@@ -45,6 +45,6 @@
   </PropertyGroup>
   <Target Name="GenerateCoverageReports" AfterTargets="GenerateCoverageResultAfterTest" Condition=" '$(CollectCoverage)' == 'true' ">
     <ReportGenerator ReportFiles="@(CoverletReport)" ReportTypes="$(ReportGeneratorReportTypes)" Tag="$(Version)" TargetDirectory="$(ReportGeneratorTargetDirectory)" VerbosityLevel="Warning" />
-    <Exec Condition=" '$(GITHUB_SHA)' != '' " Command="pwsh -Command %22(Get-Content $(ReportGeneratorTargetDirectory) | Out-String) >> $(GITHUB_STEP_SUMMARY)%22" />
+    <Exec Condition=" '$(GITHUB_SHA)' != '' " Command="pwsh -Command %22(Get-Content $([System.IO.Path]::Combine($(ReportGeneratorTargetDirectory), 'SummaryGithub.md')) | Out-String) >> $(GITHUB_STEP_SUMMARY)%22" />
   </Target>
 </Project>
