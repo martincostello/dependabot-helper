@@ -38,4 +38,13 @@
       </AssemblyAttribute>
     </ItemGroup>
   </Target>
+  <PropertyGroup Condition=" '$(CollectCoverage)' == 'true' ">
+    <ReportGeneratorReportTypes>HTML</ReportGeneratorReportTypes>
+    <ReportGeneratorReportTypes Condition=" '$(GITHUB_SHA)' != '' ">$(ReportGeneratorReportTypes);MarkdownSummaryGitHub</ReportGeneratorReportTypes>
+    <ReportGeneratorTargetDirectory>$([System.IO.Path]::Combine($(OutputPath), 'coverage-reports'))</ReportGeneratorTargetDirectory>
+  </PropertyGroup>
+  <Target Name="GenerateCoverageReports" AfterTargets="GenerateCoverageResultAfterTest" Condition=" '$(CollectCoverage)' == 'true' ">
+    <ReportGenerator ReportFiles="@(CoverletReport)" ReportTypes="$(ReportGeneratorReportTypes)" Tag="$(Version)" TargetDirectory="$(ReportGeneratorTargetDirectory)" VerbosityLevel="Warning" />
+    <Exec Condition=" '$(GITHUB_SHA)' != '' " Command="pwsh -Command %22(Get-Content $(ReportGeneratorTargetDirectory) | Out-String) >> $(GITHUB_STEP_SUMMARY)%22" />
+  </Target>
 </Project>
