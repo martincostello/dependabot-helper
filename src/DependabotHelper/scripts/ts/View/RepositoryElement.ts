@@ -54,6 +54,16 @@ export class RepositoryElement {
                 try {
                     Elements.disable(this.mergeButton);
                     Elements.disable(this.mergeMethodsButton);
+
+                    if ('bootstrap' in window) {
+                        const bootstrap: any = window['bootstrap' as any];
+                        const dropdown = bootstrap['Dropdown' as any];
+                        const methodDropdown = dropdown.getInstance(this.mergeMethodsButton);
+                        if (methodDropdown) {
+                            methodDropdown.hide();
+                        }
+                    }
+
                     this.showLoader(this.mergeButton);
 
                     const mergeMethodString = this.mergeButton.getAttribute(mergeMethodAttributeName);
