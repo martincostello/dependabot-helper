@@ -52,9 +52,6 @@ export class RepositoryElement {
         this.mergeButton.addEventListener('click', async () => {
             if (this.onMergeHandler) {
                 try {
-                    Elements.disable(this.mergeButton);
-                    Elements.disable(this.mergeMethodsButton);
-
                     if ('bootstrap' in window) {
                         const bootstrap: any = window['bootstrap' as any];
                         const dropdown = bootstrap['Dropdown' as any];
@@ -63,6 +60,9 @@ export class RepositoryElement {
                             methodDropdown.hide();
                         }
                     }
+
+                    Elements.disable(this.mergeButton);
+                    Elements.disable(this.mergeMethodsButton);
 
                     this.showLoader(this.mergeButton);
 
