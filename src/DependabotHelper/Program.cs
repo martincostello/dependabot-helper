@@ -5,7 +5,6 @@
 
 using System.IO.Compression;
 using MartinCostello.DependabotHelper;
-using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 
