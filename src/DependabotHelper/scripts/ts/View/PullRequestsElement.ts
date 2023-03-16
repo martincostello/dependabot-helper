@@ -82,6 +82,8 @@ export class PullRequestsElement {
             });
 
             Elements.show(approveButton);
+        } else {
+            Elements.show(element.querySelector('.pr-approval-pending'));
         }
 
         Elements.show(element);
