@@ -32,6 +32,11 @@ export class PullRequestsElement {
         for (const pullRequest of pullRequests) {
             this.createRow(body, pullRequest);
         }
+
+        const names = document.querySelectorAll<HTMLElement>('.pr-repo');
+        for (const name of names) {
+            name.innerText = `${pullRequests[0].repositoryOwner}/${pullRequests[0].repositoryName}`;
+        }
     }
 
     private createRow(body: Element, pullRequest: PullRequest) {
