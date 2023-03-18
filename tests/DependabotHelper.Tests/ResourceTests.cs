@@ -18,7 +18,6 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
 
     [Theory]
     [InlineData("/bad-request.html", MediaTypeNames.Text.Html)]
-    [InlineData("/css/site.css", "text/css")]
     [InlineData("/error.html", MediaTypeNames.Text.Html)]
     [InlineData("/favicon.png", "image/png")]
     [InlineData("/humans.txt", MediaTypeNames.Text.Plain)]
@@ -26,6 +25,8 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     [InlineData("/not-found.html", MediaTypeNames.Text.Html)]
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/sign-in", MediaTypeNames.Text.Html)]
+    [InlineData("/static/css/main.css", "text/css")]
+    [InlineData("/static/css/main.css.map", MediaTypeNames.Text.Plain)]
     [InlineData("/static/js/main.js", "text/javascript")]
     [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Get_Resource_Unauthenticated(string requestUri, string contentType)
@@ -46,13 +47,14 @@ public sealed class ResourceTests : IntegrationTests<AppFixture>
     [Theory]
     [InlineData("/", MediaTypeNames.Text.Html)]
     [InlineData("/bad-request.html", MediaTypeNames.Text.Html)]
-    [InlineData("/css/site.css", "text/css")]
     [InlineData("/error.html", MediaTypeNames.Text.Html)]
     [InlineData("/favicon.png", "image/png")]
     [InlineData("/humans.txt", MediaTypeNames.Text.Plain)]
     [InlineData("/manifest.webmanifest", "application/manifest+json")]
     [InlineData("/not-found.html", MediaTypeNames.Text.Html)]
     [InlineData("/robots.txt", MediaTypeNames.Text.Plain)]
+    [InlineData("/static/css/main.css", "text/css")]
+    [InlineData("/static/css/main.css.map", MediaTypeNames.Text.Plain)]
     [InlineData("/static/js/main.js", "text/javascript")]
     [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
     public async Task Can_Get_Resource_Authenticated(string requestUri, string contentType)

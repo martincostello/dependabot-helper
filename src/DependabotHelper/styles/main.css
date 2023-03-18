@@ -20,7 +20,7 @@ a.btn:hover,
 a.dropdown-item:hover,
 a.navbar-brand:hover,
 a.nav-link:hover,
-a:not([href]):not([class]):hover {
+a:not([href], [class]):hover {
     text-decoration: none;
 }
 
@@ -37,11 +37,12 @@ img.user-profile {
     Hide avatar images that fail to load.
     See https://stackoverflow.com/a/37192970/1064169.
 */
-img.user-profile:after {
+img.user-profile::after {
     background-color: #fff;
     content: '';
     display: block;
-    font-family: 'Helvetica';
+    /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+    font-family: Helvetica;
     font-weight: 300;
     height: 100%;
     left: 0;
@@ -77,7 +78,7 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 }
 
 .btn-merge.dropdown-toggle:enabled {
-    border-color: rgba(27, 11, 36, 0.15);
+    border-color: rgb(27 11 36 / 15%);
 }
 
 .btn-merge.dropdown-toggle:disabled {
