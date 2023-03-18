@@ -18,9 +18,7 @@ node_modules
 obj
 packages
 project.lock.json
-src/DependabotHelper/wwwroot/static/**/*.js
-src/DependabotHelper/wwwroot/static/**/*.js.LICENSE.txt
-src/DependabotHelper/wwwroot/static/**/*.map
+src/DependabotHelper/wwwroot/static/
 TestResults
 typings
 UpgradeLog*.htm
