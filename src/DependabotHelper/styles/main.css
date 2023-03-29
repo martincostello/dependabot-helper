@@ -73,12 +73,12 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 .btn-approve,
 .btn-merge,
 .btn-merge.dropdown-toggle {
-    background-color: #2da44e;
-    border-color: #2da44e;
+    background-color: #2c8747;
+    border-color: #2c8747;
 }
 
 .btn-merge.dropdown-toggle:enabled {
-    border-color: rgb(27 11 36 / 15%);
+    border-color: rgb(27 31 36 / 15%);
 }
 
 .btn-merge.dropdown-toggle:disabled {
@@ -91,8 +91,8 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 .btn-merge:active,
 .btn-merge:focus,
 .btn-merge:hover {
-    background-color: #2c974b;
-    border-color: #2c974b;
+    background-color: #1a7f37;;
+    border-color: #1a7f37;;
 }
 
 .btn-manage-action {
@@ -115,7 +115,7 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 }
 
 .dropdown-item.merge-method.active {
-    background-color: #2da44e;
+    background-color: #2c8747;
 }
 
 .dropdown-toggle::after {
@@ -158,5 +158,5 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 }
 
 .text-github-open {
-    color: #2da44e;
+    color: #2c8747;
 }
