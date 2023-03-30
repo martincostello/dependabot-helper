@@ -172,10 +172,10 @@ public static class AuthenticationEndpoints
     /// </summary>
     /// <param name="user">The current user.</param>
     /// <returns>
-    /// The user name for the current user.
+    /// The user name for the current user, if available; otherwise the login is returned.
     /// </returns>
     public static string GetUserName(this ClaimsPrincipal user)
-        => user.FindFirst(GitHubAuthenticationConstants.Claims.Name)!.Value;
+        => user.FindFirst(GitHubAuthenticationConstants.Claims.Name)?.Value ?? user.GetUserLogin();
 
     /// <summary>
     /// Signs out the current user and challenges them to authenticate with GitHub as an asynchronous operation.
