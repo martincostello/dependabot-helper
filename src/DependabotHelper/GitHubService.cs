@@ -609,7 +609,8 @@ public sealed class GitHubService
 
                     foreach (var checkRun in checkRuns.CheckRuns)
                     {
-                        if (checkRun.Conclusion == CheckConclusion.Success)
+                        if (checkRun.Conclusion == CheckConclusion.Neutral ||
+                            checkRun.Conclusion == CheckConclusion.Success)
                         {
                             successfulStatuses.Add(checkRun.Name);
                         }
