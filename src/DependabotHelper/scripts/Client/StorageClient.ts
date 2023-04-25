@@ -19,7 +19,7 @@ export class StorageClient {
 
         if (!profile) {
             profile = {
-                userId: userId,
+                userId,
                 owners: [],
             };
             profiles.push(profile);
@@ -41,7 +41,7 @@ export class StorageClient {
     }
 
     private getOwnersForUser(userId: string): Map<string, string[]> {
-        let owners = new Map<string, string[]>();
+        const owners = new Map<string, string[]>();
 
         const profiles = this.getProfiles();
         const profile = profiles.find((profile) => profile.userId === userId);
@@ -55,8 +55,11 @@ export class StorageClient {
                 return compareStrings(first.owner, second.owner);
             };
 
-            for (const owner of profile.owners.sort(compareOwners)) {
-                owners.set(owner.owner, owner.names.sort(compareStrings));
+            profile.owners.sort(compareOwners);
+
+            for (const owner of profile.owners) {
+                owner.names.sort(compareStrings);
+                owners.set(owner.owner, owner.names);
             }
         }
 

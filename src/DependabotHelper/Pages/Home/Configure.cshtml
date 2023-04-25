@@ -24,7 +24,7 @@
                         string highlight = owner.Name == login ? "font-weight-bold" : string.Empty;
                         <tr class="owner-item">
                             <td class="align-middle">
-                                <img src="@owner.AvatarUrl" class="user-profile" aria-hidden="true" />
+                                <img src="@owner.AvatarUrl" class="user-profile" alt="@(owner.Name)'s avatar'" aria-hidden="true" />
                             </td>
                             <td class="align-middle owner-name @highlight">@owner.Name</td>
                             <td>

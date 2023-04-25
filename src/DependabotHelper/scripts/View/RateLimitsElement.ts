@@ -9,9 +9,9 @@ import { Page } from './Page';
 export class RateLimitsElement {
     private readonly titleAttribute = 'title';
 
-    private remaining: HTMLElement;
-    private resets: HTMLElement;
-    private total: HTMLElement;
+    private readonly remaining: HTMLElement;
+    private readonly resets: HTMLElement;
+    private readonly total: HTMLElement;
 
     constructor() {
         this.remaining = Page.findId('rate-limit-remaining');
@@ -44,7 +44,7 @@ export class RateLimitsElement {
         for (const element of elements) {
             const timestamp = element.getAttribute(this.titleAttribute);
             if (timestamp) {
-                this.updateRelativeTime(<HTMLElement>element, moment(timestamp));
+                this.updateRelativeTime(element as HTMLElement, moment(timestamp));
             }
         }
     }

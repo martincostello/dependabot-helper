@@ -65,7 +65,7 @@ export class Analytics {
     private track(eventName: string, element: Element) {
         const properties = new Map<string, string>();
 
-        for (const attribute in element.getAttributeNames()) {
+        for (const attribute of element.getAttributeNames()) {
             const prefix = 'analytics-property-';
             if (attribute.startsWith(prefix)) {
                 const propertyName = attribute.substring(prefix.length);

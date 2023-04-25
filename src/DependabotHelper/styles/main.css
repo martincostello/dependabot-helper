@@ -91,8 +91,8 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 .btn-merge:active,
 .btn-merge:focus,
 .btn-merge:hover {
-    background-color: #1a7f37;;
-    border-color: #1a7f37;;
+    background-color: #1a7f37;
+    border-color: #1a7f37;
 }
 
 .btn-manage-action {
@@ -145,7 +145,7 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
     padding-top: 0.5rem;
 }
 
-@media (max-width: 1200px) {
+@media (width <= 1200px) {
     .status-container {
         min-height: 3rem;
         min-width: 4rem;
