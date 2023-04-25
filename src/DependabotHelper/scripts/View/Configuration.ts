@@ -79,7 +79,7 @@ export class Configuration extends Page {
             name.textContent = repository.name;
             name.setAttribute('href', repository.htmlUrl);
 
-            const checkbox = <HTMLInputElement>element.querySelector(this.checkboxSelector);
+            const checkbox = element.querySelector<HTMLInputElement>(this.checkboxSelector);
             checkbox.setAttribute('aria-label', `Toggle whether to manage dependabot updates for the ${repository.name} repository.`);
             checkbox.setAttribute(this.valueAttribute, repository.name);
 
@@ -122,7 +122,7 @@ export class Configuration extends Page {
         let element = body.firstElementChild.nextElementSibling;
 
         while (element) {
-            const check = <HTMLInputElement>element.querySelector(this.checkboxSelector);
+            const check = element.querySelector<HTMLInputElement>(this.checkboxSelector);
 
             if (check.checked) {
                 const name = check.getAttribute(this.valueAttribute);

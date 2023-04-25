@@ -86,7 +86,7 @@ export class GitHubClient {
 
         const init = {
             method: 'POST',
-            headers: headers,
+            headers,
             body: JSON.stringify(payload),
         };
 

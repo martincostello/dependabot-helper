@@ -90,8 +90,6 @@ export class RepositoryElement {
                     }
 
                     await this.onMergeHandler(this.owner, this.name, mergeMethod);
-                } catch (err) {
-                    throw err;
                 } finally {
                     this.hideLoader(this.mergeButton);
                 }
@@ -125,8 +123,6 @@ export class RepositoryElement {
                     Elements.disable(this.refreshButton);
                     this.showLoader(this.refreshButton);
                     await this.onRefreshHandler(this.owner, this.name);
-                } catch (err) {
-                    throw err;
                 } finally {
                     this.hideLoader(this.refreshButton);
                     Elements.enable(this.refreshButton);
