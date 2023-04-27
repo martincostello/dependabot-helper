@@ -33,7 +33,8 @@
   <PropertyGroup Condition=" '$(BuildingInsideVisualStudio)' != 'true' ">
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutput Condition=" '$(OutputPath)' != '' ">$(OutputPath)/</CoverletOutput>
-    <CoverletOutputFormat>cobertura,json,$(CoverletOutputFormat)</CoverletOutputFormat>
+    <CoverletOutputFormat Condition=" '$(CoverletOutputFormat)' != '' ">$(CoverletOutputFormat),</CoverletOutputFormat>
+    <CoverletOutputFormat>$(CoverletOutputFormat)cobertura,json</CoverletOutputFormat>
     <Exclude>[*Tests]*,[xunit.*]*</Exclude>
     <ExcludeByAttribute>System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
     <Threshold>80</Threshold>
