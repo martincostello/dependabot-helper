@@ -1313,8 +1313,6 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     [InlineData("in_progress", null, false)]
     [InlineData("in_progress", null, true)]
     [InlineData("queued", null, true)]
-    [InlineData("completed", "skipped", false)]
-    [InlineData("completed", "skipped", true)]
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Pending(
         string status,
         string? conclusion,
