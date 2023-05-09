@@ -1437,6 +1437,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
     [Theory]
     [InlineData("completed", "neutral")]
+    [InlineData("completed", "skipped")]
     [InlineData("completed", "success")]
     public async Task Can_Get_Pull_Requests_When_Check_Suite_Success_When_No_Required_Statuses(string status, string? conclusion)
     {
