@@ -645,8 +645,9 @@ public sealed class GitHubService
             // might not be required to run at all (e.g. an old installation)
             // as it would otherwise block the Pull Request from being successful.
             static bool IsSuccess(CheckSuite suite)
-                => suite.Conclusion == CheckConclusion.Success ||
-                   suite.Conclusion == CheckConclusion.Neutral;
+                => suite.Conclusion == CheckConclusion.Neutral ||
+                   suite.Conclusion == CheckConclusion.Skipped ||
+                   suite.Conclusion == CheckConclusion.Success;
 
             if (applicableSuites.All(IsSuccess))
             {
