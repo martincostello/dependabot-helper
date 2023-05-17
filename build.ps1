@@ -76,18 +76,6 @@ if ($installDotNetSdk -eq $true) {
     $env:PATH = "$env:DOTNET_INSTALL_DIR;$env:PATH"
 }
 
-function DotNetPack {
-    param([string]$Project)
-
-    $PackageOutputPath = (Join-Path $OutputPath "packages")
-
-    & $dotnet pack $Project --output $PackageOutputPath --configuration $Configuration --include-symbols --include-source
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "dotnet pack failed with exit code $LASTEXITCODE"
-    }
-}
-
 function DotNetTest {
     param([string]$Project)
 
@@ -143,7 +131,7 @@ $testProjects = @(
 
 Write-Host "Publishing solution..." -ForegroundColor Green
 ForEach ($project in $publishProjects) {
-    DotNetPublish $project $Configuration
+    DotNetPublish $project
 }
 
 if ($SkipTests -eq $false) {
