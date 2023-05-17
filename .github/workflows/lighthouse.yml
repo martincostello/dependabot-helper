@@ -82,5 +82,5 @@ jobs:
       if: ${{ always() }}
       with:
         name: lighthouse
-        path: ${{ github.workspace }}/artifacts
+        path: ${{ github.workspace }}/artifacts/lighthouse
         if-no-files-found: ignore
