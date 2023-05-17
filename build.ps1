@@ -4,7 +4,6 @@
 #Requires -Version 7
 
 param(
-    [Parameter(Mandatory = $false)][string] $Configuration = "Release",
     [Parameter(Mandatory = $false)][string] $Runtime = "",
     [Parameter(Mandatory = $false)][string] $TestFilter = "",
     [Parameter(Mandatory = $false)][switch] $SkipTests
@@ -88,7 +87,7 @@ function DotNetTest {
         $additionalArgs += "GitHubActions;report-warnings=false"
     }
 
-    & $dotnet test $Project --configuration $Configuration $additionalArgs
+    & $dotnet test $Project --configuration "Release" $additionalArgs
 
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet test failed with exit code $LASTEXITCODE"
