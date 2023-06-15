@@ -5,6 +5,8 @@
     <NoWarn>$(NoWarn);CA1054;CA1308;CA1707;CA1711;CA1812;CA1861;CA2007;CA2234;SA1600</NoWarn>
     <RootNamespace>MartinCostello.DependabotHelper</RootNamespace>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- HACK Workaround for https://github.com/dotnet/runtime/issues/87628#issuecomment-1593612508 -->
+    <TieredPGO>false</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
