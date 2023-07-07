@@ -6,6 +6,7 @@ import { ChecksStatus } from './ChecksStatus';
 export interface PullRequest {
     canApprove: boolean;
     htmlUrl: string;
+    hasConflicts: boolean;
     isApproved: boolean;
     number: number;
     repositoryOwner: string;

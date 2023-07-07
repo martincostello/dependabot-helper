@@ -423,6 +423,7 @@ public sealed class GitHubService
                 result.Add(new()
                 {
                     CanApprove = canApprove,
+                    HasConflicts = pr.MergeableState?.Value is MergeableState.Dirty,
                     HtmlUrl = pr.HtmlUrl,
                     IsApproved = isApproved,
                     NodeId = pr.NodeId,

@@ -24,6 +24,8 @@ public sealed class PullRequestBuilder : ResponseBuilder
 
     public string NodeId { get; set; } = RandomString();
 
+    public string MergeableState { get; set; } = "clean";
+
     public int Number { get; set; } = RandomNumber();
 
     public RepositoryBuilder Repository { get; set; }
@@ -45,6 +47,7 @@ public sealed class PullRequestBuilder : ResponseBuilder
             number = Number,
             draft = IsDraft,
             mergeable = IsMergeable,
+            mergeable_state = MergeableState,
             node_id = NodeId,
             title = Title,
             @base = new

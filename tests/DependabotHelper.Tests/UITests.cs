@@ -315,7 +315,7 @@ public class UITests : IntegrationTests<HttpServerFixture>
             var repoOwner = repoOwners.ShouldHaveSingleItem();
             await repoOwner.WaitForRepositoryCountAsync(2);
 
-            var ownerRepos = await repoOwner.GetRepsitoriesAsync();
+            var ownerRepos = await repoOwner.GetRepositoriesAsync();
 
             ownerRepos.ShouldNotBeNull();
             ownerRepos.Count.ShouldBe(2);

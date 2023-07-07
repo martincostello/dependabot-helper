@@ -617,6 +617,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         actualPullRequest.ShouldNotBeNull();
         actualPullRequest.HtmlUrl.ShouldBe($"https://github.com/{user.Login}/{repository.Name}/pull/{pullRequest.Number}");
         actualPullRequest.CanApprove.ShouldBeTrue();
+        actualPullRequest.HasConflicts.ShouldBeFalse();
         actualPullRequest.IsApproved.ShouldBeTrue();
         actualPullRequest.Number.ShouldBe(pullRequest.Number);
         actualPullRequest.RepositoryName.ShouldBe(repository.Name);
@@ -2087,6 +2088,57 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         actualPullRequest.ShouldNotBeNull();
         actualPullRequest.Status.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("behind", false)]
+    [InlineData("blocked", false)]
+    [InlineData("clean", false)]
+    [InlineData("dirty", true)]
+    [InlineData("draft", false)]
+    [InlineData("has_hooks", false)]
+    [InlineData("unknown", false)]
+    [InlineData("unstable", false)]
+    public async Task Can_Get_If_Pull_Request_Has_Conflicts(string mergeableState, bool expected)
+    {
+        // Arrange
+        var user = CreateUser();
+        var repository = user.CreateRepository();
+        var pullRequest = repository.CreatePullRequest();
+        pullRequest.MergeableState = mergeableState;
+
+        RegisterGetRepository(repository);
+        RegisterGetDependabotContent(repository);
+        RegisterGetPullRequest(pullRequest);
+
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
+
+        RegisterGetReviews(
+            pullRequest,
+            CreateReview("octocat", "APPROVED"));
+
+        RegisterGetStatuses(pullRequest);
+        RegisterGetCheckSuites(pullRequest);
+
+        var options = CreateSerializerOptions();
+        using var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            options);
+
+        // Assert
+        actual.ShouldNotBeNull();
+
+        var actualPullRequest = actual.All[0];
+
+        actualPullRequest.ShouldBeSameAs(actual.Pending[0]);
+
+        actualPullRequest.ShouldNotBeNull();
+        actualPullRequest.HasConflicts.ShouldBe(expected);
     }
 
     private static JsonSerializerOptions CreateSerializerOptions()
