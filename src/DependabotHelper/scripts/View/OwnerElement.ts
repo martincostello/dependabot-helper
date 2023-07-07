@@ -10,7 +10,10 @@ export class OwnerElement {
     private readonly itemTemplate: Element;
     private readonly repostoryList: Element;
 
-    constructor(private readonly owner: string, private readonly element: Element) {
+    constructor(
+        private readonly owner: string,
+        private readonly element: Element
+    ) {
         const ownerElement = this.element.querySelector('.owner-name');
         ownerElement.textContent = owner;
 

@@ -55,6 +55,10 @@ export class PullRequestsElement {
         status.setAttribute('data-count', '1');
         Elements.show(status);
 
+        const conflicts = element.querySelector('.pr-status-conflict');
+        conflicts.setAttribute('data-count', '1');
+        Elements.show(conflicts);
+
         const isApproved = element.querySelector('.pr-is-approved');
 
         if (pullRequest.isApproved) {

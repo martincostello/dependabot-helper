@@ -29,7 +29,11 @@ export class RepositoryElement {
     private onPullRequestsHandler: (pullRequests: PullRequest[]) => void;
     private onRefreshHandler: (owner: string, name: string) => Promise<void>;
 
-    constructor(public readonly owner: string, public readonly name: string, private readonly container: Element) {
+    constructor(
+        public readonly owner: string,
+        public readonly name: string,
+        private readonly container: Element
+    ) {
         this.pullRequests = [];
 
         this.loader = this.container.querySelector(this.loaderSelector);

@@ -9,6 +9,8 @@ public sealed class PullRequest
 
     public bool CanApprove { get; set; }
 
+    public bool HasConflicts { get; set; }
+
     public bool IsApproved { get; set; }
 
     public string NodeId { get; set; } = default!;

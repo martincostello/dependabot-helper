@@ -44,7 +44,7 @@ public class ManagePage : AppPage
         {
         }
 
-        public async Task<IReadOnlyList<RepositoryItem>> GetRepsitoriesAsync()
+        public async Task<IReadOnlyList<RepositoryItem>> GetRepositoriesAsync()
         {
             var elements = await Page.QuerySelectorAllAsync(Selectors.RepositoryItem);
 
