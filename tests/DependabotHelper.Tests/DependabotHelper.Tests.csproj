@@ -35,7 +35,7 @@
     <CoverletOutput>$([System.IO.Path]::Combine($(OutputPath), 'coverage', 'coverage'))</CoverletOutput>
     <CoverletOutputFormat>$(CoverletOutputFormat),cobertura</CoverletOutputFormat>
     <Exclude>[*Tests]*,[xunit.*]*</Exclude>
-    <ExcludeByAttribute>System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
-    <Threshold>80</Threshold>
+    <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+    <Threshold>85</Threshold>
   </PropertyGroup>
 </Project>
