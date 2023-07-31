@@ -709,9 +709,13 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
     }
 
     [Theory]
-    [InlineData("CHANGES_REQUESTED")]
-    [InlineData("COMMENTED")]
-    public async Task Can_Get_Pull_Requests_When_Not_Approved(string state)
+    [InlineData("CHANGES_REQUESTED", null)]
+    [InlineData("CHANGES_REQUESTED", 0)]
+    [InlineData("CHANGES_REQUESTED", 1)]
+    [InlineData("COMMENTED", null)]
+    [InlineData("COMMENTED", 0)]
+    [InlineData("COMMENTED", 1)]
+    public async Task Can_Get_Pull_Requests_When_Not_Approved(string state, int? requiredReviewers)
     {
         // Arrange
         var user = CreateUser();
@@ -721,6 +725,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+
+        if (requiredReviewers is { } count)
+        {
+            var protection = CreateBranchProtection(count);
+            RegisterGetBranchProtection(pullRequest, protection);
+        }
 
         RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
