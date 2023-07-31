@@ -488,7 +488,7 @@ public sealed class GitHubService
 
         int requiredReviewsCount = await GetNumberOfRequiredReviewersAsync(user, owner, name, targetBranch);
 
-        bool isApproved = approvedReviews >= requiredReviewsCount;
+        bool isApproved = approvedReviews > 0 && approvedReviews >= requiredReviewsCount;
 
         return (canApprove, isApproved);
     }
