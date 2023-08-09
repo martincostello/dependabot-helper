@@ -16,7 +16,6 @@
     <PackageVersion Include="Microsoft.Playwright" Version="1.36.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.TypeScript.MSBuild" Version="5.1.5" />
-    <PackageVersion Include="Moq" Version="4.20.0" />
     <PackageVersion Include="Octokit" Version="7.1.0" />
     <PackageVersion Include="Octokit.GraphQL" Version="0.2.1-beta" />
     <PackageVersion Include="Polly" Version="7.2.4" />
