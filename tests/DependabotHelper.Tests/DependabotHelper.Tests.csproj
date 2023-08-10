@@ -35,8 +35,6 @@
     <CoverletOutput>$([System.IO.Path]::Combine($(ArtifactsPath), 'coverage', 'coverage'))</CoverletOutput>
     <CoverletOutputFormat>$(CoverletOutputFormat),cobertura</CoverletOutputFormat>
     <Exclude>[*Tests]*,[xunit.*]*</Exclude>
-    <!-- HACK Workaround for https://github.com/dotnet/runtime/issues/89007 -->
-    <Exclude>$(Exclude),[*]Microsoft.Extensions.Configuration.Binder.SourceGeneration.*</Exclude>
     <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
     <Threshold>85</Threshold>
   </PropertyGroup>
