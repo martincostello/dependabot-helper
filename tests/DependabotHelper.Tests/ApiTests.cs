@@ -17,6 +17,8 @@ namespace MartinCostello.DependabotHelper;
 [Collection(AppCollection.Name)]
 public sealed class ApiTests : IntegrationTests<AppFixture>
 {
+    private static readonly JsonSerializerOptions SerializerOptions = CreateSerializerOptions();
+
     public ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         : base(fixture, outputHelper)
     {
@@ -594,13 +596,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -645,13 +646,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -688,13 +688,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -742,13 +741,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -788,13 +786,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -836,13 +833,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -881,13 +877,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -933,13 +928,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -976,13 +970,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1019,13 +1012,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1074,13 +1066,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1119,13 +1110,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1162,13 +1152,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1207,13 +1196,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1253,13 +1241,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1300,13 +1287,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1354,13 +1340,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             checkSuite.Id,
             hasCheckRun ? new[] { CreateCheckRun(status, conclusion) } : Array.Empty<CheckRunBuilder>());
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1416,13 +1401,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateCheckSuites(checkSuite));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1468,13 +1452,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateCheckSuites(CreateCheckSuite(status, conclusion)));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1526,13 +1509,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateCheckSuites(checkSuite));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1584,13 +1566,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateCheckSuites(checkSuite));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1665,13 +1646,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateCheckSuites(firstSuite, secondSuite));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1705,13 +1685,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateStatuses("pending", CreateStatus("pending")));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1758,13 +1737,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateStatuses(state, CreateStatus(state)));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1807,13 +1785,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateStatuses("success", CreateStatus("success")));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1858,13 +1835,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateStatuses("success", CreateStatus("success", "ci")));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1912,13 +1888,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
                 CreateStatus("success", "lint"),
                 CreateStatus("success", "ci")));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1963,13 +1938,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateStatuses("success", CreateStatus("success", "ci")));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -2024,13 +1998,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
                 CreateStatus(firstState),
                 CreateStatus(secondState)));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -2081,13 +2054,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
             pullRequest,
             CreateStatuses(state, CreateStatus(state)));
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -2132,13 +2104,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetStatuses(pullRequest);
         RegisterGetCheckSuites(pullRequest);
 
-        var options = CreateSerializerOptions();
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            options);
+            SerializerOptions);
 
         // Assert
         actual.ShouldNotBeNull();
