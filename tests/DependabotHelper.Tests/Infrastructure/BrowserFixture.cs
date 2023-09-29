@@ -6,24 +6,18 @@ using Microsoft.Playwright;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
 
-public class BrowserFixture
+public class BrowserFixture(
+    BrowserFixtureOptions options,
+    ITestOutputHelper outputHelper)
 {
     private const string VideosDirectory = "videos";
     private static readonly string AssetsDirectory = Path.Combine("..", "..", "..");
 
-    public BrowserFixture(
-        BrowserFixtureOptions options,
-        ITestOutputHelper outputHelper)
-    {
-        Options = options;
-        OutputHelper = outputHelper;
-    }
-
     internal static bool IsRunningInGitHubActions { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
 
-    private BrowserFixtureOptions Options { get; }
+    private BrowserFixtureOptions Options { get; } = options;
 
-    private ITestOutputHelper OutputHelper { get; }
+    private ITestOutputHelper OutputHelper { get; } = outputHelper;
 
     public async Task WithPageAsync(
         Func<IPage, Task> action,

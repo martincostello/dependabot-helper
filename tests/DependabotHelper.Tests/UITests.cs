@@ -12,13 +12,8 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 namespace MartinCostello.DependabotHelper;
 
 [Collection(HttpServerCollection.Name)]
-public class UITests : IntegrationTests<HttpServerFixture>
+public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) : IntegrationTests<HttpServerFixture>(fixture, outputHelper)
 {
-    public UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper)
-        : base(fixture, outputHelper)
-    {
-    }
-
     public static IEnumerable<object?[]> Browsers()
     {
         yield return new[] { BrowserType.Chromium, null };

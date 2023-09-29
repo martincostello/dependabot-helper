@@ -14,15 +14,12 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
+#pragma warning disable SA1010
+
 [Collection(AppCollection.Name)]
-public sealed class ApiTests : IntegrationTests<AppFixture>
+public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper) : IntegrationTests<AppFixture>(fixture, outputHelper)
 {
     private static readonly JsonSerializerOptions SerializerOptions = CreateSerializerOptions();
-
-    public ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
-        : base(fixture, outputHelper)
-    {
-    }
 
     [Fact]
     public async Task Can_Approve_Pull_Request()
@@ -306,7 +303,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
 
         actual.ShouldNotBeNull();
         actual.Numbers.ShouldNotBeNull();
-        actual.Numbers.ToArray().ShouldBe(new[] { pullRequest1.Number });
+        actual.Numbers.ToArray().ShouldBe([pullRequest1.Number]);
     }
 
     [Fact]
@@ -1338,7 +1335,7 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetCheckRuns(
             repository,
             checkSuite.Id,
-            hasCheckRun ? new[] { CreateCheckRun(status, conclusion) } : Array.Empty<CheckRunBuilder>());
+            hasCheckRun ? [CreateCheckRun(status, conclusion)] : []);
 
         using var client = await CreateAuthenticatedClientAsync();
 
@@ -1635,12 +1632,12 @@ public sealed class ApiTests : IntegrationTests<AppFixture>
         RegisterGetCheckRuns(
             repository,
             firstSuite.Id,
-            firstHasCheckRun ? new[] { CreateCheckRun(first[0]!) } : Array.Empty<CheckRunBuilder>());
+            firstHasCheckRun ? [CreateCheckRun(first[0]!)] : []);
 
         RegisterGetCheckRuns(
             repository,
             secondSuite.Id,
-            secondHasCheckRun ? new[] { CreateCheckRun(second[0]!) } : Array.Empty<CheckRunBuilder>());
+            secondHasCheckRun ? [CreateCheckRun(second[0]!)] : []);
 
         RegisterGetCheckSuites(
             pullRequest,

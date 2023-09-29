@@ -6,13 +6,8 @@ using System.Net.Mime;
 
 namespace MartinCostello.DependabotHelper;
 
-public class ResourceTests : EndToEndTest
+public class ResourceTests(AppFixture fixture, ITestOutputHelper outputHelper) : EndToEndTest(fixture, outputHelper)
 {
-    public ResourceTests(AppFixture fixture, ITestOutputHelper outputHelper)
-        : base(fixture, outputHelper)
-    {
-    }
-
     [SkippableTheory]
     [InlineData("/", MediaTypeNames.Text.Html)]
     [InlineData("/bad-request.html", MediaTypeNames.Text.Html)]
@@ -49,7 +44,7 @@ public class ResourceTests : EndToEndTest
     {
         // Arrange
         string[] expectedHeaders =
-        {
+        [
             "Content-Security-Policy",
             "Expect-CT",
             "Permissions-Policy",
@@ -59,7 +54,7 @@ public class ResourceTests : EndToEndTest
             "X-Frame-Options",
             "X-Request-Id",
             "X-XSS-Protection",
-        };
+        ];
 
         using var client = Fixture.CreateClient();
 
@@ -78,10 +73,10 @@ public class ResourceTests : EndToEndTest
     {
         // Arrange
         string[] expectedHeaders =
-        {
+        [
             "Server",
             "X-Powered-By",
-        };
+        ];
 
         using var client = Fixture.CreateClient();
 

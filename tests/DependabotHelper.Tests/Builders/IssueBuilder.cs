@@ -3,18 +3,13 @@
 
 namespace MartinCostello.DependabotHelper.Builders;
 
-public sealed class IssueBuilder : ResponseBuilder
+public sealed class IssueBuilder(RepositoryBuilder repository) : ResponseBuilder
 {
-    public IssueBuilder(RepositoryBuilder repository)
-    {
-        Repository = repository;
-    }
-
     public int Number { get; set; } = RandomNumber();
 
     public PullRequestBuilder? PullRequest { get; set; }
 
-    public RepositoryBuilder Repository { get; set; }
+    public RepositoryBuilder Repository { get; set; } = repository;
 
     public string Title { get; set; } = RandomString();
 

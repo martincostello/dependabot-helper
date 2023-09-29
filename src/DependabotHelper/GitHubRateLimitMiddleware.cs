@@ -5,15 +5,8 @@ using Octokit;
 
 namespace MartinCostello.DependabotHelper;
 
-public sealed class GitHubRateLimitMiddleware
+public sealed class GitHubRateLimitMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public GitHubRateLimitMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task InvokeAsync(
         HttpContext context,
         IGitHubClient client,
@@ -44,6 +37,6 @@ public sealed class GitHubRateLimitMiddleware
             return Task.CompletedTask;
         });
 
-        await _next(context);
+        await next(context);
     }
 }

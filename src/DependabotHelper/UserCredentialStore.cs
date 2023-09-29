@@ -5,18 +5,11 @@ using Octokit;
 
 namespace MartinCostello.DependabotHelper;
 
-public sealed class UserCredentialStore : ICredentialStore, Octokit.GraphQL.ICredentialStore
+public sealed class UserCredentialStore(IHttpContextAccessor accessor) : ICredentialStore, Octokit.GraphQL.ICredentialStore
 {
-    private readonly IHttpContextAccessor _accessor;
-
-    public UserCredentialStore(IHttpContextAccessor accessor)
-    {
-        _accessor = accessor;
-    }
-
     public async Task<Credentials> GetCredentials()
     {
-        string token = await _accessor.HttpContext!.GetAccessTokenAsync();
+        string token = await accessor.HttpContext!.GetAccessTokenAsync();
         return new Credentials(token);
     }
 

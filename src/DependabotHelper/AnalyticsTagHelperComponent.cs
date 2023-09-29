@@ -7,28 +7,18 @@ using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper;
 
-public sealed class AnalyticsTagHelperComponent : TagHelperComponent
+public sealed class AnalyticsTagHelperComponent(
+    IHttpContextAccessor accessor,
+    IOptionsSnapshot<SiteOptions> options) : TagHelperComponent
 {
-    public AnalyticsTagHelperComponent(
-        IHttpContextAccessor accessor,
-        IOptionsSnapshot<SiteOptions> options)
-    {
-        Accessor = accessor;
-        Options = options;
-    }
-
     public override int Order => int.MaxValue;
-
-    private IHttpContextAccessor Accessor { get; }
-
-    private IOptionsSnapshot<SiteOptions> Options { get; }
 
     public override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
     {
         if (string.Equals(context.TagName, "head", StringComparison.OrdinalIgnoreCase))
         {
-            string analyticsId = Options.Value.AnalyticsId;
-            string? nonce = Accessor.HttpContext?.GetCspNonce();
+            string analyticsId = options.Value.AnalyticsId;
+            string? nonce = accessor.HttpContext?.GetCspNonce();
 
             const string Indent = "    ";
 
