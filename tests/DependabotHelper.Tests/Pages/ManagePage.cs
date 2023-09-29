@@ -5,13 +5,8 @@ using Microsoft.Playwright;
 
 namespace MartinCostello.DependabotHelper.Pages;
 
-public class ManagePage : AppPage
+public class ManagePage(IPage page) : AppPage(page)
 {
-    public ManagePage(IPage page)
-        : base(page)
-    {
-    }
-
     public async Task<IReadOnlyList<OwnerItem>> GetOwnersAsync()
     {
         var elements = await Page.QuerySelectorAllAsync(Selectors.OwnerItem);

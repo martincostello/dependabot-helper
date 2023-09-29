@@ -6,14 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
 
-public sealed class RemoteAuthorizationEventsFilter : IPostConfigureOptions<GitHubAuthenticationOptions>
+public sealed class RemoteAuthorizationEventsFilter(IHttpClientFactory httpClientFactory) : IPostConfigureOptions<GitHubAuthenticationOptions>
 {
-    public RemoteAuthorizationEventsFilter(IHttpClientFactory httpClientFactory)
-    {
-        HttpClientFactory = httpClientFactory;
-    }
-
-    private IHttpClientFactory HttpClientFactory { get; }
+    private IHttpClientFactory HttpClientFactory { get; } = httpClientFactory;
 
     public void PostConfigure(string? name, GitHubAuthenticationOptions options)
     {

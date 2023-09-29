@@ -3,21 +3,15 @@
 
 namespace MartinCostello.DependabotHelper.Builders;
 
-public sealed class PullRequestReviewBuilder : ResponseBuilder
+public sealed class PullRequestReviewBuilder(UserBuilder user, string state) : ResponseBuilder
 {
-    public PullRequestReviewBuilder(UserBuilder user, string state)
-    {
-        State = state;
-        User = user;
-    }
-
     public string AuthorAssociation { get; set; } = "COLLABORATOR";
 
-    public string State { get; set; }
+    public string State { get; set; } = state;
 
     public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    public UserBuilder User { get; set; }
+    public UserBuilder User { get; set; } = user;
 
     public override object Build()
     {

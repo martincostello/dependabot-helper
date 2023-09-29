@@ -3,21 +3,15 @@
 
 namespace MartinCostello.DependabotHelper.Builders;
 
-public sealed class CheckRunBuilder : ResponseBuilder
+public sealed class CheckRunBuilder(string status, string? conclusion) : ResponseBuilder
 {
-    public CheckRunBuilder(string status, string? conclusion)
-    {
-        Status = status;
-        Conclusion = conclusion;
-    }
-
     public string ApplicationName { get; set; } = "GitHub Actions";
 
-    public string? Conclusion { get; set; }
+    public string? Conclusion { get; set; } = conclusion;
 
     public string Name { get; set; } = RandomString();
 
-    public string Status { get; set; }
+    public string Status { get; set; } = status;
 
     public override object Build()
     {

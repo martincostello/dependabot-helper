@@ -5,14 +5,9 @@ using Microsoft.Playwright;
 
 namespace MartinCostello.DependabotHelper.Pages;
 
-public abstract class AppPage
+public abstract class AppPage(IPage page)
 {
-    protected AppPage(IPage page)
-    {
-        Page = page;
-    }
-
-    protected IPage Page { get; }
+    protected IPage Page { get; } = page;
 
     public async Task<ConfigurePage> ConfigureAsync()
     {

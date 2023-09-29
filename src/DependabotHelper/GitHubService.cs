@@ -12,7 +12,12 @@ using IGraphQLConnection = Octokit.GraphQL.IConnection;
 
 namespace MartinCostello.DependabotHelper;
 
-public sealed class GitHubService
+public sealed class GitHubService(
+    IGitHubClient client,
+    IGraphQLConnection connection,
+    IMemoryCache cache,
+    IOptionsSnapshot<DependabotOptions> options,
+    ILogger<GitHubService> logger)
 {
     /// <summary>
     /// The cache period for data that is long-lived and/or stable.
@@ -24,25 +29,7 @@ public sealed class GitHubService
     /// </summary>
     private static readonly TimeSpan ShortCacheLifetime = TimeSpan.FromSeconds(30);
 
-    private readonly IMemoryCache _cache;
-    private readonly IGitHubClient _client;
-    private readonly IGraphQLConnection _connection;
-    private readonly ILogger _logger;
-    private readonly DependabotOptions _options;
-
-    public GitHubService(
-        IGitHubClient client,
-        IGraphQLConnection connection,
-        IMemoryCache cache,
-        IOptionsSnapshot<DependabotOptions> options,
-        ILogger<GitHubService> logger)
-    {
-        _client = client;
-        _connection = connection;
-        _cache = cache;
-        _logger = logger;
-        _options = options.Value;
-    }
+    private readonly DependabotOptions _options = options.Value;
 
     public static string ApplyMaximumAvatarSize(string url)
     {
@@ -56,7 +43,7 @@ public sealed class GitHubService
 
     public async Task ApprovePullRequestAsync(string owner, string name, int number)
     {
-        _logger.LogInformation(
+        logger.LogInformation(
             "Approving pull request {Owner}/{Repository}#{Number}.",
             owner,
             name,
@@ -67,9 +54,9 @@ public sealed class GitHubService
             Event = PullRequestReviewEvent.Approve,
         };
 
-        await _client.PullRequest.Review.Create(owner, name, number, review);
+        await client.PullRequest.Review.Create(owner, name, number, review);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Pull request {Owner}/{Repository}#{Number} approved.",
             owner,
             name,
@@ -81,16 +68,16 @@ public sealed class GitHubService
         string id = user.GetUserId();
         string login = user.GetUserLogin();
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Fetching organizations for user {Login}.",
             login);
 
         var organizations = await CacheGetOrCreateAsync(user, $"orgs:{id}", async () =>
         {
-            return await _client.Organization.GetAllForCurrent();
+            return await client.Organization.GetAllForCurrent();
         });
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Found {Count} organizations user {Login} has access to.",
             organizations.Count,
             login);
@@ -153,7 +140,7 @@ public sealed class GitHubService
 
     public async Task<IList<Models.Repository>> GetRepositoriesAsync(ClaimsPrincipal user, string owner)
     {
-        _logger.LogInformation("Fetching repositories for owner {Owner}.", owner);
+        logger.LogInformation("Fetching repositories for owner {Owner}.", owner);
 
         var repositories = await CacheGetOrCreateAsync(user, $"repos:{owner}", async () =>
         {
@@ -163,29 +150,29 @@ public sealed class GitHubService
 
             if (ownerUser.Type == AccountType.Organization)
             {
-                repos = await _client.Repository.GetAllForOrg(owner);
+                repos = await client.Repository.GetAllForOrg(owner);
             }
             else
             {
-                var current = await _client.User.Current();
+                var current = await client.User.Current();
 
                 if (current.Id == ownerUser.Id)
                 {
-                    repos = await _client.Repository.GetAllForCurrent(new RepositoryRequest()
+                    repos = await client.Repository.GetAllForCurrent(new RepositoryRequest()
                     {
                         Type = RepositoryType.Owner,
                     });
                 }
                 else
                 {
-                    repos = await _client.Repository.GetAllForUser(owner);
+                    repos = await client.Repository.GetAllForUser(owner);
                 }
             }
 
             return repos;
         });
 
-        _logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
+        logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
         return repositories
             .Where((p) => !p.Archived)
@@ -239,16 +226,16 @@ public sealed class GitHubService
 
                 try
                 {
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Merging pull request {Owner}/{Repository}#{Number}.",
                         owner,
                         name,
                         pr.Number);
 
                     await policy.ExecuteAsync(
-                        () => _client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
+                        () => client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
 
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Pull request {Owner}/{Repository}#{Number} merged.",
                         owner,
                         name,
@@ -258,7 +245,7 @@ public sealed class GitHubService
                 }
                 catch (PullRequestNotMergeableException ex)
                 {
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         ex,
                         "Could not merge pull request {Owner}/{Repository}#{Number} as it is not mergeable.",
                         pr.RepositoryOwner,
@@ -269,7 +256,7 @@ public sealed class GitHubService
                 }
                 catch (ApiException ex)
                 {
-                    _logger.LogError(
+                    logger.LogError(
                         ex,
                         "Could not merge pull request {Owner}/{Repository}#{Number} due to an error.",
                         pr.RepositoryOwner,
@@ -289,7 +276,7 @@ public sealed class GitHubService
 
     public async Task VerifyCredentialsAsync()
     {
-        _ = await _client.User.Current();
+        _ = await client.User.Current();
     }
 
     private static bool IsValidMergeMethod(PullRequestMergeMethod method, Octokit.Repository repository)
@@ -327,9 +314,9 @@ public sealed class GitHubService
 
         try
         {
-            await _connection.Run(query);
+            await connection.Run(query);
 
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Enabled auto-merge for pull request {Owner}/{Repository}#{Number}.",
                 pullRequest.RepositoryOwner,
                 pullRequest.RepositoryName,
@@ -337,7 +324,7 @@ public sealed class GitHubService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 ex,
                 "Failed to enable auto-merge for pull request {Owner}/{Repository}#{Number} with node ID {NodeId}.",
                 pullRequest.RepositoryOwner,
@@ -366,17 +353,17 @@ public sealed class GitHubService
 
             foreach (var issue in openPullRequests)
             {
-                _logger.LogInformation(
+                logger.LogInformation(
                     "Fetching pull request {Number} from repository {Owner}/{Name}.",
                     issue.Number,
                     owner,
                     name);
 
-                var pr = await _client.PullRequest.Get(owner, name, issue.Number);
+                var pr = await client.PullRequest.Get(owner, name, issue.Number);
 
                 if (pr.Draft)
                 {
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Ignoring pull request {Number} in repository {Owner}/{Name} because it is in draft.",
                         issue.Number,
                         owner,
@@ -387,7 +374,7 @@ public sealed class GitHubService
 
                 if (!fetchStatuses && pr.Mergeable == false)
                 {
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Ignoring pull request {Number} in repository {Owner}/{Name} because it cannot be merged.",
                         issue.Number,
                         owner,
@@ -402,7 +389,7 @@ public sealed class GitHubService
 
                 if (fetchStatuses)
                 {
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Fetching approvals and statuses for pull request {Number} in repository {Owner}/{Name}.",
                         issue.Number,
                         owner,
@@ -411,7 +398,7 @@ public sealed class GitHubService
                     (canApprove, isApproved) = await IsApprovedAsync(user, owner, name, issue.Number, pr.Base.Ref);
                     status = await GetChecksStatusAsync(user, owner, name, pr.Head.Sha, pr.Base.Ref);
 
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Fetched approvals and statuses for pull request {Number} in repository {Owner}/{Name}. Approved: {Approved}; Status: {Status}.",
                         issue.Number,
                         owner,
@@ -448,16 +435,16 @@ public sealed class GitHubService
         int number,
         string targetBranch)
     {
-        _logger.LogDebug(
+        logger.LogDebug(
             "Fetching approvals for pull request {Number} in repository {Owner}/{Name}.",
             number,
             owner,
             name);
 
         // Do not cache reviews so that the UI updates correctly on merging
-        var approved = await _client.PullRequest.Review.GetAll(owner, name, number);
+        var approved = await client.PullRequest.Review.GetAll(owner, name, number);
 
-        _logger.LogDebug(
+        logger.LogDebug(
             "Found {Count} approvals for pull request {Number} in repository {Owner}/{Name}.",
             approved.Count,
             number,
@@ -470,7 +457,7 @@ public sealed class GitHubService
         }
 
         // Only use the most recent review for each approver.
-        // Ignore reviews from people unassociated with the repository.
+        // Ignore reviews from people not associated with the repository.
         var reviewsPerUsers = approved
             .OrderByDescending((p) => p.SubmittedAt)
             .DistinctBy((p) => p.User.Login)
@@ -514,7 +501,7 @@ public sealed class GitHubService
     {
         var requiredStatuses = await GetRequiredStatusChecksAsync(user, owner, name, branch);
 
-        _logger.LogDebug(
+        logger.LogDebug(
             "Found {Count} required status checks for the {Branch} of repository {Owner}/{Name}.",
             requiredStatuses.Count,
             branch,
@@ -523,7 +510,7 @@ public sealed class GitHubService
 
         ChecksStatus? status = null;
 
-        _logger.LogDebug(
+        logger.LogDebug(
             "Fetching combined status for commit {Reference} in repository {Owner}/{Name}.",
             commitSha,
             owner,
@@ -531,10 +518,10 @@ public sealed class GitHubService
 
         var combinedCommitStatus = await CacheGetOrCreateAsync(user, $"status:{owner}:{name}:{commitSha}", ShortCacheLifetime, async () =>
         {
-            return await _client.Repository.Status.GetCombined(owner, name, commitSha);
+            return await client.Repository.Status.GetCombined(owner, name, commitSha);
         });
 
-        _logger.LogDebug(
+        logger.LogDebug(
             "Found {Count} statuses for commit {Reference} in repository {Owner}/{Name}.",
             combinedCommitStatus.TotalCount,
             commitSha,
@@ -549,7 +536,7 @@ public sealed class GitHubService
             {
                 successfulStatuses.Add(commitStatus.Context);
 
-                _logger.LogTrace(
+                logger.LogTrace(
                     "Commit status: Context: {Context}; State: {State}",
                     commitStatus.Context,
                     commitStatus.State);
@@ -563,7 +550,7 @@ public sealed class GitHubService
             };
         }
 
-        _logger.LogDebug(
+        logger.LogDebug(
             "Fetching check suites for commit {Reference} in repository {Owner}/{Name}.",
             commitSha,
             owner,
@@ -574,9 +561,9 @@ public sealed class GitHubService
         // No need to query the check suites if we already know the status is failed
         if (status != ChecksStatus.Error)
         {
-            checkSuitesResponse = await _client.Check.Suite.GetAllForReference(owner, name, commitSha);
+            checkSuitesResponse = await client.Check.Suite.GetAllForReference(owner, name, commitSha);
 
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Found {Count} check suites for commit {Reference} in repository {Owner}/{Name}.",
                 checkSuitesResponse.TotalCount,
                 commitSha,
@@ -596,7 +583,7 @@ public sealed class GitHubService
 
             async Task<CheckRunsResponse> GetCheckRunsAsync(long checkSuiteId)
             {
-                return await _client.Check.Run.GetAllForCheckSuite(owner, name, checkSuiteId, new CheckRunRequest()
+                return await client.Check.Run.GetAllForCheckSuite(owner, name, checkSuiteId, new CheckRunRequest()
                 {
                     Filter = CheckRunCompletedAtFilter.Latest,
                 });
@@ -697,7 +684,7 @@ public sealed class GitHubService
     {
         return await CacheGetOrCreateAsync(user, $"repo:{owner}/{name}", async () =>
         {
-            return await _client.Repository.Get(owner, name);
+            return await client.Repository.Get(owner, name);
         });
     }
 
@@ -705,7 +692,7 @@ public sealed class GitHubService
     {
         return await CacheGetOrCreateAsync(user, $"user:{login}", LongCacheLifetime, async () =>
         {
-            return await _client.User.Get(login);
+            return await client.User.Get(login);
         });
     }
 
@@ -715,7 +702,7 @@ public sealed class GitHubService
         {
             try
             {
-                _ = await _client.Repository.Content.GetRawContent(owner, name, ".github/dependabot.yml");
+                _ = await client.Repository.Content.GetRawContent(owner, name, ".github/dependabot.yml");
                 return true;
             }
             catch (NotFoundException)
@@ -735,7 +722,7 @@ public sealed class GitHubService
         {
             try
             {
-                return await _client.Repository.Branch.GetBranchProtection(owner, name, branch);
+                return await client.Repository.Branch.GetBranchProtection(owner, name, branch);
             }
             catch (NotFoundException)
             {
@@ -769,7 +756,7 @@ public sealed class GitHubService
             PageSize = _options.PageSize,
         };
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Finding open issues created by {User} in repository {Owner}/{Name}.",
             creator,
             owner,
@@ -779,14 +766,14 @@ public sealed class GitHubService
 
         var issues = await CacheGetOrCreateAsync(user, $"issues:{owner}:{name}:{creator}", cacheLifetime, async () =>
         {
-            return await _client.Issue.GetAllForRepository(owner, name, request, options);
+            return await client.Issue.GetAllForRepository(owner, name, request, options);
         });
 
         var openPullRequests = issues
             .Where((p) => p.PullRequest is not null)
             .ToList();
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Found {Count} open pull requests created by {User} in repository {Owner}/{Name}.",
             openPullRequests.Count,
             creator,
@@ -823,7 +810,7 @@ public sealed class GitHubService
         }
 
         string prefix = user.GetUserId();
-        var result = await _cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
+        var result = await cache.GetOrCreateAsync($"{prefix}:{key}", async (entry) =>
         {
             entry.AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
             return await factory();

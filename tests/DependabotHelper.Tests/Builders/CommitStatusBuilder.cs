@@ -3,16 +3,11 @@
 
 namespace MartinCostello.DependabotHelper.Builders;
 
-public sealed class CommitStatusBuilder : ResponseBuilder
+public sealed class CommitStatusBuilder(string state) : ResponseBuilder
 {
-    public CommitStatusBuilder(string state)
-    {
-        State = state;
-    }
-
     public string Context { get; set; } = RandomString();
 
-    public string State { get; set; }
+    public string State { get; set; } = state;
 
     public override object Build()
     {

@@ -3,19 +3,13 @@
 
 namespace MartinCostello.DependabotHelper.Builders;
 
-public sealed class CheckSuiteBuilder : ResponseBuilder
+public sealed class CheckSuiteBuilder(string status, string? conclusion) : ResponseBuilder
 {
-    public CheckSuiteBuilder(string status, string? conclusion)
-    {
-        Status = status;
-        Conclusion = conclusion;
-    }
-
     public string ApplicationName { get; set; } = "GitHub Actions";
 
-    public string? Conclusion { get; set; }
+    public string? Conclusion { get; set; } = conclusion;
 
-    public string Status { get; set; }
+    public string Status { get; set; } = status;
 
     public override object Build()
     {

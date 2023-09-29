@@ -3,14 +3,9 @@
 
 namespace MartinCostello.DependabotHelper.Builders;
 
-public sealed class CombinedCommitStatusBuilder : ResponseBuilder
+public sealed class CombinedCommitStatusBuilder(string state) : ResponseBuilder
 {
-    public CombinedCommitStatusBuilder(string state)
-    {
-        State = state;
-    }
-
-    public string State { get; set; }
+    public string State { get; set; } = state;
 
     public IList<CommitStatusBuilder> Statuses { get; } = new List<CommitStatusBuilder>();
 
