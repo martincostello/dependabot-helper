@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" />
+    <PackageReference Include="Amazon.Lambda.RuntimeSupport" />
     <PackageReference Include="AspNet.Security.OAuth.GitHub" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
     <PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" />
