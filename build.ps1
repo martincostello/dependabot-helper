@@ -73,7 +73,7 @@ if ($installDotNetSdk -eq $true) {
 function DotNetTest {
     param([string]$Project)
 
-    $additionalArgs = @()
+    $additionalArgs = @("--tl")
 
     if (![string]::IsNullOrEmpty($TestFilter)) {
         $additionalArgs += "--filter"
@@ -97,7 +97,7 @@ function DotNetTest {
 function DotNetPublish {
     param([string]$Project)
 
-    $additionalArgs = @()
+    $additionalArgs = @("--tl")
 
     if (![string]::IsNullOrEmpty($Runtime)) {
         $additionalArgs += "--self-contained"
@@ -132,4 +132,3 @@ if ($SkipTests -eq $false) {
         DotNetTest $project
     }
 }
-
