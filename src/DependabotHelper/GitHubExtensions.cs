@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Extensions.Options;
 using Octokit;
 using Octokit.Internal;
 
@@ -15,7 +17,10 @@ public static class GitHubExtensions
 
     public static IServiceCollection AddGitHubClient(this IServiceCollection services)
     {
-        services.AddHttpClient();
+        services.AddHttpClient()
+                .AddHttpClient(Options.DefaultName)
+                .AddStandardResilienceHandler();
+
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
 
