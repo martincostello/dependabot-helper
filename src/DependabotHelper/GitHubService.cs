@@ -218,11 +218,13 @@ public sealed class GitHubService(
                 MergeMethod = mergeMethod,
             };
 
-            var policy = CreateMergePolicy();
+            var policy = CreateResiliencePipeline();
 
             foreach (var pr in mergeCandidates.OrderBy((p) => p.Number))
             {
                 bool enableAutoMerge = false;
+                var pool = ResilienceContextPool.Shared;
+                var context = pool.Get();
 
                 try
                 {
@@ -233,7 +235,9 @@ public sealed class GitHubService(
                         pr.Number);
 
                     await policy.ExecuteAsync(
-                        () => client.PullRequest.Merge(owner, name, pr.Number, mergeRequest));
+                        static async (_, state) => await state.client.PullRequest.Merge(state.owner, state.name, state.Number, state.mergeRequest),
+                        context,
+                        (client, owner, name, pr.Number, mergeRequest));
 
                     logger.LogInformation(
                         "Pull request {Owner}/{Repository}#{Number} merged.",
@@ -263,6 +267,10 @@ public sealed class GitHubService(
                         pr.RepositoryName,
                         pr.Number);
                 }
+                finally
+                {
+                    pool.Return(context);
+                }
 
                 if (enableAutoMerge)
                 {
@@ -290,11 +298,20 @@ public sealed class GitHubService(
         };
     }
 
-    private Polly.Retry.AsyncRetryPolicy CreateMergePolicy()
+    private ResiliencePipeline CreateResiliencePipeline()
     {
-        return Policy
-            .Handle<PullRequestNotMergeableException>()
-            .WaitAndRetryAsync(_options.MergeRetryWaits);
+        return new ResiliencePipelineBuilder()
+            .AddRetry(new()
+            {
+                MaxRetryAttempts = _options.MergeRetryWaits.Count,
+                ShouldHandle = new PredicateBuilder().Handle<PullRequestNotMergeableException>(),
+                DelayGenerator = (args) =>
+                {
+                    TimeSpan? delay = _options.MergeRetryWaits[args.AttemptNumber];
+                    return ValueTask.FromResult(delay);
+                },
+            })
+            .Build();
     }
 
     private async Task TryEnableAutoMergeAsync(
