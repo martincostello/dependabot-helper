@@ -218,13 +218,11 @@ public sealed class GitHubService(
                 MergeMethod = mergeMethod,
             };
 
-            var policy = CreateResiliencePipeline();
+            var pipeline = CreateResiliencePipeline();
 
             foreach (var pr in mergeCandidates.OrderBy((p) => p.Number))
             {
                 bool enableAutoMerge = false;
-                var pool = ResilienceContextPool.Shared;
-                var context = pool.Get();
 
                 try
                 {
@@ -234,10 +232,10 @@ public sealed class GitHubService(
                         name,
                         pr.Number);
 
-                    await policy.ExecuteAsync(
-                        static async (_, state) => await state.client.PullRequest.Merge(state.owner, state.name, state.Number, state.mergeRequest),
-                        context,
-                        (client, owner, name, pr.Number, mergeRequest));
+                    await pipeline.ExecuteAsync(
+                        static async (state, _) => await state.client.PullRequest.Merge(state.owner, state.name, state.Number, state.mergeRequest),
+                        (client, owner, name, pr.Number, mergeRequest),
+                        CancellationToken.None);
 
                     logger.LogInformation(
                         "Pull request {Owner}/{Repository}#{Number} merged.",
@@ -266,10 +264,6 @@ public sealed class GitHubService(
                         pr.RepositoryOwner,
                         pr.RepositoryName,
                         pr.Number);
-                }
-                finally
-                {
-                    pool.Return(context);
                 }
 
                 if (enableAutoMerge)
