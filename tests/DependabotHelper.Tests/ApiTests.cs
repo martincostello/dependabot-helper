@@ -2079,13 +2079,13 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
     [InlineData("has_hooks", false)]
     [InlineData("unknown", false)]
     [InlineData("unstable", false)]
-    public async Task Can_Get_If_Pull_Request_Has_Conflicts(string mergeableState, bool expected)
+    public async Task Can_Get_If_Pull_Request_Has_Conflicts(string? mergeableState, bool expected)
     {
         // Arrange
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        pullRequest.MergeableState = mergeableState;
+        pullRequest.MergeableState = mergeableState!;
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
