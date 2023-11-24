@@ -28,7 +28,9 @@ public static class GitHubEndpoints
         {
             try
             {
-                return Results.Json(await service.GetRepositoriesAsync(user, owner));
+                return Results.Json(
+                    await service.GetRepositoriesAsync(user, owner),
+                    ApplicationJsonSerializerContext.Default.IListRepository);
             }
             catch (Exception ex)
             {
@@ -44,7 +46,9 @@ public static class GitHubEndpoints
         {
             try
             {
-                return Results.Json(await service.GetPullRequestsAsync(user, owner, name));
+                return Results.Json(
+                    await service.GetPullRequestsAsync(user, owner, name),
+                    ApplicationJsonSerializerContext.Default.RepositoryPullRequests);
             }
             catch (Exception ex)
             {
@@ -68,7 +72,9 @@ public static class GitHubEndpoints
 
             try
             {
-                return Results.Json(await service.MergePullRequestsAsync(user, owner, name, mergeMethod));
+                return Results.Json(
+                    await service.MergePullRequestsAsync(user, owner, name, mergeMethod),
+                    ApplicationJsonSerializerContext.Default.MergePullRequestsResponse);
             }
             catch (Exception ex)
             {

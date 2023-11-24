@@ -28,8 +28,8 @@ builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection("Site")
 
 builder.Services.ConfigureHttpJsonOptions((options) =>
 {
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, ApplicationJsonSerializerContext.Default);
     options.SerializerOptions.WriteIndented = true;
-    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
 builder.Services.Configure<StaticFileOptions>((options) =>

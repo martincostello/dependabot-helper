@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using Newtonsoft.Json;
+
 namespace MartinCostello.DependabotHelper.Models;
 
 public sealed class RepositoryPullRequests : Repository
@@ -11,11 +13,15 @@ public sealed class RepositoryPullRequests : Repository
 
     public IList<PullRequest> All { get; set; } = new List<PullRequest>();
 
+    [JsonIgnore]
     public IReadOnlyList<PullRequest> Error => All.Where((p) => p.Status == ChecksStatus.Error).ToList();
 
+    [JsonIgnore]
     public IReadOnlyList<PullRequest> Pending => All.Where((p) => p.Status == ChecksStatus.Pending).ToList();
 
+    [JsonIgnore]
     public IReadOnlyList<PullRequest> Success => All.Where((p) => p.Status == ChecksStatus.Success).ToList();
 
+    [JsonIgnore]
     public IReadOnlyList<PullRequest> Approved => All.Where((p) => p.IsApproved).ToList();
 }
