@@ -14,8 +14,6 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
-#pragma warning disable SA1010
-
 [Collection(AppCollection.Name)]
 public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper) : IntegrationTests<AppFixture>(fixture, outputHelper)
 {
