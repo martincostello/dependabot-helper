@@ -20,7 +20,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.40.0" />
     <PackageVersion Include="Microsoft.TypeScript.MSBuild" Version="5.3.3" />
-    <PackageVersion Include="Octokit" Version="8.0.0" />
+    <PackageVersion Include="Octokit" Version="9.1.0" />
     <PackageVersion Include="Octokit.GraphQL" Version="0.2.1-beta" />
     <PackageVersion Include="Polly.Core" Version="$(PollyVersion)" />
     <PackageVersion Include="Polly.Extensions" Version="$(PollyVersion)" />
