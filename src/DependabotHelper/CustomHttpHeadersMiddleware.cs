@@ -12,26 +12,23 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
 {
     private static readonly CompositeFormat ContentSecurityPolicyTemplate = CompositeFormat.Parse(string.Join(
         ';',
-        new[]
-        {
-            "default-src 'self'",
-            "script-src 'self' 'nonce-{0}' cdnjs.cloudflare.com",
-            "script-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com {2}",
-            "style-src 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
-            "style-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
-            "img-src 'self' data: avatars.githubusercontent.com {1} {4} {5}",
-            "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
-            "connect-src 'self' {3}",
-            "media-src 'none'",
-            "object-src 'none'",
-            "child-src 'self'",
-            "frame-ancestors 'none'",
-            "form-action 'self' {1}",
-            "block-all-mixed-content",
-            "base-uri 'self'",
-            "manifest-src 'self'",
-            "upgrade-insecure-requests",
-        }));
+        "default-src 'self'",
+        "script-src 'self' 'nonce-{0}' cdnjs.cloudflare.com",
+        "script-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com {2}",
+        "style-src 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
+        "style-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
+        "img-src 'self' data: avatars.githubusercontent.com {1} {4} {5}",
+        "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
+        "connect-src 'self' {3}",
+        "media-src 'none'",
+        "object-src 'none'",
+        "child-src 'self'",
+        "frame-ancestors 'none'",
+        "form-action 'self' {1}",
+        "block-all-mixed-content",
+        "base-uri 'self'",
+        "manifest-src 'self'",
+        "upgrade-insecure-requests"));
 
     public Task Invoke(
         HttpContext context,
