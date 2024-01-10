@@ -1,24 +1,17 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { GitHubClient, StorageClient } from '../Client/index';
-import { RepositoryPullRequests } from '../Models/index';
 import { Elements } from './Elements';
-import { ErrorsElement } from './ErrorsElement';
 import { OwnerElement } from './OwnerElement';
 import { Page } from './Page';
 import { PullRequestsElement } from './PullRequestsElement';
-import { RateLimitsElement } from './RateLimitsElement';
 import { RepositoryElement } from './RepositoryElement';
+import { RepositoryPullRequests } from '../Models/index';
 
 export class Manage extends Page {
     private readonly ownerTemplateClass = 'owner-template';
 
     private modal: PullRequestsElement;
-
-    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement, errors: ErrorsElement) {
-        super(gitHub, storage, rateLimits, errors);
-    }
 
     async initialize(): Promise<void> {
         const repoElements: RepositoryElement[] = [];
