@@ -33,7 +33,7 @@ export class Analytics {
             for (const node of mutation.addedNodes) {
                 const element = node as Element;
 
-                if (!element || !element.querySelectorAll) {
+                if (!element?.querySelectorAll) {
                     continue;
                 }
 

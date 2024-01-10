@@ -169,7 +169,7 @@
             var rateLimits = GitHubClient.GetLastApiInfo()?.RateLimit;
             bool hasRateLimit = rateLimits?.Limit is not null;
         }
-        @if (rateLimits?.Remaining is { } value && value < 1)
+        @if (hasRateLimit && rateLimits?.Remaining is { } value && value < 1)
         {
             <div class="alert alert-warning" role="alert">
               <p>

@@ -1,12 +1,9 @@
 // Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-import { GitHubClient, StorageClient } from '../Client/index';
-import { Repository } from '../Models/index';
 import { Elements } from './Elements';
-import { ErrorsElement } from './ErrorsElement';
 import { Page } from './Page';
-import { RateLimitsElement } from './RateLimitsElement';
+import { Repository } from '../Models/index';
 
 export class Configuration extends Page {
     private readonly checkTemplateClass = 'check-template';
@@ -17,10 +14,6 @@ export class Configuration extends Page {
     private modal: Element;
     private save: Element;
     private template: Element;
-
-    constructor(gitHub: GitHubClient, storage: StorageClient, rateLimits: RateLimitsElement, errors: ErrorsElement) {
-        super(gitHub, storage, rateLimits, errors);
-    }
 
     initialize() {
         this.modal = Page.searchModal();

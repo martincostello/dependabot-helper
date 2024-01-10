@@ -475,9 +475,9 @@ public sealed class GitHubService(
             .Where((p) => p.AuthorAssociation.Value.CanReview() || p.User.Type == AccountType.Bot)
             .ToList();
 
-        bool canApprove = !reviewsPerUsers.Any((p) => p.User.Login == user.GetUserLogin());
+        bool canApprove = !reviewsPerUsers.Exists((p) => p.User.Login == user.GetUserLogin());
 
-        if (reviewsPerUsers.Any((p) => p.State == PullRequestReviewState.ChangesRequested))
+        if (reviewsPerUsers.Exists((p) => p.State == PullRequestReviewState.ChangesRequested))
         {
             return (canApprove, false);
         }
@@ -648,7 +648,7 @@ public sealed class GitHubService(
                    suite.Conclusion == CheckConclusion.Skipped ||
                    suite.Conclusion == CheckConclusion.Success;
 
-            if (applicableSuites.All(IsSuccess))
+            if (applicableSuites.TrueForAll(IsSuccess))
             {
                 // Success can only be reported if there are no existing
                 // commit statuses or there are no pending commit statuses.
@@ -659,11 +659,11 @@ public sealed class GitHubService(
                     _ => ChecksStatus.Success,
                 };
             }
-            else if (applicableSuites.Any(IsError))
+            else if (applicableSuites.Exists(IsError))
             {
                 status = ChecksStatus.Error;
             }
-            else if (applicableSuites.Any(IsPending))
+            else if (applicableSuites.Exists(IsPending))
             {
                 status = ChecksStatus.Pending;
             }
@@ -761,7 +761,7 @@ public sealed class GitHubService(
             request.Labels.Add(label);
         }
 
-        var options = new ApiOptions()
+        var requestOptions = new ApiOptions()
         {
             PageCount = _options.PageCount,
             PageSize = _options.PageSize,
@@ -777,7 +777,7 @@ public sealed class GitHubService(
 
         var issues = await CacheGetOrCreateAsync(user, $"issues:{owner}:{name}:{creator}", cacheLifetime, async () =>
         {
-            return await client.Issue.GetAllForRepository(owner, name, request, options);
+            return await client.Issue.GetAllForRepository(owner, name, request, requestOptions);
         });
 
         var openPullRequests = issues
