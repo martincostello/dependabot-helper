@@ -12,6 +12,7 @@ builder.Host.ConfigureApplication();
 
 builder.Services.AddGitHubAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddGitHubClient();
+builder.Services.AddHsts((options) => options.MaxAge = TimeSpan.FromDays(180));
 builder.Services.AddRazorPages();
 builder.Services.AddResponseCaching();
 
