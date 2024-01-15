@@ -2,18 +2,23 @@
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Security.Claims;
+using GitHub;
+using GitHub.Models;
+using GitHub.Repos.Item.Item.Pulls.Item.Merge;
+using GitHub.Repos.Item.Item.Pulls.Item.Reviews;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Octokit;
 using Octokit.GraphQL;
 using Polly;
+using static GitHub.Users.Item.WithUsernameItemRequestBuilder;
 using IGraphQLConnection = Octokit.GraphQL.IConnection;
 
 namespace MartinCostello.DependabotHelper;
 
 public sealed class GitHubService(
-    IGitHubClient client,
+    GitHubClient client,
     IGraphQLConnection connection,
     IMemoryCache cache,
     IOptionsSnapshot<DependabotOptions> options,
@@ -41,7 +46,7 @@ public sealed class GitHubService(
         return url;
     }
 
-    public async Task ApprovePullRequestAsync(string owner, string name, int number)
+    public async Task ApprovePullRequestAsync(string owner, string name, int number, CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "Approving pull request {Owner}/{Repository}#{Number}.",
@@ -49,12 +54,12 @@ public sealed class GitHubService(
             name,
             number);
 
-        var review = new PullRequestReviewCreate()
+        var review = new ReviewsPostRequestBody()
         {
-            Event = PullRequestReviewEvent.Approve,
+            Event = ReviewsPostRequestBody_event.APPROVE,
         };
 
-        await client.PullRequest.Review.Create(owner, name, number, review);
+        await client.Repos[owner][name].Pulls[number].Reviews.PostAsync(review, cancellationToken: cancellationToken);
 
         logger.LogInformation(
             "Pull request {Owner}/{Repository}#{Number} approved.",
@@ -150,7 +155,7 @@ public sealed class GitHubService(
 
             if (ownerUser.Type == AccountType.Organization)
             {
-                repos = await client.Repository.GetAllForOrg(owner);
+                repos = await client.Repositories.GetAllForOrg(owner);
             }
             else
             {
@@ -180,7 +185,7 @@ public sealed class GitHubService(
             .Where((p) => _options.IncludePrivate || !p.IsPrivate())
             .Select((p) =>
             {
-                return new Models.Repository()
+                return new Repository()
                 {
                     HtmlUrl = p.HtmlUrl,
                     Id = p.Id,
@@ -213,7 +218,7 @@ public sealed class GitHubService(
 
             var mergeMethod = SelectMergeMethod(repository, userMergeMethod);
 
-            var mergeRequest = new MergePullRequest()
+            var mergeRequest = new MergePutRequestBody()
             {
                 MergeMethod = mergeMethod,
             };
@@ -233,7 +238,8 @@ public sealed class GitHubService(
                         pr.Number);
 
                     await pipeline.ExecuteAsync(
-                        static async (state, _) => await state.client.PullRequest.Merge(state.owner, state.name, state.Number, state.mergeRequest),
+                        static async (state, token) =>
+                            await state.client.Repos[state.owner][state.name].Pulls[state.Number].Merge.PutAsync(state.mergeRequest, cancellationToken: token),
                         (client, owner, name, pr.Number, mergeRequest),
                         CancellationToken.None);
 
@@ -281,13 +287,13 @@ public sealed class GitHubService(
         _ = await client.User.Current();
     }
 
-    private static bool IsValidMergeMethod(PullRequestMergeMethod method, Octokit.Repository repository)
+    private static bool IsValidMergeMethod(MergePutRequestBody_merge_method method, FullRepository repository)
     {
         return method switch
         {
-            PullRequestMergeMethod.Merge when repository.AllowMergeCommit is not false => true,
-            PullRequestMergeMethod.Rebase when repository.AllowRebaseMerge is not false => true,
-            PullRequestMergeMethod.Squash when repository.AllowSquashMerge is not false => true,
+            MergePutRequestBody_merge_method.Merge when repository.AllowMergeCommit is not false => true,
+            MergePutRequestBody_merge_method.Rebase when repository.AllowRebaseMerge is not false => true,
+            MergePutRequestBody_merge_method.Squash when repository.AllowSquashMerge is not false => true,
             _ => false,
         };
     }
@@ -310,7 +316,7 @@ public sealed class GitHubService(
 
     private async Task TryEnableAutoMergeAsync(
         Models.PullRequest pullRequest,
-        PullRequestMergeMethod mergeMethod)
+        MergePutRequestBody_merge_method mergeMethod)
     {
         var input = new Octokit.GraphQL.Model.EnablePullRequestAutoMergeInput()
         {
@@ -349,7 +355,8 @@ public sealed class GitHubService(
         ClaimsPrincipal user,
         string owner,
         string name,
-        bool fetchStatuses)
+        bool fetchStatuses,
+        CancellationToken cancellationToken)
     {
         var result = new List<Models.PullRequest>();
 
@@ -370,9 +377,9 @@ public sealed class GitHubService(
                     owner,
                     name);
 
-                var pr = await client.PullRequest.Get(owner, name, issue.Number);
+                var pr = await client.Repos[owner][name].Pulls[issue.Number!.Value].GetAsync(cancellationToken: cancellationToken);
 
-                if (pr.Draft)
+                if (pr!.Draft is true)
                 {
                     logger.LogInformation(
                         "Ignoring pull request {Number} in repository {Owner}/{Name} because it is in draft.",
@@ -406,8 +413,8 @@ public sealed class GitHubService(
                         owner,
                         name);
 
-                    (canApprove, isApproved) = await IsApprovedAsync(user, owner, name, issue.Number, pr.Base.Ref);
-                    status = await GetChecksStatusAsync(user, owner, name, pr.Head.Sha, pr.Base.Ref);
+                    (canApprove, isApproved) = await IsApprovedAsync(user, owner, name, issue.Number!.Value, pr.Base!.Ref!, cancellationToken);
+                    status = await GetChecksStatusAsync(user, owner, name, pr.Head!.Sha!, pr.Base.Ref!);
 
                     logger.LogInformation(
                         "Fetched approvals and statuses for pull request {Number} in repository {Owner}/{Name}. Approved: {Approved}; Status: {Status}.",
@@ -421,15 +428,15 @@ public sealed class GitHubService(
                 result.Add(new()
                 {
                     CanApprove = canApprove,
-                    HasConflicts = pr.MergeableState?.Value is MergeableState.Dirty,
-                    HtmlUrl = pr.HtmlUrl,
+                    HasConflicts = pr.MergeableState is "dirty",
+                    HtmlUrl = pr.HtmlUrl!,
                     IsApproved = isApproved,
-                    NodeId = pr.NodeId,
-                    Number = pr.Number,
+                    NodeId = pr.NodeId!,
+                    Number = pr.Number!.Value,
                     RepositoryName = name,
                     RepositoryOwner = owner,
                     Status = status,
-                    Title = issue.Title,
+                    Title = issue.Title!,
                 });
             }
         }
@@ -444,7 +451,8 @@ public sealed class GitHubService(
         string owner,
         string name,
         int number,
-        string targetBranch)
+        string targetBranch,
+        CancellationToken cancellationToken)
     {
         logger.LogDebug(
             "Fetching approvals for pull request {Number} in repository {Owner}/{Name}.",
@@ -453,16 +461,16 @@ public sealed class GitHubService(
             name);
 
         // Do not cache reviews so that the UI updates correctly on merging
-        var approved = await client.PullRequest.Review.GetAll(owner, name, number);
+        var approved = await client.Repos[owner][name].Pulls[number].Reviews.GetAsync(cancellationToken: cancellationToken);
 
         logger.LogDebug(
             "Found {Count} approvals for pull request {Number} in repository {Owner}/{Name}.",
-            approved.Count,
+            approved?.Count,
             number,
             owner,
             name);
 
-        if (approved.Count < 1)
+        if (approved is null || approved.Count < 1)
         {
             return (true, false);
         }
@@ -471,18 +479,18 @@ public sealed class GitHubService(
         // Ignore reviews from people not associated with the repository.
         var reviewsPerUsers = approved
             .OrderByDescending((p) => p.SubmittedAt)
-            .DistinctBy((p) => p.User.Login)
+            .DistinctBy((p) => p.User?.Login)
             .Where((p) => p.AuthorAssociation.Value.CanReview() || p.User.Type == AccountType.Bot)
             .ToList();
 
         bool canApprove = !reviewsPerUsers.Exists((p) => p.User.Login == user.GetUserLogin());
 
-        if (reviewsPerUsers.Exists((p) => p.State == PullRequestReviewState.ChangesRequested))
+        if (reviewsPerUsers.Exists((p) => p.State == "changes_requested"))
         {
             return (canApprove, false);
         }
 
-        int approvedReviews = reviewsPerUsers.Count((p) => p.State == PullRequestReviewState.Approved);
+        int approvedReviews = reviewsPerUsers.Count((p) => p.State == "approved");
 
         int requiredReviewsCount = await GetNumberOfRequiredReviewersAsync(user, owner, name, targetBranch);
 
@@ -691,19 +699,19 @@ public sealed class GitHubService(
         return protection?.RequiredStatusChecks?.Contexts ?? Array.Empty<string>();
     }
 
-    private async Task<Octokit.Repository> GetRepositoryAsync(ClaimsPrincipal user, string owner, string name)
+    private async Task<FullRepository?> GetRepositoryAsync(ClaimsPrincipal user, string owner, string name, CancellationToken cancellationToken)
     {
         return await CacheGetOrCreateAsync(user, $"repo:{owner}/{name}", async () =>
         {
-            return await client.Repository.Get(owner, name);
+            return await client.Repos[owner][name].GetAsync(cancellationToken: cancellationToken);
         });
     }
 
-    private async Task<User> GetUserAsync(ClaimsPrincipal user, string login)
+    private async Task<WithUsernameGetResponse?> GetUserAsync(ClaimsPrincipal user, string login, CancellationToken cancellationToken)
     {
         return await CacheGetOrCreateAsync(user, $"user:{login}", LongCacheLifetime, async () =>
         {
-            return await client.User.Get(login);
+            return await client.Users[login].GetAsWithUsernameGetResponseAsync(cancellationToken: cancellationToken);
         });
     }
 
@@ -829,7 +837,7 @@ public sealed class GitHubService(
         return result!;
     }
 
-    private HashSet<PullRequestMergeMethod> GetMergeMethods(string? mergeMethod = null)
+    private HashSet<MergePutRequestBody_merge_method> GetMergeMethods(string? mergeMethod = null)
     {
         var preferences = (_options.MergePreferences ?? Array.Empty<string>()).ToList();
 
@@ -838,15 +846,13 @@ public sealed class GitHubService(
             preferences.Insert(0, userPreference);
         }
 
-        var methods = new HashSet<PullRequestMergeMethod>(3);
+        var methods = new HashSet<MergePutRequestBody_merge_method>(3);
 
         if (preferences.Count > 0)
         {
             foreach (var preference in preferences)
             {
-                var method = new StringEnum<PullRequestMergeMethod>(preference);
-
-                if (method.TryParse(out var value))
+                if (Enum.TryParse<MergePutRequestBody_merge_method>(preference, out var value))
                 {
                     methods.Add(value);
                 }
@@ -854,14 +860,14 @@ public sealed class GitHubService(
         }
 
         // Any any missing methods once preferences are applied
-        methods.Add(PullRequestMergeMethod.Merge);
-        methods.Add(PullRequestMergeMethod.Rebase);
-        methods.Add(PullRequestMergeMethod.Squash);
+        methods.Add(MergePutRequestBody_merge_method.Merge);
+        methods.Add(MergePutRequestBody_merge_method.Rebase);
+        methods.Add(MergePutRequestBody_merge_method.Squash);
 
         return methods;
     }
 
-    private PullRequestMergeMethod SelectMergeMethod(Octokit.Repository repository, string? mergeMethod)
+    private MergePutRequestBody_merge_method SelectMergeMethod(FullRepository repository, string? mergeMethod)
     {
         var methods = GetMergeMethods(mergeMethod);
 

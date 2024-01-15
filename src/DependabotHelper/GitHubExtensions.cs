@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
-using Microsoft.Extensions.Http.Resilience;
+using GitHub;
+using GitHub.Client;
 using Microsoft.Extensions.Options;
-using Octokit;
-using Octokit.Internal;
-
-using IGraphQLConnection = Octokit.GraphQL.IConnection;
-using IGraphQLCredentialStore = Octokit.GraphQL.ICredentialStore;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Octokit.GraphQL;
 
 namespace MartinCostello.DependabotHelper;
 
 public static class GitHubExtensions
 {
+    private static readonly Uri GitHubApiUrl = new("https://api.github.com", UriKind.Absolute);
     private static readonly ProductHeaderValue UserAgent = CreateUserAgent();
 
     public static IServiceCollection AddGitHubClient(this IServiceCollection services)
@@ -25,48 +24,36 @@ public static class GitHubExtensions
         services.AddMemoryCache();
 
         services.AddSingleton<UserCredentialStore>();
+        services.AddSingleton<IAuthenticationProvider>((p) => p.GetRequiredService<UserCredentialStore>());
         services.AddSingleton<ICredentialStore>((p) => p.GetRequiredService<UserCredentialStore>());
-        services.AddSingleton<IGraphQLCredentialStore>((p) => p.GetRequiredService<UserCredentialStore>());
-
-        services.AddSingleton<IJsonSerializer, SimpleJsonSerializer>();
 
         services.AddScoped<GitHubService>();
-        services.AddScoped<IHttpClient>((provider) =>
-        {
-            var httpClientFactory = provider.GetRequiredService<IHttpMessageHandlerFactory>();
-            return new HttpClientAdapter(httpClientFactory.CreateHandler);
-        });
 
-        services.AddScoped<IConnection>((provider) =>
+        services.AddScoped((provider) =>
         {
+            var authenticationProvider = provider.GetRequiredService<IAuthenticationProvider>();
+            var httpClient = provider.GetRequiredService<HttpClient>();
+            var requestAdapter = RequestAdapter.Create(authenticationProvider, httpClient);
+
             var baseAddress = GetGitHubApiUri(provider);
-            var credentialStore = provider.GetRequiredService<ICredentialStore>();
-            var httpClient = provider.GetRequiredService<IHttpClient>();
-            var serializer = provider.GetRequiredService<IJsonSerializer>();
 
-            if (baseAddress != GitHubClient.GitHubApiUrl)
+            if (baseAddress != GitHubApiUrl)
             {
                 baseAddress = new Uri(baseAddress, "/api/v3/");
             }
 
-            return new Connection(UserAgent, baseAddress, credentialStore, httpClient, serializer);
+            requestAdapter.BaseUrl = baseAddress.ToString();
+
+            return new GitHubClient(requestAdapter);
         });
 
-        services.AddScoped<IGraphQLConnection>((provider) =>
+        services.AddScoped<IConnection>((provider) =>
         {
-            var productInformation = new Octokit.GraphQL.ProductHeaderValue(UserAgent.Name, UserAgent.Version);
-
             var baseAddress = GetGitHubGraphQLUri(provider);
-            var credentialStore = provider.GetRequiredService<IGraphQLCredentialStore>();
+            var credentialStore = provider.GetRequiredService<ICredentialStore>();
             var httpClient = provider.GetRequiredService<HttpClient>();
 
-            return new Octokit.GraphQL.Connection(productInformation, baseAddress, credentialStore, httpClient);
-        });
-
-        services.AddScoped<IGitHubClient>((provider) =>
-        {
-            var connection = provider.GetRequiredService<IConnection>();
-            return new GitHubClient(connection);
+            return new Connection(UserAgent, baseAddress, credentialStore, httpClient);
         });
 
         return services;
@@ -75,12 +62,12 @@ public static class GitHubExtensions
     private static ProductHeaderValue CreateUserAgent()
     {
         string productVersion = typeof(GitHubExtensions).Assembly.GetName().Version!.ToString(3);
-        return new ProductHeaderValue("DependabotHelper", productVersion);
+        return new("DependabotHelper", productVersion);
     }
 
     private static Uri GetGitHubApiUri(IServiceProvider provider)
     {
-        var baseAddress = GitHubClient.GitHubApiUrl;
+        var baseAddress = GitHubApiUrl;
         var configuration = provider.GetRequiredService<IConfiguration>();
 
         if (configuration["GitHub:EnterpriseDomain"] is string enterpriseDomain &&
@@ -94,7 +81,7 @@ public static class GitHubExtensions
 
     private static Uri GetGitHubGraphQLUri(IServiceProvider provider)
     {
-        var baseAddress = Octokit.GraphQL.Connection.GithubApiUri;
+        var baseAddress = Connection.GithubApiUri;
         var configuration = provider.GetRequiredService<IConfiguration>();
 
         if (configuration["GitHub:EnterpriseDomain"] is string enterpriseDomain &&

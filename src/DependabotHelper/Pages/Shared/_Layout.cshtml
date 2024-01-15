@@ -1,6 +1,6 @@
 @using Humanizer;
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-@inject Octokit.IGitHubClient GitHubClient
+@inject GitHub.GitHubClient GitHubClient
 @inject Microsoft.Extensions.Options.IOptionsSnapshot<SiteOptions> Options
 @{
     string author = "Martin Costello";
@@ -166,18 +166,22 @@
     </nav>
     <main class="container body-content">
         @{
-            var rateLimits = GitHubClient.GetLastApiInfo()?.RateLimit;
-            bool hasRateLimit = rateLimits?.Limit is not null;
+            var rateLimits = await GitHubClient.Rate_limit.GetAsync(cancellationToken: Context.RequestAborted);
+            bool hasRateLimit = rateLimits?.Rate is not null;
         }
-        @if (hasRateLimit && rateLimits?.Remaining is { } value && value < 1)
+        @if (hasRateLimit && rateLimits!.Rate!.Remaining is { } value && value < 1)
         {
             <div class="alert alert-warning" role="alert">
-              <p>
-                  You have exhausted your GitHub API rate limit.
-              </p>
-              <p>
-                  The rate limit will reset <strong class="relative-timestamp" title="@rateLimits.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits.Reset.Humanize()</strong>.
-              </p>
+                <p>
+                    You have exhausted your GitHub API rate limit.
+                </p>
+                @if (rateLimits.Rate.Reset is { } resets)
+                {
+                  var resetsAt = DateTimeOffset.FromUnixTimeSeconds(resets);
+                  <p>
+                      The rate limit will reset <strong class="relative-timestamp" title="@resetsAt.ToString("u", CultureInfo.InvariantCulture)">@resetsAt.Humanize()</strong>.
+                  </p>
+              }
             </div>
         }
         <div class="alert alert-danger alert-dismissible fade show d-none" role="alert" id="error-alert">
@@ -195,14 +199,18 @@
         <hr />
         <footer>
             <p>
-                <span>
-                    <small class="@(rateLimits?.Limit is null ? "d-none" : string.Empty)">
-                        GitHub API Limits:
-                        <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
-                        Resets
-                        <span id="rate-limit-resets" class="relative-timestamp" title="@rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.Reset.Humanize()</span>.
-                    </small>
-                </span>
+                @if (hasRateLimit)
+                {
+                    var resetsAt = DateTimeOffset.FromUnixTimeSeconds(rateLimits!.Rate!.Reset!.Value);
+                    <span>
+                        <small class="@(rateLimits!.Rate?.Limit is null ? "d-none" : string.Empty)">
+                            GitHub API Limits:
+                            <span id="rate-limit-remaining">@rateLimits!.Rate?.Remaining</span>/<span id="rate-limit-total">@rateLimits!.Rate?.Limit</span>.
+                            Resets
+                            <span id="rate-limit-resets" class="relative-timestamp" title="@resetsAt.ToString("u", CultureInfo.InvariantCulture)">@resetsAt.Humanize()</span>.
+                        </small>
+                    </span>
+                }
                 <span class="d-none d-lg-inline-block float-right">
                     <small>
                         Built from
