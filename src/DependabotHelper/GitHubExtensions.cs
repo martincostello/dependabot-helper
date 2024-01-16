@@ -18,8 +18,7 @@ public static class GitHubExtensions
     public static IServiceCollection AddGitHubClient(this IServiceCollection services)
     {
         services.AddHttpClient()
-                .AddHttpClient(Options.DefaultName)
-                .AddStandardResilienceHandler();
+                .ConfigureHttpClientDefaults((p) => p.AddStandardResilienceHandler());
 
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
