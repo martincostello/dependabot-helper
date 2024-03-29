@@ -1,7 +1,8 @@
 <Project>
-  <PropertyGroup>
-    <PollyVersion>8.3.1</PollyVersion>
-  </PropertyGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+    <GlobalPackageReference Include="ReferenceTrimmer" Version="3.3.3" />
+  </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.7.0" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.10.0" />
@@ -22,22 +23,18 @@
     <PackageVersion Include="Microsoft.TypeScript.MSBuild" Version="5.4.3" />
     <PackageVersion Include="Octokit" Version="10.0.0" />
     <PackageVersion Include="Octokit.GraphQL" Version="0.2.1-beta" />
-    <PackageVersion Include="Polly.Core" Version="$(PollyVersion)" />
-    <PackageVersion Include="Polly.Extensions" Version="$(PollyVersion)" />
-    <PackageVersion Include="Polly.RateLimiting" Version="$(PollyVersion)" />
+    <PackageVersion Include="Polly.Core" Version="8.3.1" />
+    <PackageVersion Include="Polly.Extensions" Version="8.3.1" />
+    <PackageVersion Include="Polly.RateLimiting" Version="8.3.1" />
     <PackageVersion Include="ReportGenerator" Version="5.2.4" />
     <PackageVersion Include="Shouldly" Version="4.2.1" />
-    <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="xunit" Version="2.7.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.7" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="All" />
-  </ItemGroup>
   <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
     <PackageReference Include="coverlet.msbuild" PrivateAssets="All" />
-    <PackageReference Include="GitHubActionsTestLogger" PrivateAssets="All" />
+    <PackageReference Include="GitHubActionsTestLogger" PrivateAssets="All" NoWarn="RT0003" />
     <PackageReference Include="ReportGenerator" PrivateAssets="All" />
   </ItemGroup>
 </Project>

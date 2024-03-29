@@ -13,7 +13,7 @@ namespace MartinCostello.DependabotHelper.Pages;
 [Authorize]
 public sealed class ConfigureModel : PageModel
 {
-    public IReadOnlyList<Owner> Owners { get; set; } = Array.Empty<Owner>();
+    public IReadOnlyList<Owner> Owners { get; set; } = [];
 
     public async Task OnGet([FromServices] GitHubService service)
     {

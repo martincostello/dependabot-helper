@@ -37,17 +37,11 @@ public abstract class AppPage(IPage page)
         => await Assertions.Expect(Page.Locator(Selectors.SignIn))
                            .ToBeVisibleAsync();
 
-    public abstract class Item
+    public abstract class Item(IElementHandle handle, IPage page)
     {
-        protected Item(IElementHandle handle, IPage page)
-        {
-            Handle = handle;
-            Page = page;
-        }
+        protected IElementHandle Handle { get; } = handle;
 
-        protected IElementHandle Handle { get; }
-
-        protected IPage Page { get; }
+        protected IPage Page { get; } = page;
     }
 
     private sealed class Selectors

@@ -1373,7 +1373,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci", "lint"]);
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
@@ -1481,7 +1481,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci"]);
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
@@ -1538,7 +1538,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci", "lint"]);
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
@@ -1716,7 +1716,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci", "lint"]);
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
@@ -1814,7 +1814,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci"]);
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
@@ -1864,7 +1864,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci"]);
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);
@@ -1917,7 +1917,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         var user = CreateUser();
         var repository = user.CreateRepository();
         var pullRequest = repository.CreatePullRequest();
-        var protection = CreateBranchProtection(requiredStatusCheckContexts: new[] { "ci", "lint" });
+        var protection = CreateBranchProtection(requiredStatusCheckContexts: ["ci", "lint"]);
 
         RegisterGetRepository(repository);
         RegisterGetCheckSuites(pullRequest);

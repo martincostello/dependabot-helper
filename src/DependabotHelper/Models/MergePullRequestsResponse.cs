@@ -5,5 +5,5 @@ namespace MartinCostello.DependabotHelper.Models;
 
 public sealed class MergePullRequestsResponse
 {
-    public IList<int> Numbers { get; set; } = new List<int>();
+    public IList<int> Numbers { get; set; } = [];
 }
