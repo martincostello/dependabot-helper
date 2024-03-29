@@ -7,7 +7,7 @@ public sealed class CombinedCommitStatusBuilder(string state) : ResponseBuilder
 {
     public string State { get; set; } = state;
 
-    public IList<CommitStatusBuilder> Statuses { get; } = new List<CommitStatusBuilder>();
+    public IList<CommitStatusBuilder> Statuses { get; } = [];
 
     public override object Build()
     {

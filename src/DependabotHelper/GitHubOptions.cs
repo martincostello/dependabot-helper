@@ -11,5 +11,5 @@ public sealed class GitHubOptions
 
     public string EnterpriseDomain { get; set; } = string.Empty;
 
-    public IList<string> Scopes { get; set; } = new List<string>();
+    public IList<string> Scopes { get; set; } = [];
 }

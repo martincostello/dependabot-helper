@@ -13,11 +13,11 @@ public sealed class DependabotOptions
 
     public bool IncludePrivate { get; set; }
 
-    public IList<string> Labels { get; set; } = new List<string>();
+    public IList<string> Labels { get; set; } = [];
 
-    public IList<string> MergePreferences { get; set; } = new List<string>();
+    public IList<string> MergePreferences { get; set; } = [];
 
-    public IList<TimeSpan> MergeRetryWaits { get; set; } = new List<TimeSpan>();
+    public IList<TimeSpan> MergeRetryWaits { get; set; } = [];
 
     public int PageCount { get; set; } = 1;
 
@@ -25,5 +25,5 @@ public sealed class DependabotOptions
 
     public TimeSpan? RefreshPeriod { get; set; }
 
-    public IList<string> Users { get; set; } = new List<string>();
+    public IList<string> Users { get; set; } = [];
 }

@@ -212,7 +212,7 @@ public static class AuthenticationEndpoints
 
             return Results.Challenge(
                 new() { RedirectUri = RootPath },
-                new[] { GitHubAuthenticationDefaults.AuthenticationScheme });
+                [GitHubAuthenticationDefaults.AuthenticationScheme]);
         });
 
         builder.MapPost(SignOutPath, async (HttpContext context, IAntiforgery antiforgery) =>
@@ -224,7 +224,7 @@ public static class AuthenticationEndpoints
 
             return Results.SignOut(
                 new() { RedirectUri = RootPath },
-                new[] { CookieAuthenticationDefaults.AuthenticationScheme });
+                [CookieAuthenticationDefaults.AuthenticationScheme]);
         });
 
         return builder;

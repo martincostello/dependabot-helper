@@ -174,7 +174,7 @@ public sealed class GitHubService(
 
         logger.LogInformation("Fetched {Count} repositories for owner {Owner}.", repositories.Count, owner);
 
-        return repositories
+        var repos = repositories
             .Where((p) => !p.Archived)
             .Where((p) => _options.IncludeForks || !p.Fork)
             .Where((p) => _options.IncludePrivate || !p.IsPrivate())
@@ -189,8 +189,9 @@ public sealed class GitHubService(
                     Name = p.Name,
                 };
             })
-            .OrderBy((p) => p.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+            .OrderBy((p) => p.Name, StringComparer.OrdinalIgnoreCase);
+
+        return [.. repos];
     }
 
     public async Task<MergePullRequestsResponse> MergePullRequestsAsync(
@@ -434,9 +435,7 @@ public sealed class GitHubService(
             }
         }
 
-        return result
-            .OrderByDescending((p) => p.Number)
-            .ToList();
+        return [.. result.OrderByDescending((p) => p.Number)];
     }
 
     private async Task<(bool CanApprove, bool IsApproved)> IsApprovedAsync(
@@ -688,7 +687,7 @@ public sealed class GitHubService(
         string branch)
     {
         var protection = await GetBranchProtectionAsync(user, owner, name, branch);
-        return protection?.RequiredStatusChecks?.Contexts ?? Array.Empty<string>();
+        return protection?.RequiredStatusChecks?.Contexts ?? [];
     }
 
     private async Task<Octokit.Repository> GetRepositoryAsync(ClaimsPrincipal user, string owner, string name)
@@ -831,7 +830,7 @@ public sealed class GitHubService(
 
     private HashSet<PullRequestMergeMethod> GetMergeMethods(string? mergeMethod = null)
     {
-        var preferences = (_options.MergePreferences ?? Array.Empty<string>()).ToList();
+        var preferences = _options.MergePreferences ?? [];
 
         if (mergeMethod is { } userPreference)
         {

@@ -9,9 +9,9 @@ public sealed class RepositoryPullRequests : Repository
 {
     public string DependabotHtmlUrl { get; set; } = string.Empty;
 
-    public IList<string> MergeMethods { get; } = new List<string>();
+    public IList<string> MergeMethods { get; } = [];
 
-    public IList<PullRequest> All { get; set; } = new List<PullRequest>();
+    public IList<PullRequest> All { get; set; } = [];
 
     [JsonIgnore]
     public IReadOnlyList<PullRequest> Error => All.Where((p) => p.Status == ChecksStatus.Error).ToList();
