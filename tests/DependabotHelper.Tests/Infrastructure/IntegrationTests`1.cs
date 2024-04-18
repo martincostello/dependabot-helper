@@ -59,7 +59,7 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
 
         using var redirectHandler = new RedirectHandler(Fixture.ClientOptions.MaxAutomaticRedirections);
 
-        var anonymousCookieHandler = new CookieContainerHandler();
+        using var anonymousCookieHandler = new CookieContainerHandler();
         anonymousCookieHandler.Container.Add(
             Fixture.Server.BaseAddress,
             new Cookie(anonymousTokens.CookieName, anonymousTokens.CookieValue));
