@@ -252,7 +252,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         var pullRequest1 = repository.CreatePullRequest();
         var pullRequest2 = repository.CreatePullRequest();
-        var pullRequest3 = repository.CreatePullRequest();
+        repository.CreatePullRequest();
         var pullRequest4 = repository.CreatePullRequest();
         var pullRequest5 = repository.CreatePullRequest();
 

@@ -116,12 +116,9 @@ public sealed class GitHubService(
             Name = repository.Name,
         };
 
-        foreach (var method in GetMergeMethods())
+        foreach (var method in GetMergeMethods().Where((p) => IsValidMergeMethod(p, repository)))
         {
-            if (IsValidMergeMethod(method, repository))
-            {
-                result.MergeMethods.Add(method.ToString());
-            }
+            result.MergeMethods.Add(method.ToString());
         }
 
         if (await IsDependabotEnabledAsync(user, owner, name))
@@ -155,18 +152,10 @@ public sealed class GitHubService(
             else
             {
                 var current = await client.User.Current();
-
-                if (current.Id == ownerUser.Id)
-                {
-                    repos = await client.Repository.GetAllForCurrent(new RepositoryRequest()
-                    {
-                        Type = RepositoryType.Owner,
-                    });
-                }
-                else
-                {
-                    repos = await client.Repository.GetAllForUser(owner);
-                }
+                repos =
+                    current.Id == ownerUser.Id ?
+                    await client.Repository.GetAllForCurrent(new RepositoryRequest() { Type = RepositoryType.Owner }) :
+                    await client.Repository.GetAllForUser(owner);
             }
 
             return repos;

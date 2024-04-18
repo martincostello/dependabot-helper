@@ -182,7 +182,7 @@ public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) 
             // Act - Select some of the repositories and save the changes
             await repositories[1].ToggleAsync();
             await repositories[3].ToggleAsync();
-            configurePage = await modal.SaveChangesAsync();
+            await modal.SaveChangesAsync();
 
             // Assert - Check the selected repositories are enabled
             modal = await owners[0].ConfigureAsync();
@@ -200,7 +200,7 @@ public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) 
             await repositories[1].ToggleAsync();
             await repositories[3].ToggleAsync();
 
-            configurePage = await modal.CloseAsync();
+            await modal.CloseAsync();
 
             // Assert - The selected repositories remains the same
             modal = await owners[0].ConfigureAsync();
