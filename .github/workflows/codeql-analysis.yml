@@ -69,6 +69,13 @@ jobs:
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@c7f9125735019aa87cfc361530512d50ea439c71 # v3.25.1
+      if: matrix.language != 'csharp'
+
+    - name: Build .NET code
+      if: matrix.language == 'csharp'
+      run: |
+        dotnet workload restore
+        dotnet build --configuration Release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@c7f9125735019aa87cfc361530512d50ea439c71 # v3.25.1

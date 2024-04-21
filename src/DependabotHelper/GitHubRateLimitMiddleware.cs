@@ -18,7 +18,7 @@ public sealed class GitHubRateLimitMiddleware(RequestDelegate next)
 
             if (rateLimit is { } limits)
             {
-                logger.LogInformation(
+                logger.LogDebug(
                     "GitHub API rate limit {Remaining}/{Limit}. Rate limit resets at {Reset:u}.",
                     limits.Remaining,
                     limits.Limit,
