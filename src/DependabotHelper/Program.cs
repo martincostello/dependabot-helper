@@ -15,6 +15,7 @@ builder.Services.AddGitHubClient();
 builder.Services.AddHsts((options) => options.MaxAge = TimeSpan.FromDays(180));
 builder.Services.AddRazorPages();
 builder.Services.AddResponseCaching();
+builder.Services.AddTelemetry(builder.Environment);
 
 builder.Services.AddResponseCompression((options) =>
 {
@@ -66,6 +67,8 @@ if (string.Equals(builder.Configuration["CODESPACES"], bool.TrueString, StringCo
     builder.Services.Configure<ForwardedHeadersOptions>(
         (options) => options.ForwardedHeaders |= ForwardedHeaders.XForwardedHost);
 }
+
+builder.Logging.AddTelemetry();
 
 builder.WebHost.ConfigureKestrel((p) => p.AddServerHeader = false);
 
