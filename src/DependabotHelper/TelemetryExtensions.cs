@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
@@ -109,9 +108,11 @@ public static class TelemetryExtensions
     {
         var github = serviceProvider.GetRequiredService<IOptions<GitHubOptions>>().Value;
 
-        if (github.EnterpriseDomain is { Length: > 0 } ghes)
+        if (github.EnterpriseDomain is { Length: > 0 } url &&
+            Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+            !mappings.ContainsKey(uri.Host))
         {
-            mappings[ghes] = "GitHub Enterprise";
+            mappings[uri.Host] = "GitHub Enterprise";
         }
     }
 }
