@@ -80,7 +80,7 @@ public static class TelemetryExtensions
     internal static bool IsOtlpCollectorConfigured()
         => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT"));
 
-    private static bool IsAzureMonitorConfigured()
+    internal static bool IsAzureMonitorConfigured()
         => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
 
     private static void EnrichHttpActivity(Activity activity, HttpRequestMessage request)
