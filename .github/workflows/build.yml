@@ -16,7 +16,8 @@ on:
 
 env:
   APPLICATION_URL_PROD: https://dependabot.martincostello.com
-  AZURE_WEBAPP_NAME: dependabothelpermartincostello
+  AZURE_WEBAPP_NAME: dependabothelper-martincostello
+  CONTAINER_REGISTRY: '${{ github.repository_owner }}.azurecr.io'
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_GENERATE_ASPNET_CERTIFICATE: false
   DOTNET_MULTILEVEL_LOOKUP: 0
@@ -25,7 +26,6 @@ env:
   DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
   FORCE_COLOR: 1
   NUGET_XMLDOC_MODE: skip
-  PUBLISH_RUNTIME: win-x64
   TERM: xterm
 
 permissions:
@@ -35,6 +35,12 @@ jobs:
   build:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+
+    env:
+      PUBLISH_CONTAINER: ${{ github.event.repository.fork == false && github.ref_name == github.event.repository.default_branch && matrix.os == 'ubuntu-latest' }}
+
+    outputs:
+      container-tag: ${{ steps.publish-container.outputs.container-tag }}
 
     strategy:
       fail-fast: false
@@ -95,7 +101,7 @@ jobs:
 
     - name: Build, Test and Publish
       shell: pwsh
-      run: ./build.ps1 -Runtime ${env:PUBLISH_RUNTIME}
+      run: ./build.ps1
 
     - uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed # v4.3.0
       name: Upload coverage to Codecov
@@ -103,14 +109,6 @@ jobs:
         files: ./artifacts/coverage/coverage.cobertura.xml,./src/DependabotHelper/coverage/lcov.info
         flags: ${{ matrix.os-name }}
         token: ${{ secrets.CODECOV_TOKEN }}
-
-    - name: Publish artifacts
-      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
-      if: runner.os == 'Windows' && success()
-      with:
-        name: webapp
-        path: ./artifacts/publish/DependabotHelper/release_${{ env.PUBLISH_RUNTIME }}
-        if-no-files-found: error
 
     - name: Publish screenshots
       uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
@@ -136,11 +134,32 @@ jobs:
         path: ./artifacts/videos/*
         if-no-files-found: ignore
 
+    - name: Docker log in
+      uses: docker/login-action@v3
+      if: env.PUBLISH_CONTAINER == 'true'
+      with:
+        registry: ${{ env.CONTAINER_REGISTRY }}
+        username: ${{ secrets.ACR_REGISTRY_USERNAME }}
+        password: ${{ secrets.ACR_REGISTRY_PASSWORD }}
+
+    - name: Publish container
+      id: publish-container
+      if: ${{ runner.os == 'Linux' }}
+      shell: pwsh
+      env:
+        ContainerRegistry: ${{ env.PUBLISH_CONTAINER == 'true' && env.CONTAINER_REGISTRY || '' }}
+      run: |
+        dotnet publish ./src/DependabotHelper --arch x64 --os linux -p:PublishProfile=DefaultContainer
+        if (-Not [string]::IsNullOrWhiteSpace(${env:CONTAINER_REGISTRY})) {
+          $containerTag = "${env:CONTAINER_REGISTRY}/${env:GITHUB_REPOSITORY}:github-${env:GITHUB_RUN_NUMBER}".ToLowerInvariant()
+          "container-tag=${containerTag}" >> "${env:GITHUB_OUTPUT}"
+        }
+
   deploy:
     if: github.event.repository.fork == false && github.ref_name == github.event.repository.default_branch
     name: deploy-production
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     concurrency: production_environment
 
     environment:
@@ -152,11 +171,6 @@ jobs:
 
     steps:
 
-    - name: Download artifacts
-      uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
-      with:
-        name: webapp
-
     - name: Azure log in
       uses: azure/login@6b2456866fc08b011acb422a92a4aa20e2c4de32 # v2.1.0
       with:
@@ -164,11 +178,41 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Deploy to Azure App Service
+    - name: Deploy container to Azure App Service
       uses: azure/webapps-deploy@de617f46172a906d0617bb0e50d81e9e3aec24c8 # v3.0.1
       id: deploy_production
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        images: ${{ needs.build.outputs.container-tag }}
+
+    - name: Check application health
+      shell: pwsh
+      env:
+        APPLICATION_URL: ${{ env.APPLICATION_URL_PROD }}
+      run: |
+        $delay = 10
+        $limit = 15
+        $success = $false
+        for ($i = 0; $i -lt $limit; $i++) {
+          $response = $null
+          try {
+            $response = Invoke-WebRequest -Uri "${env:APPLICATION_URL}/version" -Method Get -UseBasicParsing
+          } catch {
+            $response = $_.Exception.Response
+          }
+          if (($null -ne $response) -And ($response.StatusCode -eq 200)) {
+            $json = $response.Content | ConvertFrom-Json
+            $version = $json.applicationVersion
+            if ((-Not [string]::IsNullOrWhiteSpace($version)) -And $version.Contains(${env:GITHUB_SHA})) {
+              $success = $true
+              break
+            }
+          }
+          Start-Sleep -Seconds $delay
+        }
+        if (-Not $success) {
+          throw "${env:APPLICATION_URL} did not return a successful status code and the expected version within the time limit after $limit attempts."
+        }
 
   test:
     name: test-production
@@ -199,31 +243,6 @@ jobs:
           ~/AppData/Local/ms-playwright
           ~/.cache/ms-playwright
           ~/Library/Caches/ms-playwright
-
-    - name: Check application health
-      shell: pwsh
-      env:
-        APPLICATION_URL: ${{ env.APPLICATION_URL_PROD }}
-      run: |
-        $delay = 10
-        $limit = 10
-        $success = $false
-        for ($i = 0; $i -lt $limit; $i++) {
-          $response = $null
-          try {
-            $response = Invoke-WebRequest -Uri $env:APPLICATION_URL -Method Get -UseBasicParsing
-          } catch {
-            $response = $_.Exception.Response
-          }
-          if (($null -ne $response) -And ($response.StatusCode -eq 200)) {
-            $success = $true
-            break
-          }
-          Start-Sleep -Seconds $delay
-        }
-        if (-Not $success) {
-          throw "$($env:APPLICATION_URL) did not return a successful status code within the time limit after $limit attempts."
-        }
 
     - name: Run end-to-end tests
       shell: pwsh
