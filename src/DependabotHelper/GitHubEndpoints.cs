@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Antiforgery;
 
 namespace MartinCostello.DependabotHelper;
@@ -106,6 +110,37 @@ public static class GitHubEndpoints
                 return Results.Extensions.Exception(ex, logger);
             }
         }).RequireAuthorization();
+
+        builder.MapGet("/version", static () =>
+        {
+            return new JsonObject()
+            {
+                ["applicationVersion"] = GitMetadata.Version,
+                ["frameworkDescription"] = RuntimeInformation.FrameworkDescription,
+                ["operatingSystem"] = new JsonObject()
+                {
+                    ["description"] = RuntimeInformation.OSDescription,
+                    ["architecture"] = RuntimeInformation.OSArchitecture.ToString(),
+                    ["version"] = Environment.OSVersion.VersionString,
+                    ["is64Bit"] = Environment.Is64BitOperatingSystem,
+                },
+                ["process"] = new JsonObject()
+                {
+                    ["architecture"] = RuntimeInformation.ProcessArchitecture.ToString(),
+                    ["is64BitProcess"] = Environment.Is64BitProcess,
+                    ["isNativeAoT"] = !RuntimeFeature.IsDynamicCodeSupported,
+                    ["isPrivilegedProcess"] = Environment.IsPrivilegedProcess,
+                },
+                ["dotnetVersions"] = new JsonObject()
+                {
+                    ["runtime"] = GetVersion<object>(),
+                    ["aspNetCore"] = GetVersion<HttpContext>(),
+                },
+            };
+
+            static string GetVersion<T>()
+                => typeof(T).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        }).AllowAnonymous();
 
         return builder;
     }

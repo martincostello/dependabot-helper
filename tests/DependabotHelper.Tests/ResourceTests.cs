@@ -25,6 +25,7 @@ public sealed class ResourceTests(AppFixture fixture, ITestOutputHelper outputHe
     [InlineData("/static/css/main.css.map", MediaTypeNames.Text.Plain)]
     [InlineData("/static/js/main.js", "text/javascript")]
     [InlineData("/static/js/main.js.map", MediaTypeNames.Text.Plain)]
+    [InlineData("/version", MediaTypeNames.Application.Json)]
     public async Task Can_Get_Resource_Unauthenticated(string requestUri, string contentType)
     {
         // Arrange
