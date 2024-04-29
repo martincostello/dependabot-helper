@@ -180,7 +180,6 @@ jobs:
 
     - name: Deploy container to Azure App Service
       uses: azure/webapps-deploy@de617f46172a906d0617bb0e50d81e9e3aec24c8 # v3.0.1
-      id: deploy_production
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         images: ${{ needs.build.outputs.container-tag }}
