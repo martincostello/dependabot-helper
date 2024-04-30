@@ -8,11 +8,14 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="coverlet.msbuild" />
+    <PackageReference Include="GitHubActionsTestLogger" NoWarn="RT0003" />
     <PackageReference Include="JustEat.HttpClientInterception" />
     <PackageReference Include="MartinCostello.Logging.XUnit" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="ReportGenerator" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
