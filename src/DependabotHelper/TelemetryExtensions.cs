@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using AspNet.Security.OAuth.GitHub;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
@@ -107,12 +108,21 @@ public static class TelemetryExtensions
     private static void AddServiceMappings(ConcurrentDictionary<string, string> mappings, IServiceProvider serviceProvider)
     {
         var github = serviceProvider.GetRequiredService<IOptions<GitHubOptions>>().Value;
+        var oauth = serviceProvider.GetRequiredService<IOptions<GitHubAuthenticationOptions>>().Value;
 
-        if (github.EnterpriseDomain is { Length: > 0 } url &&
-            Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
-            !mappings.ContainsKey(uri.Host))
+        AddMapping("GitHub", github.EnterpriseDomain);
+        AddMapping("GitHub", oauth.AuthorizationEndpoint);
+        AddMapping("GitHub", oauth.TokenEndpoint);
+        AddMapping("GitHub", oauth.UserInformationEndpoint);
+
+        void AddMapping(string name, string? host)
         {
-            mappings[uri.Host] = "GitHub Enterprise";
+            if (host is { Length: > 0 } url &&
+                Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+                !mappings.ContainsKey(uri.Host))
+            {
+                mappings[uri.Host] = name;
+            }
         }
     }
 }
