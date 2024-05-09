@@ -3,11 +3,10 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.ResourceDetectors.Azure;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -28,8 +27,13 @@ public static class TelemetryExtensions
 
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(ApplicationTelemetry.ServiceName, serviceVersion: ApplicationTelemetry.ServiceVersion);
+        if (IsAzureMonitorConfigured())
+        {
+            services.Configure<AzureMonitorExporterOptions>(
+                (p) => p.ConnectionString = AzureMonitorConnectionString());
+        }
 
-        var telemetry = services
+        services
             .AddOpenTelemetry()
             .WithMetrics((builder) =>
             {
@@ -37,6 +41,11 @@ public static class TelemetryExtensions
                        .AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddRuntimeInstrumentation();
+
+                if (IsAzureMonitorConfigured())
+                {
+                    builder.AddAzureMonitorMetricExporter();
+                }
 
                 if (IsOtlpCollectorConfigured())
                 {
@@ -55,17 +64,16 @@ public static class TelemetryExtensions
                     builder.SetSampler(new AlwaysOnSampler());
                 }
 
+                if (IsAzureMonitorConfigured())
+                {
+                    builder.AddAzureMonitorTraceExporter();
+                }
+
                 if (IsOtlpCollectorConfigured())
                 {
                     builder.AddOtlpExporter();
                 }
             });
-
-        if (IsAzureMonitorConfigured())
-        {
-            resourceBuilder.AddDetector(new AppServiceResourceDetector());
-            telemetry.UseAzureMonitor();
-        }
 
         services.AddOptions<HttpClientTraceInstrumentationOptions>()
                 .Configure<IServiceProvider>((options, provider) =>
@@ -81,7 +89,10 @@ public static class TelemetryExtensions
         => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT"));
 
     internal static bool IsAzureMonitorConfigured()
-        => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
+        => !string.IsNullOrEmpty(AzureMonitorConnectionString());
+
+    private static string? AzureMonitorConnectionString()
+        => Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
 
     private static void EnrichHttpActivity(Activity activity, HttpRequestMessage request)
     {
