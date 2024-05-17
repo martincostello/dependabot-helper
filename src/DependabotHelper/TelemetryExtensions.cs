@@ -7,9 +7,9 @@ using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.ResourceDetectors.Azure;
 using OpenTelemetry.ResourceDetectors.Container;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace MartinCostello.DependabotHelper;
