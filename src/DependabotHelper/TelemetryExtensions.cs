@@ -1,4 +1,4 @@
-﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
+// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using System.Collections.Concurrent;
@@ -9,6 +9,8 @@ using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry.ResourceDetectors.Azure;
+using OpenTelemetry.ResourceDetectors.Container;
 
 namespace MartinCostello.DependabotHelper;
 
@@ -26,7 +28,10 @@ public static class TelemetryExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         var resourceBuilder = ResourceBuilder.CreateDefault()
-            .AddService(ApplicationTelemetry.ServiceName, serviceVersion: ApplicationTelemetry.ServiceVersion);
+            .AddService(ApplicationTelemetry.ServiceName, serviceVersion: ApplicationTelemetry.ServiceVersion)
+            .AddDetector(new AppServiceResourceDetector())
+            .AddDetector(new ContainerResourceDetector());
+
         if (IsAzureMonitorConfigured())
         {
             services.Configure<AzureMonitorExporterOptions>(
