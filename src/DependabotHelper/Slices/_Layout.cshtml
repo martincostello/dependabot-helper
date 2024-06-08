@@ -1,13 +1,17 @@
+@inherits RazorLayoutSlice<LayoutModel>
+
 @using Humanizer;
+
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject Octokit.IGitHubClient GitHubClient
 @inject Microsoft.Extensions.Options.IOptionsSnapshot<SiteOptions> Options
+
 @{
     string author = "Martin Costello";
     string description = Options.Value.Description;
-    string domain = Context.Request.Host.ToString();
+    string domain = HttpContext!.Request.Host.ToString();
     string name = "Dependabot Helper";
-    string title = $"{ViewData["Title"]} - {name}";
+    string title = $"{Model.Title} - {name}";
     string twitter = Options.Value.Twitter;
 
     string imageUrl = string.Empty;
@@ -37,63 +41,65 @@
     string branch = repository + "/tree/" + GitMetadata.Branch;
     string build = repository + "/actions/runs/" + GitMetadata.BuildId;
     string commit = repository + "/commit/" + GitMetadata.Commit;
+
+    var user = HttpContext!.User;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@title</title>
+    <title>@(title)</title>
     <meta http-equiv="cache-control" content="no-cache, no-store" />
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta http-equiv="pragma" content="no-cache" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="application-name" content="@name" />
-    <meta name="author" content="@author" />
-    <meta name="copyright" content="&copy; @author @DateTimeOffset.UtcNow.Date.Year" />
-    <meta name="description" content="@description" />
+    <meta name="application-name" content="@(name)" />
+    <meta name="author" content="@(author)" />
+    <meta name="copyright" content="&copy; @(author) @(DateTimeOffset.UtcNow.Date.Year)" />
+    <meta name="description" content="@(description)" />
     <meta name="language" content="en" />
     <meta name="keywords" content="dependabot,github" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <meta name="robots" content="NOINDEX" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta property="og:description" content="@description" />
-    <meta property="og:image" content="@imageUrl" />
+    <meta property="og:description" content="@(description)" />
+    <meta property="og:image" content="@(imageUrl)" />
     <meta property="og:locale" content="en_GB" />
-    <meta property="og:site_name" content="@name" />
-    <meta property="og:title" content="@title" />
+    <meta property="og:site_name" content="@(name)" />
+    <meta property="og:title" content="@(title)" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="@siteUrl" />
+    <meta property="og:url" content="@(siteUrl)" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:creator" content="@twitter" />
-    <meta name="twitter:description" content="@description" />
-    <meta name="twitter:domain" content="@domain" />
-    <meta name="twitter:image" content="@imageUrl" />
-    <meta name="twitter:image:alt" content="@name" />
-    <meta name="twitter:site" content="@twitter" />
-    <meta name="twitter:title" content="@title" />
-    <meta name="twitter:url" content="@siteUrl" />
+    <meta name="twitter:creator" content="@(twitter)" />
+    <meta name="twitter:description" content="@(description)" />
+    <meta name="twitter:domain" content="@(domain)" />
+    <meta name="twitter:image" content="@(imageUrl)" />
+    <meta name="twitter:image:alt" content="@(name)" />
+    <meta name="twitter:site" content="@(twitter)" />
+    <meta name="twitter:title" content="@(title)" />
+    <meta name="twitter:url" content="@(siteUrl)" />
     <meta name="twitter:label1" content="Created by" />
-    <meta name="twitter:data1" content="@author" />
-    <link rel="manifest" href="@Url.Content("~/manifest.webmanifest")" asp-append-version="true" />
-    <link rel="shortcut icon" type="image/x-icon" href="@imageUrl" asp-append-version="true" />
+    <meta name="twitter:data1" content="@(author)" />
+    <link rel="manifest" href="@(HttpContext.Content("~/manifest.webmanifest"))" />
+    <link rel="shortcut icon" type="image/x-icon" href="@(imageUrl)?v=@(GitMetadata.Commit)" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="~/static/css/main.css" asp-append-version="true" />
+    <link rel="stylesheet" href="@(HttpContext.Content("~/static/css/main.css"))" />
     @{
-        var tokens = Antiforgery.GetTokens(Context);
+        var tokens = Antiforgery.GetTokens(HttpContext);
     }
-    <meta name="x-analytics-id" content="@Options.Value.AnalyticsId" />
-    <meta name="x-antiforgery-header" content="@tokens.HeaderName" />
-    <meta name="x-antiforgery-token" content="@tokens.RequestToken" />
-    <meta name="x-user-id" content="@User.GetUserId()" />
+    <meta name="x-analytics-id" content="@(Options.Value.AnalyticsId)" />
+    <meta name="x-antiforgery-header" content="@(tokens.HeaderName)" />
+    <meta name="x-antiforgery-token" content="@(tokens.RequestToken)" />
+    <meta name="x-user-id" content="@(user.GetUserId())" />
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <svg class="d-inline-block align-top" aria-hidden="true" width="30px" height="30px" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><title>Dependabot</title><path d="M4,9.5,14.785,2.366a2.2,2.2,0,0,1,2.43,0L28,9.5a2.242,2.242,0,0,1,1,1.871v9.25A2.242,2.242,0,0,1,28,22.5L17.215,29.634a2.2,2.2,0,0,1-2.43,0L4,22.5a2.242,2.242,0,0,1-1-1.871v-9.25A2.242,2.242,0,0,1,4,9.5Z" class="blue"/><path d="M16.867,11.625V10.75H15.422a.29.29,0,0,1-.289-.291V8.417a.291.291,0,0,1,.289-.292h2.022a.29.29,0,0,1,.289.292v3.208h4.334a.871.871,0,0,1,.866.875V16h.578a.29.29,0,0,1,.289.292v2.917a.29.29,0,0,1-.289.291h-.578v1.75a.871.871,0,0,1-.866.876H9.933a.871.871,0,0,1-.866-.876V19.5H8.489a.29.29,0,0,1-.289-.291V16.292A.29.29,0,0,1,8.489,16h.578V12.5a.871.871,0,0,1,.866-.875Z" class="white"/><path d="M18.352,18.521a.348.348,0,0,0,.5,0l1.817-1.834a.356.356,0,0,0,0-.5l-.373-.376a.346.346,0,0,0-.494,0l-1.2,1.209-.475-.48a.348.348,0,0,0-.5,0l-.372.376a.354.354,0,0,0,0,.5Z" class="blue"/><path d="M12.575,18.521a.346.346,0,0,0,.494,0l1.817-1.834a.356.356,0,0,0,0-.5l-.373-.376a.346.346,0,0,0-.494,0l-1.2,1.209-.475-.48a.348.348,0,0,0-.495,0l-.372.376a.356.356,0,0,0,0,.5Z" class="blue"/><style type="text/css" nonce="@(Context.GetCspNonce())">.blue{fill:#0366d6}.white{fill:#fff}</style></svg>
+                <svg class="d-inline-block align-top" aria-hidden="true" width="30px" height="30px" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><title>Dependabot</title><path d="M4,9.5,14.785,2.366a2.2,2.2,0,0,1,2.43,0L28,9.5a2.242,2.242,0,0,1,1,1.871v9.25A2.242,2.242,0,0,1,28,22.5L17.215,29.634a2.2,2.2,0,0,1-2.43,0L4,22.5a2.242,2.242,0,0,1-1-1.871v-9.25A2.242,2.242,0,0,1,4,9.5Z" class="blue"/><path d="M16.867,11.625V10.75H15.422a.29.29,0,0,1-.289-.291V8.417a.291.291,0,0,1,.289-.292h2.022a.29.29,0,0,1,.289.292v3.208h4.334a.871.871,0,0,1,.866.875V16h.578a.29.29,0,0,1,.289.292v2.917a.29.29,0,0,1-.289.291h-.578v1.75a.871.871,0,0,1-.866.876H9.933a.871.871,0,0,1-.866-.876V19.5H8.489a.29.29,0,0,1-.289-.291V16.292A.29.29,0,0,1,8.489,16h.578V12.5a.871.871,0,0,1,.866-.875Z" class="white"/><path d="M18.352,18.521a.348.348,0,0,0,.5,0l1.817-1.834a.356.356,0,0,0,0-.5l-.373-.376a.346.346,0,0,0-.494,0l-1.2,1.209-.475-.48a.348.348,0,0,0-.5,0l-.372.376a.354.354,0,0,0,0,.5Z" class="blue"/><path d="M12.575,18.521a.346.346,0,0,0,.494,0l1.817-1.834a.356.356,0,0,0,0-.5l-.373-.376a.346.346,0,0,0-.494,0l-1.2,1.209-.475-.48a.348.348,0,0,0-.495,0l-.372.376a.356.356,0,0,0,0,.5Z" class="blue"/><style type="text/css" nonce="@(HttpContext.GetCspNonce())">.blue{fill:#0366d6}.white{fill:#fff}</style></svg>
                 Dependabot Helper
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#site-navbar" aria-controls="site-navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,10 +108,10 @@
             <div class="collapse navbar-collapse" id="site-navbar">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="~/" title="Manage Updates" id="manage-link" analytics-event="manage_pull_requests">Manage</a>
+                        <a class="nav-link" href="@(HttpContext.RouteUrl("~/"))" title="Manage Updates" id="manage-link" analytics-event="manage_pull_requests">Manage</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="~/configure" title="Configure Repositories" id="configure-link" analytics-event="configure_repos">Configure</a>
+                        <a class="nav-link" href="@(HttpContext.RouteUrl("~/configure"))" title="Configure Repositories" id="configure-link" analytics-event="configure_repos">Configure</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbar-dropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" analytics-event="navbar_dropdown">
@@ -133,22 +139,23 @@
                         </div>
                     </li>
                 </ul>
-                @if (User.Identity!.IsAuthenticated)
+                @if (user.Identity!.IsAuthenticated)
                 {
                     <div class="dropdown-divider"></div>
-                    <form action="~/sign-out" method="post" class="navbar-right">
+                    <form action="@(HttpContext.RouteUrl("~/sign-out"))" method="post" class="navbar-right">
+                        <input name="@(tokens.FormFieldName)" type="hidden" value="@(tokens.RequestToken)">
                         <ul class="nav navbar-nav navbar-right">
                             <li>
                                 @{
-                                    string displayName = User.GetUserName();
-                                    string profileUrl = User.GetProfileUrl();
-                                    string? avatarUrl = User.GetAvatarUrl();
+                                    string displayName = user.GetUserName();
+                                    string profileUrl = user.GetProfileUrl();
+                                    string? avatarUrl = user.GetAvatarUrl();
                                 }
-                                <a class="nav-link" href="@profileUrl" title="View your GitHub profile" target="_blank" analytics-event="view_github_profile">
-                                    <span id="user-name">@displayName</span>
+                                <a class="nav-link" href="@(profileUrl)" title="View your GitHub profile" target="_blank" analytics-event="view_github_profile">
+                                    <span id="user-name">@(displayName)</span>
                                     @if (!string.IsNullOrWhiteSpace(avatarUrl))
                                     {
-                                        <img src="@avatarUrl" class="user-profile" alt="@displayName" title="@displayName" aria-hidden="true" />
+                                        <img src="@(avatarUrl)" class="user-profile" alt="@(displayName)" title="@(displayName)" aria-hidden="true" />
                                     }
                                 </a>
                             </li>
@@ -176,7 +183,7 @@
                   You have exhausted your GitHub API rate limit.
               </p>
               <p>
-                  The rate limit will reset <strong class="relative-timestamp" title="@rateLimits.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits.Reset.Humanize()</strong>.
+                  The rate limit will reset <strong class="relative-timestamp" title="@(rateLimits.Reset.ToString("u", CultureInfo.InvariantCulture))">@(rateLimits.Reset.Humanize())</strong>.
               </p>
             </div>
         }
@@ -191,38 +198,38 @@
             </p>
             <button type="button" class="btn-close close error-dismiss" aria-label="Close"></button>
         </div>
-        @RenderBody()
+        @await RenderBodyAsync()
         <hr />
         <footer>
             <p>
                 <span>
                     <small class="@(rateLimits?.Limit is null ? "d-none" : string.Empty)">
                         GitHub API Limits:
-                        <span id="rate-limit-remaining">@rateLimits?.Remaining</span>/<span id="rate-limit-total">@rateLimits?.Limit</span>.
+                        <span id="rate-limit-remaining">@(rateLimits?.Remaining)</span>/<span id="rate-limit-total">@(rateLimits?.Limit)</span>.
                         Resets
-                        <span id="rate-limit-resets" class="relative-timestamp" title="@rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture)">@rateLimits?.Reset.Humanize()</span>.
+                        <span id="rate-limit-resets" class="relative-timestamp" title="@(rateLimits?.Reset.ToString("u", CultureInfo.InvariantCulture))">@(rateLimits?.Reset.Humanize())</span>.
                     </small>
                 </span>
                 <span class="d-none d-lg-inline-block float-right">
                     <small>
                         Built from
-                        <a href="@commit" title="View commit @GitMetadata.Commit on GitHub" target="_blank" analytics-event="view_commit">
+                        <a href="@(commit)" title="View commit @(GitMetadata.Commit) on GitHub" target="_blank" analytics-event="view_commit">
                             <code>@string.Join(string.Empty, GitMetadata.Commit.Take(7))</code>
                         </a>
                         on
-                        <a href="@branch" title="View branch @GitMetadata.Branch on GitHub" target="_blank" analytics-event="view_branch">
-                            <code>@GitMetadata.Branch</code>
+                        <a href="@(branch)" title="View branch @(GitMetadata.Branch) on GitHub" target="_blank" analytics-event="view_branch">
+                            <code>@(GitMetadata.Branch)</code>
                         </a>
                         @if (!string.IsNullOrWhiteSpace(GitMetadata.BuildId))
                         {
                             <text>
                             by
-                            <a href="@build" title="View deployment on GitHub" target="_blank" analytics-event="view_deployment">
+                            <a href="@(build)" title="View deployment on GitHub" target="_blank" analytics-event="view_deployment">
                                 GitHub
                             </a>
                             </text>
                         }
-                        <span id="build-date" class="relative-timestamp" title="@GitMetadata.Timestamp.ToString("u", CultureInfo.InvariantCulture)">@GitMetadata.Timestamp.Humanize()</span>.
+                        <span id="build-date" class="relative-timestamp" title="@(GitMetadata.Timestamp.ToString("u", CultureInfo.InvariantCulture))">@(GitMetadata.Timestamp.Humanize())</span>.
                     </small>
                 </span>
             </p>
@@ -232,7 +239,7 @@
         </footer>
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="~/static/js/main.js" asp-append-version="true"></script>
+    <script src="@(HttpContext.Content("~/static/js/main.js"))"></script>
 </body>
 <!--
     Deployment:    @(build)

@@ -1,17 +1,15 @@
-@page "/"
-@model IndexModel
-@{
-    ViewData["Title"] = "Manage";
-}
+@inherits RazorSlice<TimeSpan?>
+@implements IUsesLayout<_Layout, LayoutModel>
+
 <div id="not-configured" class="alert alert-warning d-none" role="alert">
     <p>
         <strong>You have not configured any repositories</strong>
     </p>
     <p>
-        Configure which repositories you wish to manage Dependabot updates for <a href="~/configure" title="Configure repositories to mange.">using this page</a>.
+        Configure which repositories you wish to manage Dependabot updates for <a href="@(HttpContext!.RouteUrl("~/configure"))" title="Configure repositories to mange.">using this page</a>.
     </p>
 </div>
-<div id="owner-list" data-refresh-period="@(Model.RefreshPeriod?.TotalMilliseconds)">
+<div id="owner-list" data-refresh-period="@(Model?.TotalMilliseconds)">
     <div class="d-none owner-item owner-template">
         <h2 class="owner-name pl-1"></h2>
         <div class="table-responsive">
@@ -166,3 +164,7 @@
         </div>
     </div>
 </div>
+
+@functions {
+    public LayoutModel LayoutModel { get; } = new("Manage");
+}
