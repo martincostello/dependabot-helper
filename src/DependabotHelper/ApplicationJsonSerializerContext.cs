@@ -4,11 +4,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Amazon.Lambda.APIGatewayEvents;
 using MartinCostello.DependabotHelper.Models;
 
 namespace MartinCostello.DependabotHelper;
 
 [ExcludeFromCodeCoverage]
+[JsonSerializable(typeof(APIGatewayProxyRequest))]
+[JsonSerializable(typeof(APIGatewayProxyResponse))]
 [JsonSerializable(typeof(IList<Repository>))]
 [JsonSerializable(typeof(JsonObject))]
 [JsonSerializable(typeof(MergePullRequestsResponse))]
