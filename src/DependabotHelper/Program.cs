@@ -80,7 +80,7 @@ builder.Logging.AddTelemetry();
 
 builder.WebHost.ConfigureKestrel((p) => p.AddServerHeader = false);
 
-builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
+builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi, new ApplicationLambdaSerializer());
 
 var app = builder.Build();
 
