@@ -35,6 +35,7 @@
     <PackageReference Include="OpenTelemetry.ResourceDetectors.Container" />
     <PackageReference Include="Polly.Extensions" />
     <PackageReference Include="Polly.RateLimiting" />
+    <PackageReference Include="RazorSlices" />
   </ItemGroup>
   <ItemGroup>
     <ContainerPort Include="8080" Type="tcp" />

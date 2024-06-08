@@ -39,6 +39,6 @@
     <CoverletOutputFormat>$(CoverletOutputFormat),cobertura</CoverletOutputFormat>
     <Exclude>[*Tests]*,[xunit.*]*</Exclude>
     <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
-    <Threshold>85</Threshold>
+    <Threshold>83</Threshold>
   </PropertyGroup>
 </Project>

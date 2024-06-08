@@ -7,6 +7,37 @@ public static class HttpContextExtensions
 {
     private const string CspNonceKey = "x-csp-nonce";
 
+    public static string? Content(this HttpContext context, string? contentPath, bool appendVersion = true)
+    {
+        string? result = string.Empty;
+
+        if (!string.IsNullOrEmpty(contentPath))
+        {
+            if (contentPath[0] == '~')
+            {
+                var segment = new PathString(contentPath[1..]);
+                var applicationPath = context.Request.PathBase;
+
+                var path = applicationPath.Add(segment);
+                result = path.Value;
+            }
+            else
+            {
+                result = contentPath;
+            }
+        }
+
+        if (appendVersion)
+        {
+            result += $"?v={GitMetadata.Commit}";
+        }
+
+        return result;
+    }
+
+    public static string? RouteUrl(this HttpContext context, string? path)
+        => Content(context, path, appendVersion: false);
+
     public static string? GetCspNonce(this HttpContext context)
     {
         string? nonce = null;

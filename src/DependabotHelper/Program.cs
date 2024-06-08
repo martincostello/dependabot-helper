@@ -1,19 +1,27 @@
 ﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using System.IO.Compression;
+using System.Net;
+using System.Security.Claims;
 using MartinCostello.DependabotHelper;
+using MartinCostello.DependabotHelper.Models;
+using MartinCostello.DependabotHelper.Slices;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.ConfigureApplication();
 
+builder.Services.AddAuthorization();
 builder.Services.AddGitHubAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddGitHubClient();
 builder.Services.AddHsts((options) => options.MaxAge = TimeSpan.FromDays(180));
-builder.Services.AddRazorPages();
 builder.Services.AddResponseCaching();
 builder.Services.AddTelemetry(builder.Environment);
 
@@ -107,7 +115,116 @@ app.MapAuthenticationRoutes();
 
 app.MapGitHubRoutes(app.Logger);
 
-app.MapRazorPages();
+string[] methods = [HttpMethod.Get.Method, HttpMethod.Head.Method];
+
+app.MapMethods("/", methods, async (HttpContext context, GitHubService service, IOptionsSnapshot<DependabotOptions> options) =>
+{
+    var refreshPeriod = options.Value?.RefreshPeriod;
+
+    try
+    {
+        await service.VerifyCredentialsAsync();
+    }
+    catch (Octokit.AuthorizationException)
+    {
+        await context.ReauthenticateAsync();
+    }
+    catch (Octokit.RateLimitExceededException)
+    {
+        // Ignore and let the page load
+    }
+    catch (Octokit.SecondaryRateLimitExceededException)
+    {
+        // Ignore and let the page load
+    }
+
+    return Results.Extensions.RazorSlice<Home, TimeSpan?>(refreshPeriod);
+}).RequireAuthorization();
+
+app.MapMethods("/configure", methods, async (HttpContext context, GitHubService service, ClaimsPrincipal user) =>
+{
+    IReadOnlyList<Owner> owners = [];
+
+    try
+    {
+        owners = await service.GetOwnersAsync(user);
+    }
+    catch (Octokit.AuthorizationException)
+    {
+        await context.ReauthenticateAsync();
+    }
+    catch (Octokit.RateLimitExceededException)
+    {
+        // Ignore and let the page load
+    }
+    catch (Octokit.SecondaryRateLimitExceededException)
+    {
+        // Ignore and let the page load
+    }
+
+    return Results.Extensions.RazorSlice<Configure, IReadOnlyList<Owner>>(owners);
+}).RequireAuthorization();
+
+app.MapMethods("/sign-in", methods, (HttpContext context, IAntiforgery antiforgery) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        return Results.Redirect("~/");
+    }
+
+    var tokens = antiforgery.GetAndStoreTokens(context);
+
+    return Results.Extensions.RazorSlice<SignIn, AntiforgeryTokenSet>(tokens);
+}).AllowAnonymous();
+
+app.MapMethods("/error", methods, (HttpContext context, int? id = null) =>
+{
+    int statusCode = id ?? StatusCodes.Status500InternalServerError;
+
+    if (!Enum.IsDefined(typeof(HttpStatusCode), (HttpStatusCode)statusCode) ||
+        id < StatusCodes.Status400BadRequest ||
+        id > 599)
+    {
+        statusCode = StatusCodes.Status500InternalServerError;
+    }
+
+    var model = new ErrorModel(statusCode)
+    {
+        RequestId = Activity.Current?.Id ?? context.TraceIdentifier,
+        Subtitle = $"Error (HTTP {statusCode})",
+    };
+
+    switch (statusCode)
+    {
+        case StatusCodes.Status400BadRequest:
+            model.Title = "Bad request";
+            model.Subtitle = "Bad request (HTTP 400)";
+            model.Message = "The request was invalid.";
+            model.IsClientError = true;
+            break;
+
+        case StatusCodes.Status405MethodNotAllowed:
+            model.Title = "Method not allowed";
+            model.Subtitle = "HTTP method not allowed (HTTP 405)";
+            model.Message = "The specified HTTP method was not allowed.";
+            model.IsClientError = true;
+            break;
+
+        case StatusCodes.Status404NotFound:
+            model.Title = "Not found";
+            model.Subtitle = "Page not found (HTTP 404)";
+            model.Message = "The page you requested could not be found.";
+            model.IsClientError = true;
+            break;
+
+        default:
+            break;
+    }
+
+    return Results.Extensions.RazorSlice<Error, ErrorModel>(model, statusCode);
+}).AllowAnonymous()
+  .DisableAntiforgery()
+  .WithMetadata(new ResponseCacheAttribute() { Duration = 0, Location = ResponseCacheLocation.None, NoStore = true });
 
 app.Run();
 

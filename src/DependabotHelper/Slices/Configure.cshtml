@@ -1,13 +1,15 @@
-@page "/configure"
-@model ConfigureModel
+@inherits RazorSlice<IReadOnlyList<Owner>>
+@implements IUsesLayout<_Layout, LayoutModel>
+
 @{
-    ViewData["Title"] = "Configure";
-    string login = User.GetUserLogin();
+    var user = HttpContext!.User;
+    var login = user.GetUserLogin();
 }
+
 <div class="justify-content-center">
     <div class="align-middle">
         <div class="table-responsive">
-            <table class="table" id="repository-owner-list" data-id="@User.GetUserId()">
+            <table class="table" id="repository-owner-list" data-id="@(user.GetUserId())">
                 <caption class="caption-top">
                     GitHub Organizations you have access to.
                 </caption>
@@ -19,17 +21,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(var owner in Model.Owners)
+                    @foreach(var owner in Model)
                     {
                         string highlight = owner.Name == login ? "font-weight-bold" : string.Empty;
                         <tr class="owner-item">
                             <td class="align-middle">
-                                <img src="@owner.AvatarUrl" class="user-profile" alt="@(owner.Name)'s avatar'" aria-hidden="true" />
+                                <img src="@(owner.AvatarUrl)" class="user-profile" alt="@(owner.Name)'s avatar'" aria-hidden="true" />
                             </td>
-                            <td class="align-middle owner-name @highlight">@owner.Name</td>
+                            <td class="align-middle owner-name @(highlight)">@(owner.Name)</td>
                             <td>
                                 <div>
-                                    <button class="btn btn-secondary repo-search" type="button" data-owner="@owner.Name" data-bs-toggle="modal" data-bs-target="#repo-search-modal" analytics-event="view_org_repos_modal">
+                                    <button class="btn btn-secondary repo-search" type="button" data-owner="@(owner.Name)" data-bs-toggle="modal" data-bs-target="#repo-search-modal" analytics-event="view_org_repos_modal">
                                         <span class="fa-solid fa-gears" aria-title="Select repositories"></span>
                                     </button>
                                 </div>
@@ -100,3 +102,7 @@
         </div>
     </div>
 </div>
+
+@functions {
+    public LayoutModel LayoutModel { get; } = new("Configure");
+}
