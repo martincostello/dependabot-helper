@@ -5,6 +5,7 @@ using MartinCostello.DependabotHelper.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 
+#pragma warning disable IDE0130
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class IWebHostBuilderExtensions
