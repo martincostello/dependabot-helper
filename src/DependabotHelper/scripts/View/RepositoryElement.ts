@@ -75,21 +75,21 @@ export class RepositoryElement {
 
                     if (mergeMethodString) {
                         switch (mergeMethodString) {
-                            case MergeMethod.merge:
-                                mergeMethod = MergeMethod.merge;
-                                break;
+                        case MergeMethod.merge:
+                            mergeMethod = MergeMethod.merge;
+                            break;
 
-                            case MergeMethod.rebase:
-                                mergeMethod = MergeMethod.rebase;
-                                break;
+                        case MergeMethod.rebase:
+                            mergeMethod = MergeMethod.rebase;
+                            break;
 
-                            case MergeMethod.squash:
-                                mergeMethod = MergeMethod.squash;
-                                break;
+                        case MergeMethod.squash:
+                            mergeMethod = MergeMethod.squash;
+                            break;
 
-                            default:
-                                mergeMethod = null;
-                                break;
+                        default:
+                            mergeMethod = null;
+                            break;
                         }
                     }
 
