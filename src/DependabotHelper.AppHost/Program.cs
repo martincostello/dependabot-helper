@@ -3,7 +3,21 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddProject<Projects.DependabotHelper>("DependabotHelper");
+const string BlobStorage = "AzureBlobStorage";
+const string KeyVault = "AzureKeyVault";
+const string Storage = "AzureStorage";
+
+var blobStorage = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureStorage(Storage).AddBlobs(BlobStorage)
+    : builder.AddConnectionString(BlobStorage);
+
+var secrets = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureKeyVault(KeyVault)
+    : builder.AddConnectionString(KeyVault);
+
+builder.AddProject<Projects.DependabotHelper>("DependabotHelper")
+       .WithReference(blobStorage)
+       .WithReference(secrets);
 
 var app = builder.Build();
 

@@ -9,17 +9,27 @@ using MartinCostello.DependabotHelper;
 using MartinCostello.DependabotHelper.Models;
 using MartinCostello.DependabotHelper.Slices;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.ConfigureApplication();
+if (builder.Configuration["ConnectionStrings:AzureKeyVault"] is { Length: > 0 })
+{
+    builder.Configuration.AddAzureKeyVaultSecrets("AzureKeyVault");
+}
+
+if (builder.Configuration["ConnectionStrings:AzureBlobStorage"] is { Length: > 0 })
+{
+    builder.AddAzureBlobClient("AzureBlobStorage");
+}
 
 builder.Services.AddAuthorization();
-builder.Services.AddGitHubAuthentication(builder.Configuration, builder.Environment);
+builder.Services.AddGitHubAuthentication(builder.Configuration);
 builder.Services.AddGitHubClient();
 builder.Services.AddHsts((options) => options.MaxAge = TimeSpan.FromDays(180));
 builder.Services.AddResponseCaching();
@@ -115,9 +125,10 @@ app.MapAuthenticationRoutes();
 
 app.MapGitHubRoutes(app.Logger);
 
-string[] methods = [HttpMethod.Get.Method, HttpMethod.Head.Method];
+string[] getAndHead = [HttpMethod.Get.Method, HttpMethod.Head.Method];
+string[] errorMethods = [.. getAndHead, HttpMethod.Post.Method];
 
-app.MapMethods("/", methods, async (HttpContext context, GitHubService service, IOptionsSnapshot<DependabotOptions> options) =>
+app.MapMethods("/", getAndHead, async (HttpContext context, GitHubService service, IOptionsSnapshot<DependabotOptions> options) =>
 {
     var refreshPeriod = options.Value?.RefreshPeriod;
 
@@ -141,7 +152,7 @@ app.MapMethods("/", methods, async (HttpContext context, GitHubService service, 
     return Results.Extensions.RazorSlice<Home, TimeSpan?>(refreshPeriod);
 }).RequireAuthorization();
 
-app.MapMethods("/configure", methods, async (HttpContext context, GitHubService service, ClaimsPrincipal user) =>
+app.MapMethods("/configure", getAndHead, async (HttpContext context, GitHubService service, ClaimsPrincipal user) =>
 {
     IReadOnlyList<Owner> owners = [];
 
@@ -165,7 +176,7 @@ app.MapMethods("/configure", methods, async (HttpContext context, GitHubService 
     return Results.Extensions.RazorSlice<Configure, IReadOnlyList<Owner>>(owners);
 }).RequireAuthorization();
 
-app.MapMethods("/sign-in", methods, (HttpContext context, IAntiforgery antiforgery) =>
+app.MapMethods("/sign-in", getAndHead, (HttpContext context, IAntiforgery antiforgery) =>
 {
     if (context.User.Identity?.IsAuthenticated == true)
     {
@@ -177,7 +188,7 @@ app.MapMethods("/sign-in", methods, (HttpContext context, IAntiforgery antiforge
     return Results.Extensions.RazorSlice<SignIn, AntiforgeryTokenSet>(tokens);
 }).AllowAnonymous();
 
-app.MapMethods("/error", methods, (HttpContext context, int? id = null) =>
+app.MapMethods("/error", errorMethods, (HttpContext context, int? id = null) =>
 {
     int statusCode = id ?? StatusCodes.Status500InternalServerError;
 
@@ -188,9 +199,20 @@ app.MapMethods("/error", methods, (HttpContext context, int? id = null) =>
         statusCode = StatusCodes.Status500InternalServerError;
     }
 
+    var requestId = Activity.Current?.Id ?? context.TraceIdentifier;
+
+    if (context.Request.IsJson())
+    {
+        var detail = ReasonPhrases.GetReasonPhrase(statusCode);
+        var instance = context.Features.Get<IStatusCodeReExecuteFeature>()?.OriginalPath ?? context.Request.Path;
+        var extensions = new Dictionary<string, object?>(1) { ["correlation"] = requestId };
+
+        return Results.Problem(detail, instance, statusCode, extensions: extensions);
+    }
+
     var model = new ErrorModel(statusCode)
     {
-        RequestId = Activity.Current?.Id ?? context.TraceIdentifier,
+        RequestId = requestId,
         Subtitle = $"Error (HTTP {statusCode})",
     };
 

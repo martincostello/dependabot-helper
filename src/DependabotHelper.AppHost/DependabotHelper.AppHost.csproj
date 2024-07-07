@@ -3,9 +3,12 @@
     <IsAspireHost>true</IsAspireHost>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <UserSecretsId>DependabotHelper-AppHost</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.Azure.KeyVault" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DependabotHelper\DependabotHelper.csproj" />
