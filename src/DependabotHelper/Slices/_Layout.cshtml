@@ -90,7 +90,6 @@
     @{
         var tokens = Antiforgery.GetTokens(HttpContext);
     }
-    <meta name="x-analytics-id" content="@(Options.Value.AnalyticsId)" />
     <meta name="x-antiforgery-header" content="@(tokens.HeaderName)" />
     <meta name="x-antiforgery-token" content="@(tokens.RequestToken)" />
     <meta name="x-user-id" content="@(user.GetUserId())" />

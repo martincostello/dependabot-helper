@@ -14,12 +14,12 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
         ';',
         "default-src 'self'",
         "script-src 'self' 'nonce-{0}' cdnjs.cloudflare.com",
-        "script-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com {2}",
+        "script-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com",
         "style-src 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
         "style-src-elem 'self' 'nonce-{0}' cdnjs.cloudflare.com use.fontawesome.com",
-        "img-src 'self' data: avatars.githubusercontent.com {1} {4} {5}",
+        "img-src 'self' data: avatars.githubusercontent.com {1} {2} {3}",
         "font-src 'self' cdnjs.cloudflare.com use.fontawesome.com",
-        "connect-src 'self' {3}",
+        "connect-src 'self'",
         "media-src 'none'",
         "object-src 'none'",
         "child-src 'self'",
@@ -39,8 +39,6 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
         string nonce = GenerateNonce();
         context.SetCspNonce(nonce);
 
-        bool renderAnalytics = !string.IsNullOrEmpty(siteOptions.Value.AnalyticsId);
-
         context.Response.OnStarting(() =>
         {
             context.Response.Headers.Remove(HeaderNames.Server);
@@ -51,8 +49,7 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
                 context.Response.Headers.ContentSecurityPolicy = ContentSecurityPolicy(
                     nonce,
                     siteOptions.Value.CdnHost,
-                    gitHubOptions.Value.EnterpriseDomain,
-                    renderAnalytics);
+                    gitHubOptions.Value.EnterpriseDomain);
             }
 
             if (context.Request.IsHttps)
@@ -82,8 +79,7 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
     private static string ContentSecurityPolicy(
         string nonce,
         string cdnHost,
-        string gitHubEnterpriseDomain,
-        bool renderAnalytics)
+        string gitHubEnterpriseDomain)
     {
         var gitHubHost = ParseGitHubHost(gitHubEnterpriseDomain);
 
@@ -92,8 +88,6 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
             ContentSecurityPolicyTemplate,
             nonce,
             gitHubHost,
-            renderAnalytics ? "www.googletagmanager.com" : string.Empty,
-            renderAnalytics ? "region1.google-analytics.com www.google-analytics.com" : string.Empty,
             "avatars." + gitHubHost,
             cdnHost);
     }

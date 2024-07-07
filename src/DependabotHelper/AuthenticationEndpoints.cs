@@ -3,6 +3,7 @@
 
 using System.Security.Claims;
 using AspNet.Security.OAuth.GitHub;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -31,14 +32,12 @@ public static class AuthenticationEndpoints
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/>.</param>
     /// <param name="configuration">The <see cref="IConfiguration"/>.</param>
-    /// <param name="environment">The <see cref="IHostEnvironment"/>.</param>
     /// <returns>
     /// A <see cref="IServiceCollection"/> that can be used to further configure the application.
     /// </returns>
     public static IServiceCollection AddGitHubAuthentication(
         this IServiceCollection services,
-        IConfiguration configuration,
-        IHostEnvironment environment)
+        IConfiguration configuration)
     {
         services
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -103,18 +102,20 @@ public static class AuthenticationEndpoints
             .AddDataProtection()
             .SetApplicationName(ApplicationName);
 
-        string? connectionString = configuration["ConnectionStrings:AzureStorage"];
-
-        if (!string.IsNullOrWhiteSpace(connectionString))
+        if (configuration["ConnectionStrings:AzureBlobStorage"] is { Length: > 0 })
         {
 #pragma warning disable CA1308
-            string relativePath = $"dependabothelper/{environment.EnvironmentName.ToLowerInvariant()}/keys.xml";
-#pragma warning restore CA1308
+            dataProtection.PersistKeysToAzureBlobStorage(static (provider) =>
+            {
+                var client = provider.GetRequiredService<BlobServiceClient>();
+                var environment = provider.GetRequiredService<IHostEnvironment>();
 
-            dataProtection.PersistKeysToAzureBlobStorage(
-                connectionString,
-                "data-protection",
-                relativePath);
+                string containerName = "data-protection";
+                string blobName = $"{environment.EnvironmentName.ToLowerInvariant()}/keys.xml";
+
+                return client.GetBlobContainerClient(containerName).GetBlobClient(blobName);
+            });
+#pragma warning restore CA1308
         }
 
         return services;
