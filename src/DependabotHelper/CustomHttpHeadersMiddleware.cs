@@ -105,6 +105,6 @@ public sealed class CustomHttpHeadersMiddleware(RequestDelegate next)
     private static string GenerateNonce()
     {
         byte[] data = RandomNumberGenerator.GetBytes(32);
-        return Convert.ToBase64String(data).Replace('+', '/');
+        return System.Buffers.Text.Base64Url.EncodeToString(data);
     }
 }
