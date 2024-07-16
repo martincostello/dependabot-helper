@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Security.Claims;
+using Azure.Identity;
 using MartinCostello.DependabotHelper;
 using MartinCostello.DependabotHelper.Models;
 using MartinCostello.DependabotHelper.Slices;
@@ -18,14 +19,19 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+{
+    ExcludeVisualStudioCredential = true,
+});
+
 if (builder.Configuration["ConnectionStrings:AzureKeyVault"] is { Length: > 0 })
 {
-    builder.Configuration.AddAzureKeyVaultSecrets("AzureKeyVault");
+    builder.Configuration.AddAzureKeyVaultSecrets("AzureKeyVault", (p) => p.Credential = credential);
 }
 
 if (builder.Configuration["ConnectionStrings:AzureBlobStorage"] is { Length: > 0 })
 {
-    builder.AddAzureBlobClient("AzureBlobStorage");
+    builder.AddAzureBlobClient("AzureBlobStorage", (p) => p.Credential = credential);
 }
 
 builder.Services.AddAuthorization();
