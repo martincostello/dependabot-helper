@@ -17,6 +17,4 @@ namespace MartinCostello.DependabotHelper;
 [JsonSerializable(typeof(MergePullRequestsResponse))]
 [JsonSerializable(typeof(RepositoryPullRequests))]
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
-internal sealed partial class ApplicationJsonSerializerContext : JsonSerializerContext
-{
-}
+internal sealed partial class ApplicationJsonSerializerContext : JsonSerializerContext;
