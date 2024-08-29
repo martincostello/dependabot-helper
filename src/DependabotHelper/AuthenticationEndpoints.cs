@@ -139,7 +139,7 @@ public static class AuthenticationEndpoints
     /// The GitHub avatar URL for the current user, if any.
     /// </returns>
     public static string GetAvatarUrl(this ClaimsPrincipal user)
-        => GitHubService.ApplyMaximumAvatarSize(user.FindFirst(GitHubAvatarClaim)?.Value ?? string.Empty);
+        => user.FindFirst(GitHubAvatarClaim)?.Value ?? string.Empty;
 
     /// <summary>
     /// Gets the user's GitHub profile URL.

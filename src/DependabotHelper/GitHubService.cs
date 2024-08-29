@@ -31,16 +31,6 @@ public sealed class GitHubService(
 
     private readonly DependabotOptions _options = options.Value;
 
-    public static string ApplyMaximumAvatarSize(string url)
-    {
-        if (!string.IsNullOrEmpty(url))
-        {
-            url += "&size=32";
-        }
-
-        return url;
-    }
-
     public async Task ApprovePullRequestAsync(string owner, string name, int number)
     {
         logger.LogInformation(
@@ -88,7 +78,7 @@ public sealed class GitHubService(
         {
             owners.Add(new()
             {
-                AvatarUrl = ApplyMaximumAvatarSize(organization.AvatarUrl),
+                AvatarUrl = organization.AvatarUrl,
                 Name = organization.Login,
             });
         }
