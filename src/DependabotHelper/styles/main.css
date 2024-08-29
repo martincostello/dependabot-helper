@@ -25,7 +25,7 @@ html {
 }
 
 a {
-    color: #0060C7;
+    color: #0060c7;
     text-decoration: none;
 }
 
@@ -46,8 +46,8 @@ img {
 }
 
 img.user-profile {
-    max-height: 30px;
-    max-width: 30px;
+    max-height: 2rem;
+    max-width: 2rem;
 }
 
 /*
@@ -161,7 +161,7 @@ tr.table-inactive > td span[aria-hidden="true"].repo-status {
 }
 
 .navbar-dark .navbar-nav .nav-link {
-    color: #B0B0B0;
+    color: #b0b0b0;
 }
 
 .pr-title::after {
