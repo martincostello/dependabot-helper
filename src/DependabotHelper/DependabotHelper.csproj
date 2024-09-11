@@ -7,10 +7,12 @@
     <IsPackable>false</IsPackable>
     <PublishSelfContained>true</PublishSelfContained>
     <RootNamespace>MartinCostello.DependabotHelper</RootNamespace>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <TypeScriptToolsVersion>latest</TypeScriptToolsVersion>
     <UserSecretsId>DependabotHelper</UserSecretsId>
+    <!-- HACK Workaround for https://github.com/dotnet/runtime/issues/106566 -->
+    <UseSystemZlib>false</UseSystemZlib>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" />
