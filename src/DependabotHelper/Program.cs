@@ -134,7 +134,11 @@ app.MapGitHubRoutes(app.Logger);
 string[] getAndHead = [HttpMethod.Get.Method, HttpMethod.Head.Method];
 string[] errorMethods = [.. getAndHead, HttpMethod.Post.Method];
 
-app.MapMethods("/", getAndHead, async (HttpContext context, GitHubService service, IOptionsSnapshot<DependabotOptions> options) =>
+app.MapMethods("/", getAndHead, async (
+    HttpContext context,
+    IAntiforgery antiforgery,
+    GitHubService service,
+    IOptionsSnapshot<DependabotOptions> options) =>
 {
     var refreshPeriod = options.Value?.RefreshPeriod;
 
@@ -155,10 +159,16 @@ app.MapMethods("/", getAndHead, async (HttpContext context, GitHubService servic
         // Ignore and let the page load
     }
 
+    antiforgery.SetCookieTokenAndHeader(context);
+
     return Results.Extensions.RazorSlice<Home, TimeSpan?>(refreshPeriod);
 }).RequireAuthorization();
 
-app.MapMethods("/configure", getAndHead, async (HttpContext context, GitHubService service, ClaimsPrincipal user) =>
+app.MapMethods("/configure", getAndHead, async (
+    HttpContext context,
+    IAntiforgery antiforgery,
+    GitHubService service,
+    ClaimsPrincipal user) =>
 {
     IReadOnlyList<Owner> owners = [];
 
@@ -178,6 +188,8 @@ app.MapMethods("/configure", getAndHead, async (HttpContext context, GitHubServi
     {
         // Ignore and let the page load
     }
+
+    antiforgery.SetCookieTokenAndHeader(context);
 
     return Results.Extensions.RazorSlice<Configure, IReadOnlyList<Owner>>(owners);
 }).RequireAuthorization();
