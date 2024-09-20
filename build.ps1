@@ -73,7 +73,10 @@ if ($installDotNetSdk -eq $true) {
 function DotNetTest {
     param([string]$Project)
 
-    $additionalArgs = @()
+    $additionalArgs = @(
+        "--logger",
+        "trx"
+    )
 
     if (![string]::IsNullOrEmpty($TestFilter)) {
         $additionalArgs += "--filter"
