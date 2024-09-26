@@ -6,20 +6,19 @@ import { OwnerRepositories, UserProfile } from '../Models/index';
 export class StorageClient {
     private readonly key = 'github-profiles';
 
+    constructor(private userId: string) {}
+
     getOwners(): Map<string, string[]> {
-        const userId = this.getUserId();
-        return this.getOwnersForUser(userId);
+        return this.getOwnersForUser(this.userId);
     }
 
     setOwners(owner: string, names: string[]): void {
-        const userId = this.getUserId();
-
         const profiles = this.getProfiles();
-        let profile = profiles.find((item) => item.userId === userId);
+        let profile = profiles.find((item) => item.userId === this.userId);
 
         if (!profile) {
             profile = {
-                userId,
+                userId: this.userId,
                 owners: [],
             };
             profiles.push(profile);
@@ -76,10 +75,5 @@ export class StorageClient {
         }
 
         return profiles;
-    }
-
-    private getUserId(): string {
-        const element = document.querySelector('meta[name="x-user-id"]');
-        return element.getAttribute('content');
     }
 }
