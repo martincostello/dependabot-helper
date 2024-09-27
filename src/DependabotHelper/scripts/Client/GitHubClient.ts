@@ -6,7 +6,10 @@ import { ApiError, MergeMethod, RateLimits, Repository, RepositoryPullRequests }
 export class GitHubClient {
     readonly rateLimits: RateLimits;
 
-    constructor() {
+    constructor(
+        private antiforgeryHeader: string,
+        private antiforgeryToken: string
+    ) {
         this.rateLimits = {
             limit: null,
             remaining: null,
@@ -74,15 +77,12 @@ export class GitHubClient {
     }
 
     private async postJson(url: string): Promise<void> {
-        const antiforgeryHeader = this.getMetaContent('x-antiforgery-header');
-        const antiforgeryToken = this.getMetaContent('x-antiforgery-token');
-
         const payload = {};
         const headers = new Headers();
 
         headers.set('Accept', 'application/json');
         headers.set('Content-Type', 'application/json');
-        headers.set(antiforgeryHeader, antiforgeryToken);
+        headers.set(this.antiforgeryHeader, this.antiforgeryToken);
 
         const init = {
             method: 'POST',
@@ -97,11 +97,6 @@ export class GitHubClient {
         if (!response.ok) {
             throw new Error(response.status.toString(10));
         }
-    }
-
-    private getMetaContent(name: string): string {
-        const element = document.querySelector(`meta[name="${name}"]`);
-        return element?.getAttribute('content') ?? '';
     }
 
     private updateRateLimits(headers: Headers) {
