@@ -28,16 +28,16 @@ For more information, please refer to the [documentation].
 
 ## Debugging
 
-> [!WARNING] Do not commit GitHub OAuth secrets to source control. Configure them
-with [User Secrets] instead.
+> [!WARNING]
+> Do not commit GitHub OAuth secrets to source control. Configure them with [User Secrets] instead.
 
 To debug the application locally outside of the integration tests, you will need
 to [create a GitHub OAuth app] to obtain secrets for the `GitHub:ClientId` and
 `GitHub:ClientSecret` [options] so that the [OAuth user authentication] works and
 you can log into the Dependabot Helper UI. GitHub Enterprise Server is also supported.
 
-> [!TIP] When creating the GitHub OAuth app, use `https://localhost:5001/sign-in-github`
-as the _Authorization callback URL_.
+> [!TIP]
+> When creating the GitHub OAuth app, use `https://localhost:5001/sign-in-github` as the _Authorization callback URL_.
 
 [create a GitHub OAuth app]: https://docs.github.com/developers/apps/building-oauth-apps/creating-an-oauth-app
 [OAuth user authentication]: https://docs.microsoft.com/aspnet/core/security/authentication/social/
