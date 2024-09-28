@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/martincostello/dependabot-helper/branch/main/graph/badge.svg)](https://codecov.io/gh/martincostello/dependabot-helper)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/martincostello/dependabot-helper/badge)](https://securityscorecards.dev/viewer/?uri=github.com/martincostello/dependabot-helper)
 
-[![The Dependabot Helper homepage](./docs/images/manage.png "Dependabot Helper")](#readme)
+[![The Dependabot Helper homepage](./docs/images/manage.png "Dependabot Helper")](#introduction)
 
 ## Introduction
 
@@ -28,16 +28,16 @@ For more information, please refer to the [documentation].
 
 ## Debugging
 
+> [!WARNING] Do not commit GitHub OAuth secrets to source control. Configure them
+with [User Secrets] instead.
+
 To debug the application locally outside of the integration tests, you will need
 to [create a GitHub OAuth app] to obtain secrets for the `GitHub:ClientId` and
 `GitHub:ClientSecret` [options] so that the [OAuth user authentication] works and
 you can log into the Dependabot Helper UI. GitHub Enterprise Server is also supported.
 
-> 💡 When creating the GitHub OAuth app, use `https://localhost:5001/sign-in-github`
+> [!TIP] When creating the GitHub OAuth app, use `https://localhost:5001/sign-in-github`
 as the _Authorization callback URL_.
-
-> ⚠️ Do not commit GitHub OAuth secrets to source control. Configure them
-with [User Secrets] instead.
 
 [create a GitHub OAuth app]: https://docs.github.com/developers/apps/building-oauth-apps/creating-an-oauth-app
 [OAuth user authentication]: https://docs.microsoft.com/aspnet/core/security/authentication/social/
@@ -73,7 +73,7 @@ Any feedback or issues can be added to the issues for this project in
 
 The repository is hosted in
 [GitHub](https://github.com/martincostello/dependabot-helper "This project on GitHub.com"):
-https://github.com/martincostello/dependabot-helper.git
+<https://github.com/martincostello/dependabot-helper.git>
 
 ## License
 
