@@ -23,7 +23,6 @@ describe('App', () => {
     });
 
     describe('for pull requests', () => {
-
         beforeEach(() => {
             /* eslint-disable max-len */
             document.body.innerHTML = `
@@ -239,7 +238,6 @@ describe('App', () => {
     });
 
     describe('for configuring repositories', () => {
-
         beforeEach(() => {
             /* eslint-disable max-len */
             document.body.innerHTML = `
