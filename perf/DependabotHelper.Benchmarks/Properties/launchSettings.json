@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DependabotHelper.Benchmarks": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}
