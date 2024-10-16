@@ -56,11 +56,6 @@ following set of commands:
 ```powershell
 git clone https://github.com/martincostello/dependabot-helper.git
 cd dependabot-helper
-
-# Restore Aspire workload on first usage (requires elevation on Windows if not installed)
-dotnet workload restore
-
-# Build and test the application
 ./build.ps1
 ```
 
