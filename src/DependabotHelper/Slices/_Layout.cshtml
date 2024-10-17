@@ -178,12 +178,18 @@
         @if (hasRateLimit && rateLimits?.Remaining is { } value && value < 1)
         {
             <div class="alert alert-warning" role="alert">
-              <p>
-                  You have exhausted your GitHub API rate limit.
-              </p>
-              <p>
-                  The rate limit will reset <strong class="relative-timestamp" title="@(rateLimits.Reset.ToString("u", CultureInfo.InvariantCulture))">@(rateLimits.Reset.Humanize())</strong>.
-              </p>
+                <p>
+                    You have exhausted your GitHub API rate limit.
+                </p>
+                @{
+                    var resetsAt = rateLimits.Reset;
+                }
+                @if (resetsAt > DateTimeOffset.UnixEpoch)
+                {
+                    <p>
+                        The rate limit will reset <strong class="relative-timestamp" title="@(resetsAt.ToString("u", CultureInfo.InvariantCulture))">@(resetsAt.Humanize())</strong>.
+                    </p>
+                }
             </div>
         }
         <div class="alert alert-danger alert-dismissible fade show d-none" role="alert" id="error-alert">
