@@ -4,7 +4,7 @@
     <GlobalPackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.7.1" />
+    <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.7.2" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.12.0" />
     <PackageVersion Include="Aspire.Azure.Security.KeyVault" Version="9.0.0" />
     <PackageVersion Include="Aspire.Azure.Storage.Blobs" Version="9.0.0" />
