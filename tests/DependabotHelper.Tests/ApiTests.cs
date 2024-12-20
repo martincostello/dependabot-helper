@@ -14,7 +14,7 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
-[Collection(AppCollection.Name)]
+[Collection<AppCollection>]
 public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper) : IntegrationTests<AppFixture>(fixture, outputHelper)
 {
     private static readonly JsonSerializerOptions SerializerOptions = CreateSerializerOptions();
@@ -34,7 +34,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         using var response = await client.PostAsJsonAsync(
             $"/github/repos/{user.Login}/{repository.Name}/pulls/{pullRequest.Number}/approve",
-            new { });
+            new { },
+            CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
@@ -52,7 +53,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}", CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -73,7 +74,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}", CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -102,7 +103,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{organization.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{organization.Login}", CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -130,7 +131,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}", CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -171,7 +172,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}", CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -220,7 +221,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}");
+        var actual = await client.GetFromJsonAsync<IList<Repository>>($"/github/repos/{user.Login}", CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -292,12 +293,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         }
 
         // Act
-        using var response = await client.PostAsJsonAsync(requestUri, new { });
+        using var response = await client.PostAsJsonAsync(requestUri, new { }, CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var actual = await response.Content.ReadFromJsonAsync<MergePullRequestsResponse>();
+        var actual = await response.Content.ReadFromJsonAsync<MergePullRequestsResponse>(CancellationToken);
 
         actual.ShouldNotBeNull();
         actual.Numbers.ShouldNotBeNull();
@@ -316,12 +317,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls", CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(CancellationToken);
 
         problem.ShouldNotBeNull();
         problem.Status.ShouldBe(StatusCodes.Status404NotFound);
@@ -343,12 +344,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls", CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(CancellationToken);
 
         problem.ShouldNotBeNull();
         problem.Status.ShouldBe(StatusCodes.Status401Unauthorized);
@@ -370,12 +371,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls", CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(CancellationToken);
 
         problem.ShouldNotBeNull();
         problem.Status.ShouldBe(StatusCodes.Status403Forbidden);
@@ -406,12 +407,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync();
 
         // Act
-        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls");
+        using var response = await client.GetAsync($"/github/repos/{user.Login}/{repository.Name}/pulls", CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe((HttpStatusCode)StatusCodes.Status429TooManyRequests);
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(CancellationToken);
 
         problem.ShouldNotBeNull();
         problem.Status.ShouldBe(StatusCodes.Status429TooManyRequests);
@@ -435,12 +436,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var request = new HttpRequestMessage(new(httpMethod), requestUri);
 
         // Act
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(CancellationToken);
 
         problem.ShouldNotBeNull();
         problem.Status.ShouldBe(StatusCodes.Status500InternalServerError);
@@ -459,12 +460,12 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         using var client = await CreateAuthenticatedClientAsync(setAntiforgeryTokenHeader: false);
 
         // Act
-        using var response = await client.PostAsJsonAsync(requestUri, new { });
+        using var response = await client.PostAsJsonAsync(requestUri, new { }, CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(CancellationToken);
 
         problem.ShouldNotBeNull();
         problem.Status.ShouldBe(StatusCodes.Status400BadRequest);
@@ -490,7 +491,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{user.Login}/{repository.Name}/pulls");
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -527,7 +529,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{user.Login}/{repository.Name}/pulls");
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -555,7 +558,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
-            $"/github/repos/{user.Login}/{repository.Name}/pulls");
+            $"/github/repos/{user.Login}/{repository.Name}/pulls",
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -596,7 +600,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -646,7 +651,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -688,7 +694,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -741,7 +748,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -786,7 +794,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -833,7 +842,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -877,7 +887,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -928,7 +939,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -970,7 +982,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1012,7 +1025,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1066,7 +1080,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1110,7 +1125,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1152,7 +1168,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1196,7 +1213,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1241,7 +1259,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1287,7 +1306,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1340,7 +1360,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1401,7 +1422,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1452,7 +1474,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1509,7 +1532,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1566,7 +1590,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1646,7 +1671,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1685,7 +1711,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1737,7 +1764,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1785,7 +1813,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1835,7 +1864,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1888,7 +1918,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1938,7 +1969,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -1998,7 +2030,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -2054,7 +2087,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
@@ -2104,7 +2138,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         // Act
         var actual = await client.GetFromJsonAsync<RepositoryPullRequests>(
             $"/github/repos/{user.Login}/{repository.Name}/pulls",
-            SerializerOptions);
+            SerializerOptions,
+            CancellationToken);
 
         // Assert
         actual.ShouldNotBeNull();
