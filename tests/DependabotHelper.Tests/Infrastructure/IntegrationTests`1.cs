@@ -11,10 +11,11 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
 
-public abstract class IntegrationTests<T> : IAsyncLifetime
+public abstract class IntegrationTests<T> : IAsyncLifetime, IDisposable
     where T : AppFixture
 {
     private readonly IDisposable _scope;
+    private bool _disposed;
 
     protected IntegrationTests(T fixture, ITestOutputHelper outputHelper)
     {
@@ -27,17 +28,29 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
         Fixture.Interceptor.RegisterBundle(Path.Combine("Bundles", "oauth-http-bundle.json"));
     }
 
+    ~IntegrationTests()
+    {
+        Dispose(false);
+    }
+
+    protected CancellationToken CancellationToken => TestContext.Current.CancellationToken;
+
     protected T Fixture { get; }
 
     protected ITestOutputHelper OutputHelper { get; }
 
-    public virtual Task InitializeAsync() => Task.CompletedTask;
+    public virtual ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public virtual Task DisposeAsync()
+    public void Dispose()
     {
-        _scope?.Dispose();
-        Fixture.ClearConfigurationOverrides();
-        return Task.CompletedTask;
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsync(true);
+        GC.SuppressFinalize(this);
     }
 
     protected static HttpRequestInterceptionBuilder ConfigureRateLimit(HttpRequestInterceptionBuilder builder)
@@ -51,6 +64,26 @@ public abstract class IntegrationTests<T> : IAsyncLifetime
             .WithResponseHeader("x-ratelimit-limit", "5000")
             .WithResponseHeader("x-ratelimit-remaining", "4999")
             .WithResponseHeader("x-ratelimit-reset", oneHourFromNowEpoch);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _scope?.Dispose();
+                Fixture.ClearConfigurationOverrides();
+            }
+
+            _disposed = true;
+        }
+    }
+
+    protected virtual ValueTask DisposeAsync(bool disposing)
+    {
+        Dispose(disposing);
+        return ValueTask.CompletedTask;
     }
 
     protected async Task<HttpClient> CreateAuthenticatedClientAsync(bool setAntiforgeryTokenHeader = true)

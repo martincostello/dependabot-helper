@@ -11,7 +11,7 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
-[Collection(HttpServerCollection.Name)]
+[Collection<HttpServerCollection>]
 public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) : IntegrationTests<HttpServerFixture>(fixture, outputHelper)
 {
     public static TheoryData<string, string?> Browsers()
@@ -37,22 +37,10 @@ public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) 
         return browsers;
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         InstallPlaywright();
         await base.InitializeAsync();
-    }
-
-    public override Task DisposeAsync()
-    {
-        var cache = Fixture.Services.GetRequiredService<IMemoryCache>();
-
-        if (cache is MemoryCache memoryCache)
-        {
-            memoryCache.Compact(100);
-        }
-
-        return base.DisposeAsync();
     }
 
     [Theory]
@@ -334,6 +322,18 @@ public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) 
             await ownerRepos[1].PendingCountAsync().ShouldBe(1);
             await ownerRepos[1].SuccessCountAsync().ShouldBe(1);
         });
+    }
+
+    protected override async ValueTask DisposeAsync(bool disposing)
+    {
+        var cache = Fixture.Services.GetRequiredService<IMemoryCache>();
+
+        if (cache is MemoryCache memoryCache)
+        {
+            memoryCache.Compact(100);
+        }
+
+        await base.DisposeAsync(disposing);
     }
 
     private static void InstallPlaywright()
