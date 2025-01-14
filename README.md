@@ -1,6 +1,6 @@
 # Dependabot Helper
 
-[![Build status](https://github.com/martincostello/dependabot-helper/workflows/build/badge.svg?branch=main&event=push)](https://github.com/martincostello/dependabot-helper/actions?query=workflow%3Abuild+branch%3Amain+event%3Apush)
+[![Build status](https://github.com/martincostello/dependabot-helper/actions/workflows/build.yml/badge.svg?branch=main&event=push)](https://github.com/martincostello/dependabot-helper/actions/workflows/build.yml?query=branch%3Amain+event%3Apush)
 [![codecov](https://codecov.io/gh/martincostello/dependabot-helper/branch/main/graph/badge.svg)](https://codecov.io/gh/martincostello/dependabot-helper)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/martincostello/dependabot-helper/badge)](https://securityscorecards.dev/viewer/?uri=github.com/martincostello/dependabot-helper)
 
