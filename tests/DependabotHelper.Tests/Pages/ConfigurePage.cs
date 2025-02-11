@@ -1,4 +1,4 @@
-﻿// Copyright (c) Martin Costello, 2022. All rights reserved.
+// Copyright (c) Martin Costello, 2022. All rights reserved.
 // Licensed under the Apache 2.0 license. See the LICENSE file in the project root for full license information.
 
 using Microsoft.Playwright;
@@ -10,7 +10,7 @@ public class ConfigurePage(IPage page) : AppPage(page)
     public async Task<IReadOnlyList<OwnerItem>> GetOwnersAsync()
     {
         var elements = await Page.QuerySelectorAllAsync(Selectors.OwnerItem);
-        return elements.Select((p) => new OwnerItem(p, Page)).ToArray();
+        return [.. elements.Select((p) => new OwnerItem(p, Page))];
     }
 
     public async Task WaitForOwnerCountAsync(int count)
