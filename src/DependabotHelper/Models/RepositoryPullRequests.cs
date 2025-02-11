@@ -14,14 +14,14 @@ public sealed class RepositoryPullRequests : Repository
     public IList<PullRequest> All { get; set; } = [];
 
     [JsonIgnore]
-    public IReadOnlyList<PullRequest> Error => All.Where((p) => p.Status == ChecksStatus.Error).ToList();
+    public IReadOnlyList<PullRequest> Error => [.. All.Where((p) => p.Status == ChecksStatus.Error)];
 
     [JsonIgnore]
-    public IReadOnlyList<PullRequest> Pending => All.Where((p) => p.Status == ChecksStatus.Pending).ToList();
+    public IReadOnlyList<PullRequest> Pending => [.. All.Where((p) => p.Status == ChecksStatus.Pending)];
 
     [JsonIgnore]
-    public IReadOnlyList<PullRequest> Success => All.Where((p) => p.Status == ChecksStatus.Success).ToList();
+    public IReadOnlyList<PullRequest> Success => [.. All.Where((p) => p.Status == ChecksStatus.Success)];
 
     [JsonIgnore]
-    public IReadOnlyList<PullRequest> Approved => All.Where((p) => p.IsApproved).ToList();
+    public IReadOnlyList<PullRequest> Approved => [.. All.Where((p) => p.IsApproved)];
 }
