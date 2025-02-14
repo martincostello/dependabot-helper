@@ -46,7 +46,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{420A66E9-DD98-499A-8675-A1F1248C8D50}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
-		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
+		.github\workflows\codeql.yml = .github\workflows\codeql.yml
 		.github\workflows\dependency-review.yml = .github\workflows\dependency-review.yml
 		.github\workflows\lighthouse.yml = .github\workflows\lighthouse.yml
 		.github\workflows\lint.yml = .github\workflows\lint.yml
