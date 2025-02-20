@@ -27,7 +27,7 @@
     <PackageVersion Include="MartinCostello.Logging.XUnit.v3" Version="0.5.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.2.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.50.0" />
     <PackageVersion Include="Microsoft.TypeScript.MSBuild" Version="5.7.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
