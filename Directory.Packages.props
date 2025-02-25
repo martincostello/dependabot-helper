@@ -6,11 +6,11 @@
   <ItemGroup>
     <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.7.3" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.12.2" />
-    <PackageVersion Include="Aspire.Azure.Security.KeyVault" Version="9.0.0" />
-    <PackageVersion Include="Aspire.Azure.Storage.Blobs" Version="9.0.0" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.0.0" />
-    <PackageVersion Include="Aspire.Hosting.Azure.KeyVault" Version="9.0.0" />
-    <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="9.0.0" />
+    <PackageVersion Include="Aspire.Azure.Security.KeyVault" Version="9.1.0" />
+    <PackageVersion Include="Aspire.Azure.Storage.Blobs" Version="9.1.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.1.0" />
+    <PackageVersion Include="Aspire.Hosting.Azure.KeyVault" Version="9.1.0" />
+    <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="9.1.0" />
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="9.0.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.0" />
