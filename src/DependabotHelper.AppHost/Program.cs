@@ -7,9 +7,14 @@ const string BlobStorage = "AzureBlobStorage";
 const string KeyVault = "AzureKeyVault";
 const string Storage = "AzureStorage";
 
-var blobStorage = builder.ExecutionContext.IsPublishMode
-    ? builder.AddAzureStorage(Storage).AddBlobs(BlobStorage)
-    : builder.AddConnectionString(BlobStorage);
+var storage = builder.AddAzureStorage(Storage)
+                     .RunAsEmulator((container) =>
+                     {
+                         container.WithDataVolume()
+                                  .WithLifetime(ContainerLifetime.Persistent);
+                     });
+
+var blobStorage = storage.AddBlobs(BlobStorage);
 
 var secrets = builder.ExecutionContext.IsPublishMode
     ? builder.AddAzureKeyVault(KeyVault)
@@ -17,7 +22,8 @@ var secrets = builder.ExecutionContext.IsPublishMode
 
 builder.AddProject<Projects.DependabotHelper>("DependabotHelper")
        .WithReference(blobStorage)
-       .WithReference(secrets);
+       .WithReference(secrets)
+       .WaitFor(blobStorage);
 
 var app = builder.Build();
 
