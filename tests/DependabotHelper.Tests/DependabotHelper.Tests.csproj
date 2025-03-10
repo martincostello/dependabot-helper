@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <NoWarn>$(NoWarn);CA1054;CA1308;CA1707;CA1711;CA1812;CA1861;CA2007;CA2234;SA1600</NoWarn>
+    <NoWarn>$(NoWarn);CA1054;CA2234</NoWarn>
     <OutputType>Exe</OutputType>
     <RootNamespace>MartinCostello.DependabotHelper</RootNamespace>
     <TargetFramework>net9.0</TargetFramework>
@@ -28,16 +28,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DependabotHelper\DependabotHelper.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Using Include="Shouldly" />
-    <Using Include="Xunit" />
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(BuildingInsideVisualStudio)' != 'true' ">
+  <PropertyGroup>
     <CollectCoverage>true</CollectCoverage>
-    <CoverletOutput>$([System.IO.Path]::Combine($(ArtifactsPath), 'coverage', 'coverage'))</CoverletOutput>
-    <CoverletOutputFormat>$(CoverletOutputFormat),cobertura</CoverletOutputFormat>
-    <Exclude>[*Tests]*,[xunit.*]*</Exclude>
-    <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
     <Threshold>92,82,93</Threshold>
   </PropertyGroup>
 </Project>
