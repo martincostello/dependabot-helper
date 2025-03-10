@@ -3,7 +3,6 @@
     <Description>Benchmarks for DependabotHelper.</Description>
     <OutputType>Exe</OutputType>
     <RootNamespace>MartinCostello.DependabotHelper.Benchmarks</RootNamespace>
-    <Summary>$(Description)</Summary>
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
