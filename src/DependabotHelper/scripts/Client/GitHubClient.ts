@@ -7,8 +7,8 @@ export class GitHubClient {
     readonly rateLimits: RateLimits;
 
     constructor(
-        private antiforgeryHeader: string,
-        private antiforgeryToken: string
+        private readonly antiforgeryHeader: string,
+        private readonly antiforgeryToken: string
     ) {
         this.rateLimits = {
             limit: null,
