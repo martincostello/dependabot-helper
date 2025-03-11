@@ -6,7 +6,7 @@ import { OwnerRepositories, UserProfile } from '../Models/index';
 export class StorageClient {
     private readonly key = 'github-profiles';
 
-    constructor(private userId: string) {}
+    constructor(private readonly userId: string) {}
 
     getOwners(): Map<string, string[]> {
         return this.getOwnersForUser(this.userId);
