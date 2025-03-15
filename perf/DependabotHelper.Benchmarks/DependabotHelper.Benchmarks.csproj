@@ -3,7 +3,7 @@
     <Description>Benchmarks for DependabotHelper.</Description>
     <OutputType>Exe</OutputType>
     <RootNamespace>MartinCostello.DependabotHelper.Benchmarks</RootNamespace>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DependabotHelper\DependabotHelper.csproj" />
