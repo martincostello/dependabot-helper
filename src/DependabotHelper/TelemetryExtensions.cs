@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Metrics;
@@ -32,12 +31,6 @@ public static class TelemetryExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        if (IsAzureMonitorConfigured())
-        {
-            services.Configure<AzureMonitorExporterOptions>(
-                (p) => p.ConnectionString = AzureMonitorConnectionString());
-        }
-
         services
             .AddOpenTelemetry()
             .WithMetrics((builder) =>
@@ -48,12 +41,7 @@ public static class TelemetryExtensions
                        .AddProcessInstrumentation()
                        .AddRuntimeInstrumentation();
 
-                if (IsAzureMonitorConfigured())
-                {
-                    builder.AddAzureMonitorMetricExporter();
-                }
-
-                if (IsOtlpCollectorConfigured())
+                if (ApplicationTelemetry.IsOtlpCollectorConfigured())
                 {
                     builder.AddOtlpExporter();
                 }
@@ -74,12 +62,7 @@ public static class TelemetryExtensions
                     builder.SetSampler(new AlwaysOnSampler());
                 }
 
-                if (IsAzureMonitorConfigured())
-                {
-                    builder.AddAzureMonitorTraceExporter();
-                }
-
-                if (IsOtlpCollectorConfigured())
+                if (ApplicationTelemetry.IsOtlpCollectorConfigured())
                 {
                     builder.AddOtlpExporter();
                 }
@@ -96,15 +79,6 @@ public static class TelemetryExtensions
                     options.RecordException = true;
                 });
     }
-
-    internal static bool IsOtlpCollectorConfigured()
-        => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT"));
-
-    internal static bool IsAzureMonitorConfigured()
-        => !string.IsNullOrEmpty(AzureMonitorConnectionString());
-
-    private static string? AzureMonitorConnectionString()
-        => Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
 
     private static void EnrichHttpActivity(Activity activity, HttpRequestMessage request)
     {
