@@ -105,7 +105,7 @@ internal sealed class AppServer : IAsyncDisposable
 
         do
         {
-            string? solutionPath = Directory.EnumerateFiles(directoryInfo.FullName, "DependabotHelper.sln").FirstOrDefault();
+            string? solutionPath = Directory.EnumerateFiles(directoryInfo.FullName, "DependabotHelper.slnx").FirstOrDefault();
 
             if (solutionPath is not null)
             {
