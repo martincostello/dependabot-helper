@@ -1,0 +1,63 @@
+<Solution>
+  <Folder Name="/perf/">
+    <Project Path="perf/DependabotHelper.Benchmarks/DependabotHelper.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path=".vsconfig" />
+    <File Path="build.ps1" />
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="DependabotHelper.ruleset" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="exclusion.dic" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="NuGet.config" />
+    <File Path="omnisharp.json" />
+    <File Path="README.md" />
+    <File Path="startvs.cmd" />
+    <File Path="startvscode.cmd" />
+    <File Path="stylecop.json" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/">
+    <File Path=".github/CONTRIBUTING.md" />
+    <File Path=".github/dependabot.yml" />
+    <File Path=".github/FUNDING.yml" />
+    <File Path=".github/ISSUE_TEMPLATE.md" />
+    <File Path=".github/PULL_REQUEST_TEMPLATE.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/ISSUE_TEMPLATE/">
+    <File Path=".github/ISSUE_TEMPLATE/bug_report.md" />
+    <File Path=".github/ISSUE_TEMPLATE/config.yml" />
+    <File Path=".github/ISSUE_TEMPLATE/feature_request.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/codeql.yml" />
+    <File Path=".github/workflows/dependency-review.yml" />
+    <File Path=".github/workflows/lighthouse.yml" />
+    <File Path=".github/workflows/lint.yml" />
+    <File Path=".github/workflows/ossf-scorecard.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/.vscode/">
+    <File Path=".vscode/extensions.json" />
+    <File Path=".vscode/launch.json" />
+    <File Path=".vscode/settings.json" />
+    <File Path=".vscode/tasks.json" />
+  </Folder>
+  <Folder Name="/Solution Items/docs/">
+    <File Path="docs/faqs.md" />
+    <File Path="docs/README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/DependabotHelper.AppHost/DependabotHelper.AppHost.csproj" />
+    <Project Path="src/DependabotHelper/DependabotHelper.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DependabotHelper.EndToEndTests/DependabotHelper.EndToEndTests.csproj" />
+    <Project Path="tests/DependabotHelper.Tests/DependabotHelper.Tests.csproj" />
+  </Folder>
+</Solution>
