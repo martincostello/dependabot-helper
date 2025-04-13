@@ -99,6 +99,11 @@ public static class DependabotHelperBuilder
 
         builder.WebHost.ConfigureKestrel((p) => p.AddServerHeader = false);
 
+        if (builder.Configuration["Sentry:Dsn"] is { Length: > 0 } dsn)
+        {
+            builder.WebHost.UseSentry(dsn);
+        }
+
         builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi, new ApplicationLambdaSerializer());
 
         return builder;

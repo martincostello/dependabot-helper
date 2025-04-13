@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <GlobalPackageReference Include="MartinCostello.BuildKit" Version="0.5.4" />
+    <GlobalPackageReference Include="MartinCostello.BuildKit" Version="0.6.0" />
     <GlobalPackageReference Include="ReferenceTrimmer" Version="3.3.11" />
     <GlobalPackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
   </ItemGroup>
@@ -47,6 +47,7 @@
     <PackageVersion Include="Polly.RateLimiting" Version="8.5.2" />
     <PackageVersion Include="RazorSlices" Version="0.9.1" />
     <PackageVersion Include="ReportGenerator" Version="5.4.5" />
+    <PackageVersion Include="Sentry.AspNetCore" Version="5.5.1" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
     <PackageVersion Include="xunit.v3" Version="2.0.1" />
