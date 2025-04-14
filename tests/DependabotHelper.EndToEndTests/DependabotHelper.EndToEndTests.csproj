@@ -6,6 +6,9 @@
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\DependabotHelper.Tests\CategoryAttribute.cs" Link="CategoryAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" NoWarn="RT0003" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.Playwright" />

@@ -11,6 +11,7 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper;
 
+[Category("UI")]
 [Collection<HttpServerCollection>]
 public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) : IntegrationTests<HttpServerFixture>(fixture, outputHelper)
 {

@@ -11,6 +11,7 @@ using static MartinCostello.DependabotHelper.Builders.GitHubFixtures;
 
 namespace MartinCostello.DependabotHelper.Infrastructure;
 
+[Category("Integration")]
 public abstract class IntegrationTests<T> : IAsyncLifetime, IDisposable
     where T : AppFixture
 {

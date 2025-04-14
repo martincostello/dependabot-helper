@@ -5,6 +5,7 @@ using Microsoft.Playwright;
 
 namespace MartinCostello.DependabotHelper;
 
+[Category("UI")]
 public class UITests(AppFixture fixture, ITestOutputHelper outputHelper) : EndToEndTest(fixture, outputHelper), IAsyncLifetime
 {
     [Fact]
