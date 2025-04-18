@@ -81,16 +81,14 @@ function DotNetTest {
         "trx"
     )
 
-    if (![string]::IsNullOrEmpty($TestFilter)) {
+    if (-Not [string]::IsNullOrEmpty($TestFilter)) {
         $additionalArgs += "--filter"
         $additionalArgs += $TestFilter
     }
 
-    $isGitHubActions = ![string]::IsNullOrEmpty($env:GITHUB_SHA);
-
-    if ($isGitHubActions -eq $true) {
-        $additionalArgs += "--logger"
-        $additionalArgs += "GitHubActions;report-warnings=false"
+    if (-Not [string]::IsNullOrEmpty(${env:GITHUB_SHA})) {
+        $additionalArgs += "--logger:GitHubActions;report-warnings=false"
+        $additionalArgs += "--logger:junit;LogFilePath=junit.xml"
     }
 
     & $dotnet test --configuration "Release" $additionalArgs
