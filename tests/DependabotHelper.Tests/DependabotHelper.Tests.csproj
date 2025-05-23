@@ -5,7 +5,7 @@
     <NoWarn>$(NoWarn);CA1054;CA2234</NoWarn>
     <OutputType>Exe</OutputType>
     <RootNamespace>MartinCostello.DependabotHelper</RootNamespace>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <UseLocalDevelopmentCertificate>true</UseLocalDevelopmentCertificate>
   </PropertyGroup>
   <ItemGroup>
