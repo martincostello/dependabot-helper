@@ -6,7 +6,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/src/DependabotHelper/bin/Debug/net9.0/DependabotHelper.dll",
+      "program": "${workspaceFolder}/src/DependabotHelper/bin/Debug/net10.0/DependabotHelper.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/DependabotHelper",
       "stopAtEntry": false,
