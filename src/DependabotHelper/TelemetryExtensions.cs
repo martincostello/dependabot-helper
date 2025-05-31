@@ -39,7 +39,7 @@ public static class TelemetryExtensions
                        .AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddProcessInstrumentation()
-                       .AddRuntimeInstrumentation();
+                       .AddMeter("System.Runtime");
 
                 if (ApplicationTelemetry.IsOtlpCollectorConfigured())
                 {
@@ -48,9 +48,6 @@ public static class TelemetryExtensions
             })
             .WithTracing((builder) =>
             {
-                // See https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/Diagnostics.md
-                AppContext.SetSwitch("Azure.Experimental.EnableActivitySource", true);
-
                 builder.SetResourceBuilder(ResourceBuilder)
                        .AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
