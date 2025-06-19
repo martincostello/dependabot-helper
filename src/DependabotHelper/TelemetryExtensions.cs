@@ -6,7 +6,6 @@ using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace MartinCostello.DependabotHelper;
@@ -20,13 +19,6 @@ public static class TelemetryExtensions
         ["raw.githubusercontent.com"] = "GitHub",
     };
 
-    public static ResourceBuilder ResourceBuilder { get; } = ResourceBuilder.CreateDefault()
-        .AddService(ApplicationTelemetry.ServiceName, serviceVersion: ApplicationTelemetry.ServiceVersion)
-        .AddAzureAppServiceDetector()
-        .AddContainerDetector()
-        .AddOperatingSystemDetector()
-        .AddProcessRuntimeDetector();
-
     public static void AddTelemetry(this IServiceCollection services, IWebHostEnvironment environment)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -35,7 +27,7 @@ public static class TelemetryExtensions
             .AddOpenTelemetry()
             .WithMetrics((builder) =>
             {
-                builder.SetResourceBuilder(ResourceBuilder)
+                builder.SetResourceBuilder(ApplicationTelemetry.ResourceBuilder)
                        .AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddProcessInstrumentation()
@@ -48,7 +40,7 @@ public static class TelemetryExtensions
             })
             .WithTracing((builder) =>
             {
-                builder.SetResourceBuilder(ResourceBuilder)
+                builder.SetResourceBuilder(ApplicationTelemetry.ResourceBuilder)
                        .AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddSource(ApplicationTelemetry.ServiceName)
