@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -12,13 +11,6 @@ namespace MartinCostello.DependabotHelper;
 
 public static class TelemetryExtensions
 {
-    private static readonly ConcurrentDictionary<string, string> ServiceMap = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["api.github.com"] = "GitHub",
-        ["github.com"] = "GitHub",
-        ["raw.githubusercontent.com"] = "GitHub",
-    };
-
     public static void AddTelemetry(this IServiceCollection services, IWebHostEnvironment environment)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -60,29 +52,9 @@ public static class TelemetryExtensions
         services.AddOptions<HttpClientTraceInstrumentationOptions>()
                 .Configure<IServiceProvider>((options, provider) =>
                 {
-                    AddServiceMappings(ServiceMap, provider);
-
-                    options.EnrichWithHttpRequestMessage = EnrichHttpActivity;
                     options.EnrichWithHttpResponseMessage = EnrichHttpActivity;
-
                     options.RecordException = true;
                 });
-    }
-
-    private static void EnrichHttpActivity(Activity activity, HttpRequestMessage request)
-    {
-        if (GetTag("server.address", activity.Tags) is { Length: > 0 } hostName)
-        {
-            if (!ServiceMap.TryGetValue(hostName, out var service))
-            {
-                service = hostName;
-            }
-
-            activity.AddTag("peer.service", service);
-        }
-
-        static string? GetTag(string name, IEnumerable<KeyValuePair<string, string?>> tags)
-            => tags.FirstOrDefault((p) => p.Key == name).Value;
     }
 
     private static void EnrichHttpActivity(Activity activity, HttpResponseMessage response)
@@ -95,18 +67,6 @@ public static class TelemetryExtensions
         if (response.Headers.TryGetValues("x-ms-request-id", out var requestId))
         {
             activity.SetTag("az.service_request_id", requestId);
-        }
-    }
-
-    private static void AddServiceMappings(ConcurrentDictionary<string, string> mappings, IServiceProvider serviceProvider)
-    {
-        var github = serviceProvider.GetRequiredService<IOptions<GitHubOptions>>().Value;
-
-        if (github.EnterpriseDomain is { Length: > 0 } url &&
-            Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
-            !mappings.ContainsKey(uri.Host))
-        {
-            mappings[uri.Host] = "GitHub Enterprise";
         }
     }
 }

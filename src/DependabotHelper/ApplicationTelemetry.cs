@@ -14,7 +14,7 @@ public static class ApplicationTelemetry
     public static readonly ActivitySource ActivitySource = new(ServiceName, ServiceVersion);
 
     public static ResourceBuilder ResourceBuilder { get; } = ResourceBuilder.CreateDefault()
-        .AddService(ServiceName, serviceVersion: ServiceVersion)
+        .AddService(ServiceName, ServiceName, ServiceVersion)
         .AddAzureAppServiceDetector()
         .AddContainerDetector()
         .AddHostDetector()
