@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MartinCostello.DependabotHelper</RootNamespace>
     <TargetFramework>net9.0</TargetFramework>
+    <UseLocalDevelopmentCertificate>true</UseLocalDevelopmentCertificate>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -23,8 +24,9 @@
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <ItemGroup>
+    <AssemblyMetadata Include="DevCertificateFileName" Value="$([System.IO.Path]::GetFileName('$(LocalDevelopmentCertificatePath)'))" />
+    <AssemblyMetadata Include="DevCertificatePassword" Value="$(LocalDevelopmentCertificatePassword)" />
     <Content Include="Bundles\*.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="localhost-dev.pfx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DependabotHelper\DependabotHelper.csproj" />
