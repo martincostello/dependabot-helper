@@ -22,28 +22,27 @@ public static class TelemetryExtensions
             builder.UseOtlpExporter();
         }
 
-        services.AddOpenTelemetry()
-                .WithMetrics((builder) =>
-                {
-                    builder.SetResourceBuilder(ApplicationTelemetry.ResourceBuilder)
-                           .AddAspNetCoreInstrumentation()
-                           .AddHttpClientInstrumentation()
-                           .AddProcessInstrumentation()
-                           .AddMeter("System.Runtime");
-                })
-                .WithTracing((builder) =>
-                {
-                    builder.SetResourceBuilder(ApplicationTelemetry.ResourceBuilder)
-                           .AddAspNetCoreInstrumentation()
-                           .AddHttpClientInstrumentation()
-                           .AddSource(ApplicationTelemetry.ServiceName)
-                           .AddSource("Azure.*");
+        builder.WithMetrics((builder) =>
+               {
+                   builder.SetResourceBuilder(ApplicationTelemetry.ResourceBuilder)
+                          .AddAspNetCoreInstrumentation()
+                          .AddHttpClientInstrumentation()
+                          .AddProcessInstrumentation()
+                          .AddMeter("System.Runtime");
+               })
+               .WithTracing((builder) =>
+               {
+                   builder.SetResourceBuilder(ApplicationTelemetry.ResourceBuilder)
+                          .AddAspNetCoreInstrumentation()
+                          .AddHttpClientInstrumentation()
+                          .AddSource(ApplicationTelemetry.ServiceName)
+                          .AddSource("Azure.*");
 
-                    if (environment.IsDevelopment())
-                    {
-                        builder.SetSampler(new AlwaysOnSampler());
-                    }
-                });
+                   if (environment.IsDevelopment())
+                   {
+                       builder.SetSampler(new AlwaysOnSampler());
+                   }
+               });
 
         services.AddOptions<HttpClientTraceInstrumentationOptions>()
                 .Configure((options) =>
