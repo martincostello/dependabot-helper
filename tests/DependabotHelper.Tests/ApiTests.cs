@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using JustEat.HttpClientInterception;
-using MartinCostello.DependabotHelper.Builders;
 using MartinCostello.DependabotHelper.Infrastructure;
 using MartinCostello.DependabotHelper.Models;
 using Microsoft.AspNetCore.Http;
@@ -264,6 +263,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterPutPullRequestMerge(pullRequest1, mergeable: true);
         RegisterPutPullRequestMerge(pullRequest5, mergeable: false);
         RegisterEnableAutomerge(pullRequest5);
+        RegisterNoIssues(repository);
 
         RegisterGetIssues(
             repository,
@@ -484,8 +484,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, DependabotBotName);
-        RegisterGetIssues(repository, GitHubActionsBotName);
+        RegisterNoIssues(repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
@@ -522,8 +521,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository, statusCode: StatusCodes.Status404NotFound);
-        RegisterGetIssues(repository, DependabotBotName);
-        RegisterGetIssues(repository, GitHubActionsBotName);
+        RegisterNoIssues(repository);
 
         using var client = await CreateAuthenticatedClientAsync();
 
@@ -550,8 +548,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetRepository(repository);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         using var client = await CreateAuthenticatedClientAsync();
@@ -584,8 +582,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -638,8 +636,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(pullRequest);
@@ -681,8 +679,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(pullRequest);
@@ -726,6 +724,7 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
         if (requiredReviewers is { } count)
         {
@@ -733,7 +732,6 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
             RegisterGetBranchProtection(pullRequest, protection);
         }
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -778,8 +776,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -826,8 +824,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -870,8 +868,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -919,8 +917,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var reviews = Enumerable.Repeat(() => CreateReview(Guid.NewGuid().ToString(), "APPROVED"), requiredApprovingReviewCount)
@@ -965,8 +963,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -1008,8 +1006,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -1061,8 +1059,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var submittedAt = DateTimeOffset.UtcNow;
@@ -1109,8 +1107,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -1151,8 +1149,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var review = CreateReview("octocat", "APPROVED", "NONE");
@@ -1197,8 +1195,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -1243,8 +1241,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -1289,8 +1287,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(
@@ -1340,8 +1338,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var checkSuite = CreateCheckSuite(status, conclusion);
@@ -1402,8 +1400,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var checkSuite = CreateCheckSuite("completed", conclusion);
@@ -1461,8 +1459,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
@@ -1512,8 +1510,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var checkSuite = CreateCheckSuite("completed", "success");
@@ -1570,8 +1568,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         var checkSuite = CreateCheckSuite("completed", "success");
@@ -1639,10 +1637,10 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
 
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
         RegisterGetStatuses(pullRequest);
+        RegisterNoIssues(repository);
 
         RegisterGetIssues(
             repository,
@@ -1698,8 +1696,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -1751,8 +1749,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -1800,8 +1798,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -1851,8 +1849,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -1902,8 +1900,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -1956,8 +1954,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetPullRequest(pullRequest);
         RegisterGetBranchProtection(pullRequest, protection);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -2014,8 +2012,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetStatuses(
@@ -2069,8 +2067,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
         RegisterGetReviews(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetCheckSuites(
@@ -2122,8 +2120,8 @@ public sealed class ApiTests(AppFixture fixture, ITestOutputHelper outputHelper)
         RegisterGetRepository(repository);
         RegisterGetDependabotContent(repository);
         RegisterGetPullRequest(pullRequest);
+        RegisterNoIssues(repository);
 
-        RegisterGetIssues(repository, DependabotBotName);
         RegisterGetIssues(repository, GitHubActionsBotName, pullRequest.CreateIssue());
 
         RegisterGetReviews(

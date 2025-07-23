@@ -15,6 +15,8 @@ public static class GitHubFixtures
 
     public const string GitHubActionsBotName = "app/github-actions";
 
+    public const string RenovateBotName = "app/renovate";
+
     public static BranchProtectionSettingsBuilder CreateBranchProtection(
         int requiredApprovingReviewCount = 0,
         IList<string>? requiredStatusCheckContexts = null)
