@@ -221,8 +221,8 @@ public class UITests(HttpServerFixture fixture, ITestOutputHelper outputHelper) 
 
         RegisterGetDependabotContent(repository1);
         RegisterGetDependabotContent(repository2, StatusCodes.Status404NotFound);
-        RegisterGetIssues(repository1, GitHubActionsBotName);
-        RegisterGetIssues(repository2, GitHubActionsBotName);
+        RegisterNoIssues(repository1);
+        RegisterNoIssues(repository2);
         RegisterGetRepository(repository1);
         RegisterGetRepository(repository2);
         RegisterGetRepositoriesForCurrentUser(repository1, repository2);

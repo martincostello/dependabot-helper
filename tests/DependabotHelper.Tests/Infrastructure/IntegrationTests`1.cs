@@ -386,6 +386,13 @@ public abstract class IntegrationTests<T> : IAsyncLifetime, IDisposable
             .RegisterWith(Fixture.Interceptor);
     }
 
+    protected void RegisterNoIssues(RepositoryBuilder repository)
+    {
+        RegisterGetIssues(repository, DependabotBotName);
+        RegisterGetIssues(repository, GitHubActionsBotName);
+        RegisterGetIssues(repository, RenovateBotName);
+    }
+
     private static HttpRequestInterceptionBuilder CreateDefaultBuilder()
     {
         var builder = new HttpRequestInterceptionBuilder()
