@@ -21,6 +21,7 @@ var secrets = builder.ExecutionContext.IsPublishMode
     : builder.AddConnectionString(KeyVault);
 
 builder.AddProject<Projects.DependabotHelper>("DependabotHelper")
+       .WithHttpHealthCheck("/version")
        .WithReference(blobStorage)
        .WithReference(secrets)
        .WaitFor(blobStorage);
