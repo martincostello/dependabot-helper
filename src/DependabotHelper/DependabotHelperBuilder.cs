@@ -34,7 +34,7 @@ public static class DependabotHelperBuilder
 
         if (builder.Configuration["ConnectionStrings:AzureBlobStorage"] is { Length: > 0 })
         {
-            builder.AddAzureBlobClient("AzureBlobStorage", (p) => p.Credential = credential);
+            builder.AddAzureBlobServiceClient("AzureBlobStorage", (p) => p.Credential = credential);
         }
 
         builder.Services.AddAuthorization();
