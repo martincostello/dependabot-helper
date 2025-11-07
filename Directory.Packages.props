@@ -6,7 +6,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="1.9.0" />
-    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.13.4" />
+    <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.14.0" />
     <PackageVersion Include="Aspire.Azure.Security.KeyVault" Version="9.5.2" />
     <PackageVersion Include="Aspire.Azure.Storage.Blobs" Version="9.5.2" />
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.5.2" />
