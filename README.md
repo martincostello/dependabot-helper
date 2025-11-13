@@ -1,8 +1,8 @@
 # Dependabot Helper
 
-[![Build status](https://github.com/martincostello/dependabot-helper/actions/workflows/build.yml/badge.svg?branch=main&event=push)](https://github.com/martincostello/dependabot-helper/actions/workflows/build.yml?query=branch%3Amain+event%3Apush)
-[![codecov](https://codecov.io/gh/martincostello/dependabot-helper/branch/main/graph/badge.svg)](https://codecov.io/gh/martincostello/dependabot-helper)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/martincostello/dependabot-helper/badge)](https://securityscorecards.dev/viewer/?uri=github.com/martincostello/dependabot-helper)
+> [!IMPORTANT]  
+> Dependabot Helper is no longer maintained. It is provided as-is for archival purposes only.
+> It may contain bugs and security issues, and should not be used in production environments.
 
 [![The Dependabot Helper homepage](./docs/images/manage.png "Dependabot Helper")](#introduction)
 
